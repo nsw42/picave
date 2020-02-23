@@ -13,7 +13,7 @@ from gi.repository import Gtk  # noqa: E402 # need to call require_version befor
 # from gi.repository import GdkX11
 
 
-class ApplicationWindow(Gtk.Window):
+class ApplicationWindow(Gtk.ApplicationWindow):
     """
     Main application window.
     Creates and manages the following window hierarchy:
@@ -36,6 +36,9 @@ class ApplicationWindow(Gtk.Window):
         Initialise the top-level window
         """
         self.set_border_width(200)
+
+        self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
+        self.connect('key-press-event', self.on_key_press)
 
         self.set_size_request(1920, 1000)
 
@@ -80,14 +83,19 @@ class ApplicationWindow(Gtk.Window):
         listbox.add(row_button("Back", self.on_back_button_clicked))
         return listbox
 
-    def on_video_button_clicked(self, widget):
-        pass
+    def on_back_button_clicked(self, widget):
+        self.stack.set_visible_child_name("main_window_buttons")
+
+    def on_key_press(self, widget, event):
+        if ((event.state & self.quit_key_accel_mods) == self.quit_key_accel_mods) and \
+           (event.keyval == self.quit_key_accel_keyval):
+            Gtk.main_quit()
 
     def on_main_session_clicked(self, widget):
         self.stack.set_visible_child_name("main_session_index")
 
-    def on_back_button_clicked(self, widget):
-        self.stack.set_visible_child_name("main_window_buttons")
+    def on_video_button_clicked(self, widget):
+        pass
 
 
 def parse_args():
