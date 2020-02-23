@@ -2,7 +2,7 @@
 
 ## Set up the python virtualenv
 
-See [development_common.md](development_common.md)
+See [development_common.md](development_common.md) <!-- TODO: Add anchor to this link -->
 
 ## Install platform-specific dependencies
 
@@ -17,4 +17,4 @@ done
 
 ### Install common dependencies
 
-See [development_common.md](development_common.md)
+See [development_common.md](development_common.md) <!-- TODO: Add anchor to this link -->
