@@ -1,12 +1,21 @@
+from collections import namedtuple
 import json
 from urllib.parse import urlparse
 
 import requests
 
 
+VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date'])
+
+
 class VideoFeed(object):
     def __init__(self, json_content):
-        self.feed = json_content  # TODO: Convert this into an actual object
+        self.items = []
+        for item in json_content:
+            self.items.append(VideoFeedItem(**item))
+
+    def __iter__(self):
+        return self.items.__iter__()
 
     @staticmethod
     def init_from_feed_url(url):

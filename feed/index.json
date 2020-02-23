@@ -1,6 +1,14 @@
 [
-    {"name": "GCN: Get Fit Fast: 40 Minute Indoor Cycling Sweetspot Workout – Passo Falzarego",
-     "id":   "yt:vxrEqrdSPgw",
-     "url":  "https://www.youtube.com/watch?v=vxrEqrdSPgw"
+    {
+        "name": "GCN: Get Fit Fast: 40 Minute Indoor Cycling Sweetspot Workout – Passo Falzarego",
+        "id":   "yt:vxrEqrdSPgw",
+        "url":  "https://www.youtube.com/watch?v=vxrEqrdSPgw",
+        "date": "2016-12-23"
+    },
+    {
+        "name": "Power & Strength Training: 40 Minute Indoor Cycling Workout – Passo Giau",
+        "id":   "yt:jFd4R4wEmWg",
+        "url":  "https://www.youtube.com/watch?v=jFd4R4wEmWg",
+        "date": "2017-01-11"
     }
 ]
