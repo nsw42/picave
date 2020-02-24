@@ -1,0 +1,29 @@
+{
+    "title": "Video Feed schema",
+    "description": "Used for validating index.json",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "The name of the video, as displayed on screen",
+                "type": "string"
+            },
+            "id": {
+                "description": "A unique identifier for this video",
+                "type": "string"
+            },
+            "url": {
+                "description": "The URL for the video",
+                "type": "string",
+                "pattern": "^https?:\/\/"
+            },
+            "date": {
+                "description": "The release date for the video",
+                "type": "string",
+                "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+            }
+        },
+        "required": ["name", "id", "url", "date"]
+    }
+}

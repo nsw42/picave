@@ -17,6 +17,7 @@
 
 * `pip install python-vlc`
 * `pip install requests`
+* `pip install jsonschema`
 
 ## Fetch the code
 

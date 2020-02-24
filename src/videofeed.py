@@ -1,7 +1,9 @@
 from collections import namedtuple
 import json
+import pathlib
 from urllib.parse import urlparse
 
+import jsonschema
 import requests
 
 
@@ -10,6 +12,12 @@ VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date'])
 
 class VideoFeed(object):
     def __init__(self, json_content):
+        # Schema validation
+        schema_filename = pathlib.Path(__file__).parent / 'videofeed.schema.json'
+        schema = json.load(open(schema_filename))
+        jsonschema.validate(instance=json_content, schema=schema)  # throws on validation error
+
+        # Schema validation successful; now initialise items array
         self.items = []
         for item in json_content:
             self.items.append(VideoFeedItem(**item))
@@ -53,8 +61,7 @@ class VideoFeed(object):
         Create and initialise a VideoFeed object by reading the given URL
         """
         response = requests.get(url)
-        if response.status_code == 200:
-            return VideoFeed(response.json())
-        else:
+        if response.status_code != 200:
             # TODO: Error handling
             raise Exception("Could not read %s" % url)
+        return VideoFeed(response.json())
