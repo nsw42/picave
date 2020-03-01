@@ -1,0 +1,57 @@
+{
+    "title": "Config file schema",
+    "description": "Validation for config.json",
+    "type": "object",
+    "properties": {
+        "executables": {
+            "description": "Where to find executables",
+            "type": "array",
+            "items": { "$ref": "#/definitions/executable" }
+        },
+        "filetypes": {
+            "description": "Which player to use for which file extension",
+            "type": "array",
+            "items": { "$ref": "#/definitions/player" }
+        },
+        "video_cache_directory": {
+            "description": "Where to store cached video files",
+            "type": "string"
+        }
+    },
+    "definitions": {
+        "executable": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The name of the binary",
+                    "type": "string",
+                    "enum": ["mplayer", "omxplayer", "vlc", "youtube-dl"]
+                },
+                "path": {
+                    "description": "The path of the binary",
+                    "type": "string"
+                }
+            }
+        },
+        "player": {
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "description": "The extension of the file, including the leading dot",
+                    "type": "string",
+                    "enum": [".mp3", ".mp4", ".mkv"]
+                },
+                "player": {
+                    "description": "The player to use to play this type of file",
+                    "type": "string",
+                    "enum": ["mplayer", "omxplayer", "vlc"]
+                },
+                "options": {
+                    "description": "Command-line arguments for the player",
+                    "type": "string"
+                }
+            },
+            "required": ["ext", "player"]
+        }
+    }
+}

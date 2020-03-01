@@ -1,8 +1,9 @@
 from argparse import ArgumentParser
 import pathlib
+import sys
 
-import vlc
-
+from config import Config
+from videocache import VideoCache
 from videofeed import VideoFeed
 
 import gi
@@ -24,11 +25,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
          * main session index (a listbox of videos)
     """
 
-    def __init__(self, main_session_feed):
+    def __init__(self, config: Config, main_session_feed: VideoFeed, video_cache: VideoCache):
+        self.config = config
         self.main_session_feed = main_session_feed
+        self.video_cache = video_cache
         Gtk.Window.__init__(self, title="Pi Cave")
-        self.connect("destroy", Gtk.main_quit)
-        self.connect("delete-event", Gtk.main_quit)
+        self.connect("destroy", self.on_quit)
+        self.connect("delete-event", self.on_quit)
         self._init_main_window()
 
     def _init_main_window(self):
@@ -68,10 +71,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         """
         Initialise the window showing the main session video index
         """
-        def row_button(label, handler):
+        def row_button(label, handler, filename):
             button = Gtk.Button(label=label)
             button.connect('clicked', handler)
             button.set_can_focus(False)
+            button.video_file = filename
             row = Gtk.ListBoxRow()
             row.add(button)
             row.connect('activate', handler)
@@ -79,8 +83,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         listbox = Gtk.ListBox()
         for video in self.main_session_feed:
-            listbox.add(row_button(video.name, self.on_video_button_clicked))
-        listbox.add(row_button("Back", self.on_back_button_clicked))
+            listbox.add(row_button(video.name, self.on_video_button_clicked, video.url))
+        listbox.add(row_button("Back", self.on_back_button_clicked, None))
         return listbox
 
     def on_back_button_clicked(self, widget):
@@ -94,25 +98,41 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def on_main_session_clicked(self, widget):
         self.stack.set_visible_child_name("main_session_index")
 
+    def on_quit(self, *args):
+        self.video_cache.stop_download()
+        Gtk.main_quit()
+
     def on_video_button_clicked(self, widget):
-        pass
+        print(widget.video_file)
+        # self.config.play()
 
 
 def parse_args():
     parser = ArgumentParser()
+    parser.add_argument('-c', '--config', metavar='FILENAME', action='store', type=pathlib.Path,
+                        help="Load configuration from FILENAME. "
+                             "Default %(default)s")
     parser.add_argument('--session-feed-url', metavar='URL', action='store',
                         help="Specify where to find the session video index feed. "
                              "Default %(default)s")
+    default_config = pathlib.Path.home() / '.picaverc'
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
-    parser.set_defaults(session_feed_url=default_feed.resolve().as_uri())
+    parser.set_defaults(config=default_config,
+                        session_feed_url=default_feed.resolve().as_uri())
     args = parser.parse_args()
+    if args.config.exists():
+        args.config = Config(args.config)
+    else:
+        print("WARNING: Configuration file not found", file=sys.stderr)
+        args.config = Config()
     return args
 
 
 def main():
     args = parse_args()
     video_feed = VideoFeed.init_from_feed_url(args.session_feed_url)
-    window = ApplicationWindow(video_feed)
+    video_cache = VideoCache(args.config, video_feed)
+    window = ApplicationWindow(args.config, video_feed, video_cache)
     window.show_all()
     Gtk.main()
 

@@ -16,7 +16,7 @@
             "url": {
                 "description": "The URL for the video",
                 "type": "string",
-                "pattern": "^https?:\/\/"
+                "pattern": "^https?://"
             },
             "date": {
                 "description": "The release date for the video",
