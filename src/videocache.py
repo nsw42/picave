@@ -8,11 +8,12 @@ from videofeed import VideoFeed, VideoFeedItem
 
 
 class VideoCache(object):
-    def __init__(self, config: Config, feed: VideoFeed):
+    def __init__(self, config: Config, feed: VideoFeed, update_cache: bool):
         super().__init__()
         self.config = config
         self.feed = feed
         self.cached_downloads = {}
+        self.update_cache = update_cache
         self.active_downloads = {}
         self.child_process = None  # subprocess.Popen instance
         self.terminate_download_thread_flag = None  # threading.Event
@@ -21,7 +22,7 @@ class VideoCache(object):
             self._init_download_cache(feed_item)  # populate self.cached_downloads
 
         self.youtube_dl = self.config.executables.get('youtube-dl')
-        if not all(self.cached_downloads.values()):
+        if update_cache and not all(self.cached_downloads.values()):
             if self.youtube_dl:
                 self.start_filling_cache()
             else:
