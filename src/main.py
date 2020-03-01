@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import logging
 import pathlib
 import sys
 
@@ -12,6 +13,26 @@ from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version
 
 # gi.require_version('GdkX11', '3.0')
 # from gi.repository import GdkX11
+
+
+def downloaded_icon():
+    theme = Gtk.IconTheme()
+    if sys.platform == 'darwin':
+        # default search path with `brew install adwaita-icon-theme` didn't work
+        theme.append_search_path('/usr/local/Cellar/adwaita-icon-theme/3.34.3/share/icons/')  # TODO: Remove this??
+
+    for icon_to_try in ('emblem-ok-symbolic',
+                        'emblem-downloads',
+                        'emblem-shared'):
+        try:
+            pixbuf = theme.load_icon(icon_to_try, 32, 0)
+        except GLib.GError:
+            continue
+        return pixbuf
+
+    logging.warning("Unable to find an icon to represent a downloaded video")
+
+    return None
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
@@ -45,15 +66,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.set_size_request(1920, 1000)
 
+        self.downloaded_icon = downloaded_icon()
+
         main_window_buttons = self._init_main_window_buttons()
-        main_session_index_window = self._init_main_session_index_window()
+        self.main_session_listbox = self._init_main_session_index_window()
 
         self.stack = Gtk.Stack()
         self.add(self.stack)
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(1000)
         self.stack.add_named(main_window_buttons, "main_window_buttons")
-        self.stack.add_named(main_session_index_window, "main_session_index")
+        self.stack.add_named(self.main_session_listbox, "main_session_index")
 
     def _init_main_window_buttons(self):
         """
@@ -71,44 +94,29 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         """
         Initialise the window showing the main session video index
         """
-        theme = Gtk.IconTheme()
-        if sys.platform == 'darwin':
-            # default search path with `brew install adwaita-icon-theme` didn't work
-            theme.append_search_path('/usr/local/Cellar/adwaita-icon-theme/3.34.3/share/icons/')  # TODO: Remove this??
-
-        def downloaded_icon():
-            for icon_to_try in ('emblem-ok-symbolic',
-                                'emblem-downloads',
-                                'emblem-shared'):
-                try:
-                    pixbuf = theme.load_icon(icon_to_try, 32, 0)
-                except GLib.GError:
-                    continue
-                img = Gtk.Image()
-                img.set_from_pixbuf(pixbuf)
-                return img
 
         def row_button(label, handler, feed_item: VideoFeedItem):
             button = Gtk.Button(label=label)
             button.connect('clicked', handler)
             button.set_can_focus(False)
             video_file = self.video_cache.cached_downloads.get(feed_item.id) if feed_item else None
+            overlay = Gtk.Overlay()
+            overlay.add(button)
+            image = Gtk.Image()
+            overlay.add_overlay(image)
+            overlay.set_overlay_pass_through(image, True)
+            # This next method is deprecated, but it actually works
+            # The documentation shows a mismatch: Gtk.Image has
+            # xalign / yalign, yet the Overlay looks at the
+            # halign / valign parameters
+            image.set_alignment(Gtk.Align.END, Gtk.Align.START)
+            # the actual image is set when we show the window,
+            # so that it reacts as the cache populates
             row = Gtk.ListBoxRow()
+            row.feed_item = feed_item
             row.video_file = video_file
-            if video_file:
-                overlay = Gtk.Overlay()
-                overlay.add(button)
-                icon = downloaded_icon()
-                # This next method is deprecated, but it actually works
-                # The documentation shows a mismatch: Gtk.Image has
-                # xalign / yalign, yet the Overlay looks at the
-                # halign / valign parameters
-                icon.set_alignment(Gtk.Align.END, Gtk.Align.START)
-                overlay.add_overlay(icon)
-                overlay.set_overlay_pass_through(icon, True)
-                row.add(overlay)
-            else:
-                row.add(button)
+            row.image = image
+            row.add(overlay)
             row.connect('activate', handler)
             return row
 
@@ -127,6 +135,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             Gtk.main_quit()
 
     def on_main_session_clicked(self, widget):
+        # Update the display whether files are in the cache
+        index = 0
+        while True:
+            row = self.main_session_listbox.get_row_at_index(index)
+            if row is None:
+                break
+            if row.feed_item and self.video_cache.cached_downloads.get(row.feed_item.id):
+                row.image.set_from_pixbuf(self.downloaded_icon)
+            else:
+                row.image.clear()
+            index += 1
+        # and show the index of videos
         self.stack.set_visible_child_name("main_session_index")
 
     def on_quit(self, *args):
@@ -158,7 +178,7 @@ def parse_args():
     if args.config.exists():
         args.config = Config(args.config)
     else:
-        print("WARNING: Configuration file not found", file=sys.stderr)
+        logging.warnign("Configuration file not found")
         args.config = Config()
     return args
 
