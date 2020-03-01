@@ -35,11 +35,14 @@ class VideoCache(object):
         if len(files) == 1:
             if files[0].suffix in ('.mp4', '.mkv'):
                 return files[0]
+            if files[0].suffix != '.part':
+                logging.warning("Unfamiliar file extension on downloaded video file: %s" % files[0])
             # This may be a partial download; we'll need to continue
             # record that the video is not in the cache; youtube-dl will do the rest
             return None
         else:
-            raise Exception('Multiple cache files found for video. Unsure which to pick')  # TODO: Proper error handling
+            # TODO: youtube-dl was probably interrupted while merging the video and audio
+            return None
 
     def _init_download_cache(self, feed_item: VideoFeedItem):
         source, _ = feed_item.id.split(':')
