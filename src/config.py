@@ -56,6 +56,9 @@ class Config(object):
         json_content = json.load(handle)
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
+        for binary in self.schema['definitions']['executable']['properties']['name']['enum']:
+            self.executables[binary] = config_binary(json_content, binary)
+
         player_lookup = {
             'mplayer': MPlayer,
             'omxplayer': OmxPlayer,
@@ -64,14 +67,13 @@ class Config(object):
         for player_config in json_content['filetypes']:
             ext = player_config['ext']
             player = player_config['player']
-            self.players[ext] = player_lookup[player]
+            cmd_args = player_config.get('options', [])
+            player_class = player_lookup[player]
+            self.players[ext] = player_class(self.executables[player], cmd_args)
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser()
         if not self.video_cache_directory.exists():
             raise Exception('Video cache directory does not exist')  # TODO: Use a proper exception type
-
-        for binary in self.schema['definitions']['executable']['properties']['name']['enum']:
-            self.executables[binary] = config_binary(json_content, binary)
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()

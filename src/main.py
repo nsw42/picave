@@ -98,8 +98,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def row_button(label, handler, feed_item: VideoFeedItem):
             button = Gtk.Button(label=label)
             button.connect('clicked', handler)
+            button.feed_item = feed_item
             button.set_can_focus(False)
-            video_file = self.video_cache.cached_downloads.get(feed_item.id) if feed_item else None
             overlay = Gtk.Overlay()
             overlay.add(button)
             image = Gtk.Image()
@@ -114,7 +114,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # so that it reacts as the cache populates
             row = Gtk.ListBoxRow()
             row.feed_item = feed_item
-            row.video_file = video_file
             row.image = image
             row.add(overlay)
             row.connect('activate', handler)
@@ -154,9 +153,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         Gtk.main_quit()
 
     def on_video_button_clicked(self, widget):
-        # widget is the ListBoxRow
-        print(widget.video_file)
-        # self.config.play()
+        # widget is the Button (in the ListBoxRow)
+        feed_item = widget.feed_item
+        if feed_item:
+            video_file = self.video_cache.cached_downloads.get(feed_item.id)
+            if video_file:
+                # play it!
+                player = self.config.players[video_file.suffix]
+                player.play(video_file)
 
 
 def parse_args():
