@@ -45,7 +45,7 @@ class VideoCache(object):
             return None
 
     def _init_download_cache(self, feed_item: VideoFeedItem):
-        source, _ = feed_item.id.split(':')
+        source, _ = feed_item.id.split('_')
         if source == 'yt':
             cache_file = self._find_youtube_cache(feed_item.id)
         else:
