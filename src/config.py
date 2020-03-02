@@ -1,4 +1,5 @@
 import json
+import logging
 import pathlib
 import shutil
 import sys
@@ -37,6 +38,7 @@ class Config(object):
     def __init__(self, filename=None):
         self.executables = {}  # map from executable name to pathlib.Path
         self.players = {}  # map from '.ext' to Player instance
+        self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
@@ -71,9 +73,15 @@ class Config(object):
             player_class = player_lookup[player]
             self.players[ext] = player_class(self.executables[player], cmd_args)
 
-        self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser()
-        if not self.video_cache_directory.exists():
-            raise Exception('Video cache directory does not exist')  # TODO: Use a proper exception type
+        self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
+        if not self.video_cache_directory.is_dir():
+            # TODO: Use a proper exception type
+            raise Exception('Video cache directory does not exist or is not a directory')
+
+        self.warm_up_music_directory = pathlib.Path(json_content['warm_up_music_directory']).expanduser().resolve()
+        if not self.warm_up_music_directory.is_dir():
+            logging.warning('Warm up music directory does not exist or is not a directory')
+            self.warm_up_music_directory = None
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()

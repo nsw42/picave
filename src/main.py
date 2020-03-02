@@ -4,6 +4,7 @@ import pathlib
 import sys
 
 from config import Config
+from mp3index import Mp3Index
 from videocache import VideoCache
 from videofeed import VideoFeed, VideoFeedItem
 
@@ -46,8 +47,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
          * main session index (a listbox of videos)
     """
 
-    def __init__(self, config: Config, main_session_feed: VideoFeed, video_cache: VideoCache):
+    def __init__(self,
+                 config: Config,
+                 mp3index: Mp3Index,
+                 main_session_feed: VideoFeed,
+                 video_cache: VideoCache):
         self.config = config
+        self.mp3index = mp3index
         self.main_session_feed = main_session_feed
         self.video_cache = video_cache
         Gtk.Window.__init__(self, title="Pi Cave")
@@ -82,13 +88,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         """
         Initialise the buttons on the main window
         """
+        self.warm_up_button = Gtk.Button(label="Warm up")
+        self.warm_up_button.connect("clicked", self.on_warm_up_button_clicked)
+        self.warm_up_button.set_sensitive(self.mp3index is not None)
+
         self.main_session_button = Gtk.Button(label="Main session")
         self.main_session_button.connect("clicked", self.on_main_session_clicked)
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.vbox.pack_start(self.main_session_button, expand=True, fill=True, padding=250)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.pack_start(self.warm_up_button, expand=True, fill=True, padding=100)
+        vbox.pack_start(self.main_session_button, expand=True, fill=True, padding=100)
 
-        return self.vbox
+        return vbox
 
     def _init_main_session_index_window(self):
         """
@@ -162,6 +173,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 player = self.config.players[video_file.suffix]
                 player.play(video_file)
 
+    def on_warm_up_button_clicked(self, widget):
+        pass
+
 
 def parse_args():
     parser = ArgumentParser()
@@ -190,8 +204,9 @@ def parse_args():
 def main():
     args = parse_args()
     video_feed = VideoFeed.init_from_feed_url(args.session_feed_url)
+    warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config, video_feed, video_cache)
+    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache)
     window.show_all()
     Gtk.main()
 

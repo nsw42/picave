@@ -16,6 +16,10 @@
         "video_cache_directory": {
             "description": "Where to store cached video files",
             "type": "string"
+        },
+        "warm_up_music_directory": {
+            "description": "Where to find MP3s of music for warm-up",
+            "type": "string"
         }
     },
     "definitions": {
