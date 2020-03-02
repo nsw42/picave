@@ -174,7 +174,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 player.play(video_file)
 
     def on_warm_up_button_clicked(self, widget):
-        pass
+        mp3file = self.mp3index.random_file()
+        player = self.config.players['.mp3']
+        player.play(mp3file)
 
 
 def parse_args():
@@ -187,12 +189,17 @@ def parse_args():
                              "Default %(default)s")
     parser.add_argument('--no-cache', action='store_false', dest='update_cache',
                         help="Disable populating the cache")
+    parser.add_argument('--debug', action='store_true',
+                        help="Show debug information")
     default_config = pathlib.Path.home() / '.picaverc'
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
     parser.set_defaults(config=default_config,
+                        debug=False,
                         session_feed_url=default_feed.resolve().as_uri(),
                         update_cache=True)
     args = parser.parse_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
     if args.config.exists():
         args.config = Config(args.config)
     else:

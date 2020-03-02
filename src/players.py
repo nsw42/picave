@@ -6,11 +6,23 @@ class PlayerInterface(object):
         self.exe = exe
         self.default_args = default_args
 
+    def is_finished(self):
+        raise NotImplementedError()
+
     def play(self, filepath):
         raise NotImplementedError()
 
 
 class MPlayer(PlayerInterface):
+    def play(self, filepath):
+        cmd = [self.exe] + self.default_args + [filepath]
+        subprocess.Popen(cmd)
+
+
+class Mpg123(PlayerInterface):
+    def is_finished(self):
+        return False
+
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
         subprocess.Popen(cmd)

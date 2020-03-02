@@ -11,3 +11,6 @@ class Mp3Index(object):
         self.files = []
         for root, dirs, files in os.walk(parentdir):
             self.files.extend([pathlib.Path(root) / file for file in files if file.endswith('.mp3')])
+
+    def random_file(self):
+        return random.choice(self.files)
