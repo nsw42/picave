@@ -182,7 +182,7 @@ def parse_args():
     if args.config.exists():
         args.config = Config(args.config)
     else:
-        logging.warnign("Configuration file not found")
+        logging.warning("Configuration file not found")
         args.config = Config()
     return args
 
