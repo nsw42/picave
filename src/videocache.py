@@ -14,7 +14,6 @@ class VideoCache(object):
         self.feed = feed
         self.cached_downloads = {}
         self.update_cache = update_cache
-        self.active_downloads = {}
         self.child_process = None  # subprocess.Popen instance
         self.terminate_download_thread_flag = None  # threading.Event
 
