@@ -24,4 +24,11 @@
 * Go through Raspbian setup wizard
 * Install OS updates and reboot
 
+## Install additional software
 
+* `sudo apt remove youtube-dl`
+* Install youtube-dl as per <https://ytdl-org.github.io/youtube-dl/download.html>
+* `pip install jsonschema`
+* `pip install mutagen`
+* `pip install python-vlc`
+* `pip install requests`

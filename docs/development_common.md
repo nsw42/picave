@@ -5,19 +5,13 @@
 * install [pyenv](https://github.com/pyenv/pyenv#installation)
 * install [pyenv virtualenv](https://github.com/pyenv/pyenv-virtualenv)
 * If you have an appropriate python version already (like the Pi)
-    * install [pyenv register](https://github.com/doloopwhile/pyenv-register)
-    * register the system python3: `pyenv register /usr/bin/python3.7`
+  * install [pyenv register](https://github.com/doloopwhile/pyenv-register)
+  * register the system python3: `pyenv register /usr/bin/python3.7`
 * Otherwise build and installl an appropriate version
-    * `pyenv install 3.7.3`
-        * You can use later without problems
+  * `pyenv install 3.7.3`
+    * You can use later without problems
 * Create a virtualenv for development: `pyenv virtualenv system-3.7.3 picave`
-    * Note this may need updating, depending on Raspbian python version
-
-## Install common dependencies
-
-* `pip install python-vlc`
-* `pip install requests`
-* `pip install jsonschema`
+  * Note this may need updating, depending on Raspbian python version
 
 ## Fetch the code
 
@@ -25,9 +19,8 @@
   * Will need updating when this moves to github
 * `cd picave`
 
-
 ## Start editing
 
 * `code-oss .`
-    * Install the python extension
-    * Select the appropriate Python version
+  * Install the python extension
+  * Select the appropriate Python version
