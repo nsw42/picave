@@ -131,7 +131,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def on_key_press(self, widget, event):
         if ((event.state & self.quit_key_accel_mods) == self.quit_key_accel_mods) and \
            (event.keyval == self.quit_key_accel_keyval):
-            Gtk.main_quit()
+            self.on_quit()
 
     def on_main_session_clicked(self, widget):
         # Update the display whether files are in the cache
@@ -182,7 +182,7 @@ def parse_args():
     if args.config.exists():
         args.config = Config(args.config)
     else:
-        logging.warnign("Configuration file not found")
+        logging.warning("Configuration file not found")
         args.config = Config()
     return args
 
