@@ -32,7 +32,13 @@ class Mpg123(PlayerInterface):
         self.child = None
 
     def is_finished(self):
-        return False
+        if self.child:
+            finished = self.child.poll() is not None
+            if finished:
+                self.child = None
+            return finished
+        else:
+            return True
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]

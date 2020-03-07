@@ -104,6 +104,20 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_main_button_clicked(self, widget):
+        self.play_random_file()
+        assert self.stack
+        self.stack.set_visible_child_name("mp3_info_box")
+        GLib.timeout_add_seconds(1, self.on_timer_tick)
+
+    def on_timer_tick(self):
+        if self.player:
+            if self.player.is_finished():
+                self.play_random_file()
+            return True
+        else:
+            return False  # don't call me again
+
+    def play_random_file(self):
         mp3filename = self.mp3index.random_file()
         reader = mutagen.File(mp3filename)
         artist = reader.tags.get('TPE1')
@@ -119,8 +133,6 @@ class Mp3IndexWindow(PlayerWindowInterface):
             self.duration_label.set_label('%02u:%02u' % (mm, ss))
         self.player = self.config.players['.mp3']
         self.player.play(mp3filename)
-        assert self.stack
-        self.stack.set_visible_child_name("mp3_info_box")
 
     def stop(self):
         if self.player:
