@@ -86,8 +86,11 @@ class Mp3IndexWindow(PlayerWindowInterface):
         for (label, font_size) in ((self.artist_label, 36),
                                    (self.title_label, 48),
                                    (self.duration_label, 24)):
-            font_desc = Pango.FontDescription("sans bold %u" % font_size)
-            label.modify_font(font_desc)
+            attr_list = Pango.AttrList()
+            attr_list.insert(Pango.attr_family_new("sans"))
+            attr_list.insert(Pango.attr_weight_new(Pango.Weight.BOLD))
+            attr_list.insert(Pango.attr_size_new(font_size * 1000))
+            label.set_attributes(attr_list)
 
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
