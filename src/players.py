@@ -36,7 +36,10 @@ class Mpg123(PlayerInterface):
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
-        self.child = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+        self.child = subprocess.Popen(cmd,
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL)
 
     def stop(self):
         if self.child:
