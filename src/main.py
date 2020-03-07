@@ -164,6 +164,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
 
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
+        self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
     def add_windows_to_stack(self, stack):
         self.stack = stack
@@ -200,25 +201,22 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         stack.add_named(self.main_session_listbox, "main_session_listbox")
 
     def on_main_button_clicked(self, widget):
-        # Update the display whether files are in the cache
-        index = 0
-        while True:
-            row = self.main_session_listbox.get_row_at_index(index)
-            if row is None:
-                break
-            if row.feed_item and self.video_cache.cached_downloads.get(row.feed_item.id):
-                row.image.set_from_pixbuf(self.downloaded_icon)
-            elif row.feed_item and self.video_cache.active_download_id == row.feed_item.id:
-                row.image.set_from_pixbuf(self.downloading_icon)
-            else:
-                row.image.clear()
-            index += 1
+        self.update_download_icons()
+        if self.downloading_id:
+            GLib.timeout_add_seconds(2, self.on_check_download_complete)
         # and show the index of videos
         assert self.stack
         self.stack.set_visible_child_name("main_session_listbox")
 
     def on_back_button_clicked(self, widget):
         self.stack.set_visible_child_name("main_window_buttons")
+
+    def on_check_download_complete(self):
+        if self.downloading_id is None:
+            return False  # don't call me again
+        if self.video_cache.active_download_id != self.downloading_id:
+            self.update_download_icons()
+        return self.downloading_id is not None
 
     def on_video_button_clicked(self, widget):
         # widget is the Button (in the ListBoxRow)
@@ -229,6 +227,23 @@ class MainSessionIndexWindow(PlayerWindowInterface):
                 # play it!
                 player = self.config.players[video_file.suffix]
                 player.play(video_file)
+
+    def update_download_icons(self):
+        # Update the display whether files are in the cache
+        index = 0
+        self.downloading_id = None
+        while True:
+            row = self.main_session_listbox.get_row_at_index(index)
+            if row is None:
+                break
+            if row.feed_item and self.video_cache.cached_downloads.get(row.feed_item.id):
+                row.image.set_from_pixbuf(self.downloaded_icon)
+            elif row.feed_item and self.video_cache.active_download_id == row.feed_item.id:
+                self.downloading_id = row.feed_item.id
+                row.image.set_from_pixbuf(self.downloading_icon)
+            else:
+                row.image.clear()
+            index += 1
 
     def stop(self):
         pass  # TODO
