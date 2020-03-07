@@ -12,20 +12,36 @@ class PlayerInterface(object):
     def play(self, filepath):
         raise NotImplementedError()
 
+    def stop(self):
+        raise NotImplementedError()
+
 
 class MPlayer(PlayerInterface):
+    def __init__(self, exe, default_args):
+        super().__init__(exe, default_args)
+        self.child = None
+
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
-        subprocess.Popen(cmd)
+        self.child = subprocess.Popen(cmd)
 
 
 class Mpg123(PlayerInterface):
+    def __init__(self, exe, default_args):
+        super().__init__(exe, default_args)
+        self.child = None
+
     def is_finished(self):
         return False
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
-        subprocess.Popen(cmd)
+        self.child = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+
+    def stop(self):
+        if self.child:
+            self.child.kill()
+            self.child = None
 
 
 class OmxPlayer(PlayerInterface):

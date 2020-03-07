@@ -67,6 +67,7 @@ class Mp3IndexWindow(PlayerWindowInterface):
                  mp3index: Mp3Index):
         super().__init__(config, label)
         self.mp3index = mp3index
+        self.player = None  # set when the main button is clicked and we start playing
         self.button.set_sensitive(self.mp3index is not None)
 
     def add_windows_to_stack(self, stack):
@@ -90,6 +91,8 @@ class Mp3IndexWindow(PlayerWindowInterface):
         stack.add_named(box, "mp3_info_box")
 
     def on_back_button_clicked(self, widget):
+        self.player.stop()
+        self.player = None
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_main_button_clicked(self, widget):
@@ -106,8 +109,8 @@ class Mp3IndexWindow(PlayerWindowInterface):
             mm = duration_ss / 60.
             ss = duration_ss - int(mm) * 60
             self.duration_label.set_label('%02u:%02u' % (mm, ss))
-        player = self.config.players['.mp3']
-        player.play(mp3filename)
+        self.player = self.config.players['.mp3']
+        self.player.play(mp3filename)
         assert self.stack
         self.stack.set_visible_child_name("mp3_info_box")
 
