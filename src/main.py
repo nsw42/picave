@@ -12,7 +12,7 @@ from videofeed import VideoFeed, VideoFeedItem
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import GLib, Gtk, Pango  # noqa: E402 # need to call require_version before we can call this
 
 # gi.require_version('GdkX11', '3.0')
 # from gi.repository import GdkX11
@@ -79,6 +79,12 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.title_label.set_label("<title>")
         self.duration_label = Gtk.Label()
         self.duration_label.set_label("<duration>")
+
+        for (label, font_size) in ((self.artist_label, 36),
+                                   (self.title_label, 48),
+                                   (self.duration_label, 24)):
+            font_desc = Pango.FontDescription("sans bold %u" % font_size)
+            label.modify_font(font_desc)
 
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
