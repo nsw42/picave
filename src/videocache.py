@@ -8,7 +8,10 @@ from videofeed import VideoFeed, VideoFeedItem
 
 
 class VideoCache(object):
-    def __init__(self, config: Config, feed: VideoFeed, update_cache: bool):
+    def __init__(self,
+                 config: Config,
+                 feed: VideoFeed,
+                 update_cache: bool):
         super().__init__()
         self.config = config
         self.feed = feed
@@ -16,6 +19,7 @@ class VideoCache(object):
         self.update_cache = update_cache
         self.child_process = None  # subprocess.Popen instance
         self.terminate_download_thread_flag = None  # threading.Event
+        self.active_download_id = None
 
         for feed_item in feed.items:
             self._init_download_cache(feed_item)  # populate self.cached_downloads
@@ -27,7 +31,8 @@ class VideoCache(object):
             else:
                 logging.warn("youtube-dl not found. Unable to auto-populate video cache")
 
-    def _find_youtube_cache(self, feed_id: str):
+    def _find_youtube_cache(self,
+                            feed_id: str):
         files = list(self.config.video_cache_directory.glob(feed_id + '.*'))
         if not files:
             return None
@@ -43,7 +48,8 @@ class VideoCache(object):
             # TODO: youtube-dl was probably interrupted while merging the video and audio
             return None
 
-    def _init_download_cache(self, feed_item: VideoFeedItem):
+    def _init_download_cache(self,
+                             feed_item: VideoFeedItem):
         source, _ = feed_item.id.split('_')
         if source == 'yt':
             cache_file = self._find_youtube_cache(feed_item.id)
@@ -62,7 +68,8 @@ class VideoCache(object):
             self.terminate_download_thread_flag = threading.Event()
             self.download_thread.start()
 
-    def download_videos(self, videos_to_download):
+    def download_videos(self,
+                        videos_to_download: list):
         # Need to run the child with Popen so that we can kill it if the main thread dies
         for feed_item in videos_to_download:
             logging.info("Downloading %s" % feed_item.name)
@@ -73,7 +80,9 @@ class VideoCache(object):
                    '--download-archive', os.devnull,
                    feed_item.url]
             self.child_process = subprocess.Popen(cmd)
+            self.active_download_id = feed_item.id
             rtn = self.child_process.wait()
+            self.active_download_id = None
             if rtn == 0:
                 # download successful
                 self._init_download_cache(feed_item)

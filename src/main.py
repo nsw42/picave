@@ -18,15 +18,13 @@ from gi.repository import GLib, Gtk, Pango  # noqa: E402 # need to call require_
 # from gi.repository import GdkX11
 
 
-def downloaded_icon():
+def load_icon(icons_to_try):
     theme = Gtk.IconTheme()
     if sys.platform == 'darwin':
         # default search path with `brew install adwaita-icon-theme` didn't work
         theme.append_search_path('/usr/local/Cellar/adwaita-icon-theme/3.34.3/share/icons/')  # TODO: Remove this??
 
-    for icon_to_try in ('emblem-ok-symbolic',
-                        'emblem-downloads',
-                        'emblem-shared'):
+    for icon_to_try in icons_to_try:
         try:
             pixbuf = theme.load_icon(icon_to_try, 32, 0)
         except GLib.GError:
@@ -36,6 +34,17 @@ def downloaded_icon():
     logging.warning("Unable to find an icon to represent a downloaded video")
 
     return None
+
+
+def downloaded_icon():
+    return load_icon(['emblem-ok-symbolic',
+                      'emblem-downloads',
+                      'emblem-shared'])
+
+
+def downloading_icon():
+    return load_icon(['emblem-synchronizing-symbolic',
+                      'emblem-synchronizing'])
 
 
 class PlayerWindowInterface(object):
@@ -154,6 +163,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         self.video_cache = video_cache
 
         self.downloaded_icon = downloaded_icon()
+        self.downloading_icon = downloading_icon()
 
     def add_windows_to_stack(self, stack):
         self.stack = stack
@@ -198,6 +208,8 @@ class MainSessionIndexWindow(PlayerWindowInterface):
                 break
             if row.feed_item and self.video_cache.cached_downloads.get(row.feed_item.id):
                 row.image.set_from_pixbuf(self.downloaded_icon)
+            elif row.feed_item and self.video_cache.active_download_id == row.feed_item.id:
+                row.image.set_from_pixbuf(self.downloading_icon)
             else:
                 row.image.clear()
             index += 1
