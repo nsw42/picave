@@ -36,75 +36,60 @@ def downloaded_icon():
     return None
 
 
-class ApplicationWindow(Gtk.ApplicationWindow):
-    """
-    Main application window.
-    Creates and manages the following window hierarchy:
-     * main window
-       * Stack
-         * main window buttons
-           * Button("Main session") (clicking shows the main session video index)
-         * main session index (a listbox of videos)
-    """
-
+class PlayerWindowInterface(object):
     def __init__(self,
                  config: Config,
-                 mp3index: Mp3Index,
-                 main_session_feed: VideoFeed,
-                 video_cache: VideoCache):
+                 label: str):
+        """
+        The constructor for any kind of player window does the following:
+         * create a button, which is to be shown on the front page
+         * create one or more windows, to show the player
+         * set up the click handler for that button to switch the stack to the appropriate window
+        """
+        self.stack = None  # initialised during add_windows_to_stack
         self.config = config
+        self.button = Gtk.Button(label=label)
+        self.button.connect("clicked", self.on_main_button_clicked)
+
+    def add_windows_to_stack(self, stack):
+        raise NotImplementedError()
+
+    def on_main_button_clicked(self, widget):
+        raise NotImplementedError()  # to be overridden by the relevant player window class
+
+
+class Mp3IndexWindow(PlayerWindowInterface):
+    def __init__(self,
+                 config: Config,
+                 label: str,
+                 mp3index: Mp3Index):
+        super().__init__(config, label)
         self.mp3index = mp3index
-        self.main_session_feed = main_session_feed
+        self.button.set_sensitive(self.mp3index is not None)
+
+    def on_main_button_clicked(self, widget):
+        mp3file = self.mp3index.random_file()
+        player = self.config.players['.mp3']
+        player.play(mp3file)
+
+    def add_windows_to_stack(self, stack):
+        pass
+
+
+class MainSessionIndexWindow(PlayerWindowInterface):
+    def __init__(self,
+                 config: Config,
+                 label: str,
+                 session_feed: VideoFeed,
+                 video_cache: VideoCache):
+        super().__init__(config, label)
+        self.session_feed = session_feed
         self.video_cache = video_cache
-        Gtk.Window.__init__(self, title="Pi Cave")
-        self.connect("destroy", self.on_quit)
-        self.connect("delete-event", self.on_quit)
-        self._init_main_window()
-
-    def _init_main_window(self):
-        """
-        Initialise the top-level window
-        """
-        self.set_border_width(200)
-
-        self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
-        self.connect('key-press-event', self.on_key_press)
-
-        self.set_size_request(1920, 1000)
 
         self.downloaded_icon = downloaded_icon()
 
-        main_window_buttons = self._init_main_window_buttons()
-        self.main_session_listbox = self._init_main_session_index_window()
-
-        self.stack = Gtk.Stack()
-        self.add(self.stack)
-        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        self.stack.set_transition_duration(1000)
-        self.stack.add_named(main_window_buttons, "main_window_buttons")
-        self.stack.add_named(self.main_session_listbox, "main_session_index")
-
-    def _init_main_window_buttons(self):
-        """
-        Initialise the buttons on the main window
-        """
-        self.warm_up_button = Gtk.Button(label="Warm up")
-        self.warm_up_button.connect("clicked", self.on_warm_up_button_clicked)
-        self.warm_up_button.set_sensitive(self.mp3index is not None)
-
-        self.main_session_button = Gtk.Button(label="Main session")
-        self.main_session_button.connect("clicked", self.on_main_session_clicked)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.pack_start(self.warm_up_button, expand=True, fill=True, padding=100)
-        vbox.pack_start(self.main_session_button, expand=True, fill=True, padding=100)
-
-        return vbox
-
-    def _init_main_session_index_window(self):
-        """
-        Initialise the window showing the main session video index
-        """
+    def add_windows_to_stack(self, stack):
+        self.stack = stack
 
         def row_button(label, handler, feed_item: VideoFeedItem):
             button = Gtk.Button(label=label)
@@ -130,21 +115,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             row.connect('activate', handler)
             return row
 
-        listbox = Gtk.ListBox()
-        for video in self.main_session_feed:
-            listbox.add(row_button(video.name, self.on_video_button_clicked, video))
-        listbox.add(row_button("Back", self.on_back_button_clicked, None))
-        return listbox
+        self.main_session_listbox = Gtk.ListBox()
+        for video in self.session_feed:
+            self.main_session_listbox.add(row_button(video.name, self.on_video_button_clicked, video))
+        self.main_session_listbox.add(row_button("Back", self.on_back_button_clicked, None))
 
-    def on_back_button_clicked(self, widget):
-        self.stack.set_visible_child_name("main_window_buttons")
+        stack.add_named(self.main_session_listbox, "main_session_listbox")
 
-    def on_key_press(self, widget, event):
-        if ((event.state & self.quit_key_accel_mods) == self.quit_key_accel_mods) and \
-           (event.keyval == self.quit_key_accel_keyval):
-            Gtk.main_quit()
-
-    def on_main_session_clicked(self, widget):
+    def on_main_button_clicked(self, widget):
         # Update the display whether files are in the cache
         index = 0
         while True:
@@ -157,11 +135,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 row.image.clear()
             index += 1
         # and show the index of videos
-        self.stack.set_visible_child_name("main_session_index")
+        assert self.stack
+        self.stack.set_visible_child_name("main_session_listbox")
 
-    def on_quit(self, *args):
-        self.video_cache.stop_download()
-        Gtk.main_quit()
+    def on_back_button_clicked(self, widget):
+        self.stack.set_visible_child_name("main_window_buttons")
 
     def on_video_button_clicked(self, widget):
         # widget is the Button (in the ListBoxRow)
@@ -173,10 +151,64 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 player = self.config.players[video_file.suffix]
                 player.play(video_file)
 
-    def on_warm_up_button_clicked(self, widget):
-        mp3file = self.mp3index.random_file()
-        player = self.config.players['.mp3']
-        player.play(mp3file)
+
+class ApplicationWindow(Gtk.ApplicationWindow):
+    """
+    Main application window.
+    Creates and manages the following window hierarchy:
+     * main window
+       * Stack
+         * main window buttons
+           * Button("Main session") (clicking shows the main session video index)
+         * main session index (a listbox of videos)
+    """
+
+    def __init__(self,
+                 config: Config,
+                 mp3index: Mp3Index,
+                 main_session_feed: VideoFeed,
+                 video_cache: VideoCache):
+        self.config = config
+        self.main_session_feed = main_session_feed
+        self.video_cache = video_cache
+        Gtk.Window.__init__(self, title="Pi Cave")
+        self.connect("destroy", self.on_quit)
+        self.connect("delete-event", self.on_quit)
+
+        self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
+        self.connect('key-press-event', self.on_key_press)
+
+        warmup_handler = Mp3IndexWindow(self.config, "Warm up", mp3index)
+        main_session_handler = MainSessionIndexWindow(self.config, "Main session", main_session_feed, self.video_cache)
+
+        # Initialise the window
+        self.set_border_width(200)
+
+        self.set_size_request(1920, 1000)
+
+        self.stack = Gtk.Stack()
+        self.add(self.stack)
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.stack.set_transition_duration(1000)
+
+        main_window_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        main_window_buttons.pack_start(warmup_handler.button, expand=True, fill=True, padding=100)
+        main_window_buttons.pack_start(main_session_handler.button, expand=True, fill=True, padding=100)
+        self.stack.add_named(main_window_buttons, "main_window_buttons")
+
+        warmup_handler.add_windows_to_stack(self.stack)
+        main_session_handler.add_windows_to_stack(self.stack)
+
+        self.stack.set_visible_child_name("main_window_buttons")
+
+    def on_key_press(self, widget, event):
+        if ((event.state & self.quit_key_accel_mods) == self.quit_key_accel_mods) and \
+           (event.keyval == self.quit_key_accel_keyval):
+            Gtk.main_quit()
+
+    def on_quit(self, *args):
+        self.video_cache.stop_download()
+        Gtk.main_quit()
 
 
 def parse_args():
