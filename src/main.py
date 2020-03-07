@@ -59,6 +59,9 @@ class PlayerWindowInterface(object):
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant player window class
 
+    def stop(self):
+        raise NotImplementedError()
+
 
 class Mp3IndexWindow(PlayerWindowInterface):
     def __init__(self,
@@ -97,8 +100,7 @@ class Mp3IndexWindow(PlayerWindowInterface):
         stack.add_named(box, "mp3_info_box")
 
     def on_back_button_clicked(self, widget):
-        self.player.stop()
-        self.player = None
+        self.stop()
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_main_button_clicked(self, widget):
@@ -119,6 +121,11 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.player.play(mp3filename)
         assert self.stack
         self.stack.set_visible_child_name("mp3_info_box")
+
+    def stop(self):
+        if self.player:
+            self.player.stop()
+            self.player = None
 
 
 class MainSessionIndexWindow(PlayerWindowInterface):
@@ -196,6 +203,9 @@ class MainSessionIndexWindow(PlayerWindowInterface):
                 player = self.config.players[video_file.suffix]
                 player.play(video_file)
 
+    def stop(self):
+        pass  # TODO
+
 
 class ApplicationWindow(Gtk.ApplicationWindow):
     """
@@ -223,8 +233,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
         self.connect('key-press-event', self.on_key_press)
 
-        warmup_handler = Mp3IndexWindow(self.config, "Warm up", mp3index)
-        main_session_handler = MainSessionIndexWindow(self.config, "Main session", main_session_feed, self.video_cache)
+        self.warmup_handler = Mp3IndexWindow(self.config, "Warm up", mp3index)
+        self.main_session_handler = MainSessionIndexWindow(self.config,
+                                                           "Main session",
+                                                           main_session_feed,
+                                                           self.video_cache)
 
         # Initialise the window
         self.set_border_width(200)
@@ -237,12 +250,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.stack.set_transition_duration(1000)
 
         main_window_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        main_window_buttons.pack_start(warmup_handler.button, expand=True, fill=True, padding=100)
-        main_window_buttons.pack_start(main_session_handler.button, expand=True, fill=True, padding=100)
+        main_window_buttons.pack_start(self.warmup_handler.button, expand=True, fill=True, padding=100)
+        main_window_buttons.pack_start(self.main_session_handler.button, expand=True, fill=True, padding=100)
         self.stack.add_named(main_window_buttons, "main_window_buttons")
 
-        warmup_handler.add_windows_to_stack(self.stack)
-        main_session_handler.add_windows_to_stack(self.stack)
+        self.warmup_handler.add_windows_to_stack(self.stack)
+        self.main_session_handler.add_windows_to_stack(self.stack)
 
         self.stack.set_visible_child_name("main_window_buttons")
 
@@ -253,6 +266,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def on_quit(self, *args):
         self.video_cache.stop_download()
+        self.warmup_handler.stop()
+        self.main_session_handler.stop()
         Gtk.main_quit()
 
 
