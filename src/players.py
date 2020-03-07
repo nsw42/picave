@@ -32,7 +32,10 @@ class MPlayer(PlayerInterface):
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
-        self.child = subprocess.Popen(cmd)
+        self.child = subprocess.Popen(cmd,
+                                      stdin=subprocess.DEVNULL,
+                                      stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL)
 
 
 class Mpg123(PlayerInterface):
@@ -43,7 +46,7 @@ class Mpg123(PlayerInterface):
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
         self.child = subprocess.Popen(cmd,
-                                      stdin=subprocess.PIPE,
+                                      stdin=subprocess.DEVNULL,
                                       stdout=subprocess.DEVNULL,
                                       stderr=subprocess.DEVNULL)
 
