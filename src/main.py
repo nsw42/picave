@@ -69,6 +69,29 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.mp3index = mp3index
         self.button.set_sensitive(self.mp3index is not None)
 
+    def add_windows_to_stack(self, stack):
+        self.stack = stack
+
+        self.artist_label = Gtk.Label()
+        self.artist_label.set_label("<artist>")
+        self.title_label = Gtk.Label()
+        self.title_label.set_label("<title>")
+        self.duration_label = Gtk.Label()
+        self.duration_label.set_label("<duration>")
+
+        self.back_button = Gtk.Button(label="Back")
+        self.back_button.connect('clicked', self.on_back_button_clicked)
+
+        box = Gtk.VBox()
+        box.pack_start(self.artist_label, expand=True, fill=True, padding=10)
+        box.pack_start(self.title_label, expand=True, fill=True, padding=10)
+        box.pack_start(self.duration_label, expand=True, fill=True, padding=10)
+        box.pack_start(self.back_button, expand=True, fill=True, padding=10)
+        stack.add_named(box, "mp3_info_box")
+
+    def on_back_button_clicked(self, widget):
+        self.stack.set_visible_child_name("main_window_buttons")
+
     def on_main_button_clicked(self, widget):
         mp3filename = self.mp3index.random_file()
         reader = mutagen.File(mp3filename)
@@ -87,22 +110,6 @@ class Mp3IndexWindow(PlayerWindowInterface):
         player.play(mp3filename)
         assert self.stack
         self.stack.set_visible_child_name("mp3_info_box")
-
-    def add_windows_to_stack(self, stack):
-        self.stack = stack
-
-        self.artist_label = Gtk.Label()
-        self.artist_label.set_label("<artist>")
-        self.title_label = Gtk.Label()
-        self.title_label.set_label("<title>")
-        self.duration_label = Gtk.Label()
-        self.duration_label.set_label("<duration>")
-
-        box = Gtk.VBox()
-        box.pack_start(self.artist_label, expand=True, fill=True, padding=10)
-        box.pack_start(self.title_label, expand=True, fill=True, padding=10)
-        box.pack_start(self.duration_label, expand=True, fill=True, padding=10)
-        stack.add_named(box, "mp3_info_box")
 
 
 class MainSessionIndexWindow(PlayerWindowInterface):
