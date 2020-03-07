@@ -3,6 +3,8 @@ import logging
 import pathlib
 import sys
 
+import mutagen
+
 from config import Config
 from mp3index import Mp3Index
 from videocache import VideoCache
@@ -68,12 +70,39 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.button.set_sensitive(self.mp3index is not None)
 
     def on_main_button_clicked(self, widget):
-        mp3file = self.mp3index.random_file()
+        mp3filename = self.mp3index.random_file()
+        reader = mutagen.File(mp3filename)
+        artist = reader.tags.get('TPE1')
+        if artist:
+            self.artist_label.set_label('\n'.join(artist.text))
+        title = reader.tags.get('TIT2')
+        if title:
+            self.title_label.set_label('\n'.join(title.text))
+        duration_ss = reader.info.length
+        if duration_ss:
+            mm = duration_ss / 60.
+            ss = duration_ss - int(mm) * 60
+            self.duration_label.set_label('%02u:%02u' % (mm, ss))
         player = self.config.players['.mp3']
-        player.play(mp3file)
+        player.play(mp3filename)
+        assert self.stack
+        self.stack.set_visible_child_name("mp3_info_box")
 
     def add_windows_to_stack(self, stack):
-        pass
+        self.stack = stack
+
+        self.artist_label = Gtk.Label()
+        self.artist_label.set_label("<artist>")
+        self.title_label = Gtk.Label()
+        self.title_label.set_label("<title>")
+        self.duration_label = Gtk.Label()
+        self.duration_label.set_label("<duration>")
+
+        box = Gtk.VBox()
+        box.pack_start(self.artist_label, expand=True, fill=True, padding=10)
+        box.pack_start(self.title_label, expand=True, fill=True, padding=10)
+        box.pack_start(self.duration_label, expand=True, fill=True, padding=10)
+        stack.add_named(box, "mp3_info_box")
 
 
 class MainSessionIndexWindow(PlayerWindowInterface):
