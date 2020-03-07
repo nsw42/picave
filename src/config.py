@@ -9,7 +9,7 @@ from players import MPlayer, OmxPlayer, VlcPlayer
 
 
 def config_binary(json_content, binary):
-    for config_binary in json_content['executables']:
+    for config_binary in json_content.get('executables', {}):
         if config_binary['name'] == binary:
             return pathlib.Path(config_binary['path'])
     return default_binary(binary)
