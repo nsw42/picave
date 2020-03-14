@@ -92,14 +92,15 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.duration_label = Gtk.Label()
         self.duration_label.set_label("<duration>")
 
-        for (label, font_size) in ((self.artist_label, 36),
-                                   (self.title_label, 48),
-                                   (self.duration_label, 24)):
-            attr_list = Pango.AttrList()
-            attr_list.insert(Pango.attr_family_new("sans"))
-            attr_list.insert(Pango.attr_weight_new(Pango.Weight.BOLD))
-            attr_list.insert(Pango.attr_size_new(font_size * 1000))
-            label.set_attributes(attr_list)
+        if sys.platform == 'darwin':
+            for (label, font_size) in ((self.artist_label, 36),
+                                       (self.title_label, 48),
+                                       (self.duration_label, 24)):
+                attr_list = Pango.AttrList()
+                attr_list.insert(Pango.attr_family_new("sans"))
+                attr_list.insert(Pango.attr_weight_new(Pango.Weight.BOLD))
+                attr_list.insert(Pango.attr_size_new(font_size * 1000))
+                label.set_attributes(attr_list)
 
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
@@ -285,7 +286,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                                                            self.video_cache)
 
         # Initialise the window
-        self.set_border_width(200)
+        # self.set_border_width(200)
 
         self.set_size_request(1920, 1000)
 
