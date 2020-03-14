@@ -17,7 +17,8 @@ class PlayerInterface(object):
             return True
 
     def play(self, filepath):
-        raise NotImplementedError()
+        cmd = [self.exe] + self.default_args + [filepath.resolve()]
+        self.child = subprocess.Popen(cmd)
 
     def stop(self):
         if self.child:
@@ -39,19 +40,12 @@ class MPlayer(PlayerInterface):
 
 
 class Mpg123(PlayerInterface):
-    def __init__(self, exe, default_args):
-        super().__init__(exe, default_args)
-        self.child = None
-
-    def play(self, filepath):
-        cmd = [self.exe] + self.default_args + [filepath]
-        self.child = subprocess.Popen(cmd,
-                                      stdin=subprocess.DEVNULL,
-                                      stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL)
+    # nothing needed - default behaviour is fine
+    pass
 
 
 class OmxPlayer(PlayerInterface):
+    # nothing needed - default behaviour is fine
     pass
 
 
