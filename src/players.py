@@ -41,7 +41,12 @@ class MPlayer(PlayerInterface):
 
 class Mpg123(PlayerInterface):
     # nothing needed - default behaviour is fine
-    pass
+    def play(self, filepath):
+        cmd = [self.exe] + self.default_args + [filepath.resolve()]
+        self.child = subprocess.Popen(cmd,
+                                      stdin=subprocess.DEVNULL,
+                                      stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL)
 
 
 class OmxPlayer(PlayerInterface):
