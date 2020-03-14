@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import datetime
 import logging
 import pathlib
 import sys
@@ -15,7 +16,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Pango  # noqa: E402 # need to call require_version before we can call this
 
 gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
+from gi.repository import Gdk  # noqa: E402 # need to call require_version before we can call this
 
 
 def load_icon(icons_to_try):
@@ -45,6 +46,12 @@ def downloaded_icon():
 def downloading_icon():
     return load_icon(['emblem-synchronizing-symbolic',
                       'emblem-synchronizing'])
+
+
+def format_mm_ss(ss):
+    mm = ss / 60.
+    ss = ss - int(mm) * 60
+    return '%02u:%02u' % (mm, ss)
 
 
 class PlayerWindowInterface(object):
@@ -89,12 +96,17 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.artist_label.set_label("<artist>")
         self.title_label = Gtk.Label()
         self.title_label.set_label("<title>")
+        self.time_label = Gtk.Label()
+        self.time_label.set_label("<current time>")
+        self.time_label.set_halign(Gtk.Align.END)  # right align
         self.duration_label = Gtk.Label()
-        self.duration_label.set_label("<duration>")
+        self.duration_label.set_label("/ <duration>")
+        self.duration_label.set_halign(Gtk.Align.START)  # left align
 
         if sys.platform == 'darwin':
             for (label, font_size) in ((self.artist_label, 36),
                                        (self.title_label, 48),
+                                       (self.time_label, 24),
                                        (self.duration_label, 24)):
                 attr_list = Pango.AttrList()
                 attr_list.insert(Pango.attr_family_new("sans"))
@@ -105,12 +117,15 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
 
-        box = Gtk.VBox()
-        box.pack_start(self.artist_label, expand=True, fill=True, padding=10)
-        box.pack_start(self.title_label, expand=True, fill=True, padding=10)
-        box.pack_start(self.duration_label, expand=True, fill=True, padding=10)
-        box.pack_start(self.back_button, expand=True, fill=True, padding=10)
-        stack.add_named(box, "mp3_info_box")
+        vbox = Gtk.VBox()
+        vbox.pack_start(self.artist_label, expand=True, fill=True, padding=10)
+        vbox.pack_start(self.title_label, expand=True, fill=True, padding=10)
+        hbox = Gtk.HBox()
+        hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
+        hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=10)
+        vbox.pack_start(self.back_button, expand=True, fill=True, padding=10)
+        stack.add_named(vbox, "mp3_info_box")
 
     def on_back_button_clicked(self, widget):
         self.stop()
@@ -124,6 +139,13 @@ class Mp3IndexWindow(PlayerWindowInterface):
 
     def on_timer_tick(self):
         if self.player:
+            if self.play_started_at:
+                delta = datetime.datetime.now() - self.play_started_at
+                time_str = format_mm_ss(delta.seconds)
+            else:
+                time_str = ''
+            self.time_label.set_label(time_str)
+
             if self.player.is_finished():
                 self.play_random_file()
             return True
@@ -141,9 +163,13 @@ class Mp3IndexWindow(PlayerWindowInterface):
             self.title_label.set_label('\n'.join(title.text))
         duration_ss = reader.info.length
         if duration_ss:
-            mm = duration_ss / 60.
-            ss = duration_ss - int(mm) * 60
-            self.duration_label.set_label('%02u:%02u' % (mm, ss))
+            self.time_label.set_label(format_mm_ss(0))
+            self.duration_label.set_label('/ %s' % format_mm_ss(duration_ss))
+            self.play_started_at = datetime.datetime.now()
+        else:
+            self.time_label.set_label('')
+            self.duration_label.set_label('')
+            self.play_random_file = None  # don't attempt to show time in file
         self.player = self.config.players['.mp3']
         self.player.play(mp3filename)
 
