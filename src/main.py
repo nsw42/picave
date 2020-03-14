@@ -14,8 +14,8 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Pango  # noqa: E402 # need to call require_version before we can call this
 
-# gi.require_version('GdkX11', '3.0')
-# from gi.repository import GdkX11
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk
 
 
 def load_icon(icons_to_try):
@@ -286,9 +286,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                                                            self.video_cache)
 
         # Initialise the window
-        # self.set_border_width(200)
+        self.set_border_width(200)
 
-        self.set_size_request(1920, 1000)
+        display = Gdk.Display().get_default()
+        monitor = display.get_primary_monitor()
+        workarea = monitor.get_workarea()
+        self.set_size_request(workarea.width, workarea.height)
 
         self.stack = Gtk.Stack()
         self.add(self.stack)
