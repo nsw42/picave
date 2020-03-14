@@ -193,12 +193,15 @@ class MainSessionIndexWindow(PlayerWindowInterface):
             row.connect('activate', handler)
             return row
 
+        self.main_session_index_window = Gtk.ScrolledWindow()
+        self.main_session_index_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         self.main_session_listbox = Gtk.ListBox()
+        self.main_session_index_window.add(self.main_session_listbox)
         for video in self.session_feed:
             self.main_session_listbox.add(row_button(video.name, self.on_video_button_clicked, video))
         self.main_session_listbox.add(row_button("Back", self.on_back_button_clicked, None))
 
-        stack.add_named(self.main_session_listbox, "main_session_listbox")
+        stack.add_named(self.main_session_index_window, "main_session_index_window")
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
@@ -206,7 +209,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
             GLib.timeout_add_seconds(2, self.on_check_download_complete)
         # and show the index of videos
         assert self.stack
-        self.stack.set_visible_child_name("main_session_listbox")
+        self.stack.set_visible_child_name("main_session_index_window")
 
     def on_back_button_clicked(self, widget):
         self.stack.set_visible_child_name("main_window_buttons")
