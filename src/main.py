@@ -103,7 +103,7 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.duration_label.set_label("/ <duration>")
         self.duration_label.set_halign(Gtk.Align.START)  # left align
 
-        if sys.platform == 'darwin':
+        if Pango.version() >= 14400:
             for (label, font_size) in ((self.artist_label, 36),
                                        (self.title_label, 48),
                                        (self.time_label, 24),
