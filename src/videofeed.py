@@ -7,7 +7,7 @@ import jsonschema
 import requests
 
 
-VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date'])
+VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date', 'duration'])
 
 
 class VideoFeed(object):
