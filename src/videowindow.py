@@ -3,12 +3,12 @@ import sys
 
 from config import Config
 from videocache import VideoCache
-from videofeed import VideoFeed, VideoFeedItem
+from videofeed import VideoFeed
 from windowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
 
 
 def load_icon(icons_to_try):
@@ -49,47 +49,61 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         super().__init__(config, label)
         self.session_feed = session_feed
         self.video_cache = video_cache
+        self.stack = None
+        self.list_store = None
 
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
+    def build_list_store(self):
+        # columns in the tree model:
+        #   0: video name (str)
+        #   1: video id (str)
+        #   2: video date (str)
+        #   3: video duration (str)
+        #   4: download status (pixbuf)
+        list_store = Gtk.ListStore(str, str, str, str, GdkPixbuf.Pixbuf)
+        for video in self.session_feed:
+            list_store.append([video.name, video.id, video.date, video.duration, None])
+        return list_store
+
     def add_windows_to_stack(self, stack):
         self.stack = stack
 
-        def row_button(label, handler, feed_item: VideoFeedItem):
-            button = Gtk.Button(label=label)
-            button.connect('clicked', handler)
-            button.feed_item = feed_item
-            button.set_can_focus(False)
-            overlay = Gtk.Overlay()
-            overlay.add(button)
-            image = Gtk.Image()
-            overlay.add_overlay(image)
-            overlay.set_overlay_pass_through(image, True)
-            # This next method is deprecated, but it actually works
-            # The documentation shows a mismatch: Gtk.Image has
-            # xalign / yalign, yet the Overlay looks at the
-            # halign / valign parameters
-            image.set_alignment(Gtk.Align.END, Gtk.Align.START)
-            # the actual image is set when we show the window,
-            # so that it reacts as the cache populates
-            row = Gtk.ListBoxRow()
-            row.feed_item = feed_item
-            row.image = image
-            row.add(overlay)
-            row.connect('activate', handler)
-            return row
+        self.list_store = self.build_list_store()
+        tree = Gtk.TreeView(self.list_store)
+        tree.connect('row-activated', self.on_video_button_clicked)
 
-        self.main_session_index_window = Gtk.ScrolledWindow()
-        self.main_session_index_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
-        self.main_session_listbox = Gtk.ListBox()
-        self.main_session_index_window.add(self.main_session_listbox)
-        for video in self.session_feed:
-            self.main_session_listbox.add(row_button(video.name, self.on_video_button_clicked, video))
-        self.main_session_listbox.add(row_button("Back", self.on_back_button_clicked, None))
+        title_renderer = Gtk.CellRendererText()
+        title_column = Gtk.TreeViewColumn("Title", title_renderer, text=0)
+        title_column.set_sort_column_id(0)
+        tree.append_column(title_column)
 
-        stack.add_named(self.main_session_index_window, "main_session_index_window")
+        date_renderer = Gtk.CellRendererText()
+        date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
+        date_column.set_sort_column_id(2)
+        tree.append_column(date_column)
+
+        duration_renderer = Gtk.CellRendererText()
+        duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=3)
+        duration_column.set_sort_column_id(3)
+        tree.append_column(duration_column)
+
+        icon_renderer = Gtk.CellRendererPixbuf()
+        icon_column = Gtk.TreeViewColumn("Status", icon_renderer, pixbuf=4)
+        tree.append_column(icon_column)
+
+        scrollable_tree = Gtk.ScrolledWindow()
+        scrollable_tree.set_vexpand(True)
+        scrollable_tree.add(tree)
+
+        back_button = Gtk.Button(label='Back')
+        back_button.connect('clicked', self.on_back_button_clicked)
+        vbox = Gtk.VBox()
+        vbox.pack_start(scrollable_tree, expand=True, fill=True, padding=10)
+        vbox.pack_start(back_button, expand=False, fill=True, padding=10)
+        stack.add_named(vbox, "main_session_index_window")
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
@@ -109,32 +123,27 @@ class MainSessionIndexWindow(PlayerWindowInterface):
             self.update_download_icons()
         return self.downloading_id is not None
 
-    def on_video_button_clicked(self, widget):
+    def on_video_button_clicked(self, widget, selected_row, column):
         # widget is the Button (in the ListBoxRow)
-        feed_item = widget.feed_item
-        if feed_item:
-            video_file = self.video_cache.cached_downloads.get(feed_item.id)
-            if video_file:
-                # play it!
-                player = self.config.players[video_file.suffix]
-                player.play(video_file)
+        video_id = self.list_store[selected_row][1]
+        video_file = self.video_cache.cached_downloads.get(video_id)
+        if video_file:
+            # play it!
+            player = self.config.players[video_file.suffix]
+            player.play(video_file)
 
     def update_download_icons(self):
         # Update the display whether files are in the cache
-        index = 0
         self.downloading_id = None
-        while True:
-            row = self.main_session_listbox.get_row_at_index(index)
-            if row is None:
-                break
-            if row.feed_item and self.video_cache.cached_downloads.get(row.feed_item.id):
-                row.image.set_from_pixbuf(self.downloaded_icon)
-            elif row.feed_item and self.video_cache.active_download_id == row.feed_item.id:
-                self.downloading_id = row.feed_item.id
-                row.image.set_from_pixbuf(self.downloading_icon)
+        for row in self.list_store:
+            video_id = row[1]
+            if self.video_cache.cached_downloads.get(video_id):
+                row[4] = self.downloaded_icon
+            elif row.feed_item and self.video_cache.active_download_id == video_id:
+                self.downloading_id = video_id
+                row[4] = self.downloading_icon
             else:
-                row.image.clear()
-            index += 1
+                row[4] = None
 
     def stop(self):
         pass  # TODO
