@@ -103,16 +103,24 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.duration_label.set_label("/ <duration>")
         self.duration_label.set_halign(Gtk.Align.START)  # left align
 
-        if Pango.version() >= 14400:
-            for (label, font_size) in ((self.artist_label, 36),
-                                       (self.title_label, 48),
-                                       (self.time_label, 24),
-                                       (self.duration_label, 24)):
+        for (label, font_size) in ((self.artist_label, 36),
+                                   (self.title_label, 48),
+                                   (self.time_label, 24),
+                                   (self.duration_label, 24)):
+            if Pango.version() >= 14400:
                 attr_list = Pango.AttrList()
                 attr_list.insert(Pango.attr_family_new("sans"))
                 attr_list.insert(Pango.attr_weight_new(Pango.Weight.BOLD))
                 attr_list.insert(Pango.attr_size_new(font_size * 1000))
                 label.set_attributes(attr_list)
+            else:
+                context = label.create_pango_context()
+                font_desc = context.get_font_description()
+                font_desc.set_family('sans')
+                font_desc.set_weight(Pango.Weight.BOLD)
+                font_desc.set_size(font_size * Pango.SCALE)
+                label.override_font(font_desc)
+
 
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
