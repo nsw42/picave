@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import logging
 import pathlib
+import sys
 
 from config import Config
 from mp3index import Mp3Index
@@ -96,12 +97,15 @@ def parse_args():
                         help="Disable populating the cache")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
+    parser.add_argument('--selftest', action='store_true',
+                        help="Run unit tests")
     default_config = pathlib.Path.home() / '.picaverc'
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
     parser.set_defaults(config=default_config,
                         debug=False,
                         session_feed_url=default_feed.resolve().as_uri(),
-                        update_cache=True)
+                        update_cache=True,
+                        selftest=False)
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -115,6 +119,12 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if args.selftest:
+        import doctest
+        import videofeed
+        doctest.testmod()
+        doctest.testmod(videofeed)
+        sys.exit()
     video_feed = VideoFeed.init_from_feed_url(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
