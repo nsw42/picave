@@ -1,0 +1,19 @@
+[
+  { "name": "Warm up",        "type": "%FTP",  "cadence":  80,  "effort": "50%",  "duration": "5m" },
+  { "name": "Effort 1 of 7",  "type": "%FTP",  "cadence": 110,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 2 of 7",  "type": "%FTP",  "cadence": 100,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 3 of 7",  "type": "%FTP",  "cadence":  90,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 4 of 7",  "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 5 of 7",  "type": "%FTP",  "cadence":  70,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 6 of 7",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "3m" },
+  { "name": "Effort 7 of 7",  "type": "%FTP",  "cadence":  50,  "effort": "90%",  "duration": "3m" },
+  { "name": "Rest",           "type": "%FTP",  "cadence":  90,  "effort": "40%",  "duration": "4m" },
+  { "name": "Effort 1 of 6",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "Effort 2 of 6",  "type": "%FTP",  "cadence":  70,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "Effort 3 of 6",  "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "Effort 4 of 6",  "type": "%FTP",  "cadence":  90,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "Effort 5 of 6",  "type": "%FTP",  "cadence": 100,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "Effort 6 of 6",  "type": "%FTP",  "cadence": 110,  "effort": "90%",  "duration": "4m" }, 
+  { "name": "MAX EFFORT",     "type": "MAX",   "cadence": 120,  "effort": "MAX",  "duration": "1m" },
+  { "name": "Cool down",      "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "5m" }
+]

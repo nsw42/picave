@@ -1,0 +1,37 @@
+{
+    "title": "Session schema",
+    "description": "Used for validating interval session files",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Friendly name for this interval",
+                "type": "string",
+                "maxLength": 40
+            },
+            "type": {
+                "description": "The type of the individual interval",
+                "type": "string",
+                "enum": ["%FTP", "MAX"]
+            },
+            "cadence": {
+                "description": "Thw target cadence for this interval",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 200
+            },
+            "effort": {
+                "description": "The target effort for this interval",
+                "type": "string",
+                "pattern": "([0-9]+%)|(MAX)"
+            },
+            "duration": {
+                "description": "The duration for this interval",
+                "type": "string",
+                "pattern": "([0-9]+h)? *([0-9]+m)? *([0-9]+s)?"
+            }
+        },
+        "required": ["type", "effort", "duration"]
+    }
+}

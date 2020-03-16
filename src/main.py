@@ -121,11 +121,13 @@ def main():
     args = parse_args()
     if args.selftest:
         import doctest
+        import intervalwindow
         import videofeed
         doctest.testmod()
+        doctest.testmod(intervalwindow)
         doctest.testmod(videofeed)
         sys.exit()
-    video_feed = VideoFeed.init_from_feed_url(args.session_feed_url)
+    video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
     window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache)

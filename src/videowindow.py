@@ -2,6 +2,7 @@ import logging
 import sys
 
 from config import Config
+from intervalwindow import IntervalWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
 from windowinterface import PlayerWindowInterface
@@ -55,6 +56,8 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
+
+        self.interval_window = IntervalWindow(session_feed.url)
 
     def build_list_store(self):
         # columns in the tree model:
@@ -127,10 +130,12 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         # widget is the Button (in the ListBoxRow)
         video_id = self.list_store[selected_row][1]
         video_file = self.video_cache.cached_downloads.get(video_id)
-        if video_file:
+        # TODO: FIX ME
+        if video_file and False:
             # play it!
             player = self.config.players[video_file.suffix]
             player.play(video_file)
+        self.interval_window.show(video_id)
 
     def update_download_icons(self):
         # Update the display whether files are in the cache
