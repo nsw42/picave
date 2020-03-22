@@ -116,6 +116,16 @@ class IntervalWindow(Gtk.DrawingArea):
             # loop, to update interval, interval_start_time and interval_end
 
         interval_remaining = (interval_end - now).seconds
+        interval_pct = (now - interval_start_time).seconds / interval.duration
+
+        context.rectangle(0,
+                          0,
+                          drawingarea.get_allocated_width(),
+                          drawingarea.get_allocated_height() * (1.0 - interval_pct))
+        context.set_source_rgb(1.0, 0.0, 0.0)
+        context.fill_preserve()
+        context.set_source_rgb(0.0, 0.0, 0.0)
+        context.stroke()
 
         context.select_font_face('Sans', cairo.FontSlant.NORMAL, cairo.FontWeight.NORMAL)
         context.set_antialias(cairo.Antialias.SUBPIXEL)
