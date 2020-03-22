@@ -13,7 +13,7 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
 
 
-Interval = namedtuple('Interval', ['name', 'type', 'cadence', 'effort', 'duration', 'end_offset'])
+Interval = namedtuple('Interval', ['name', 'type', 'cadence', 'effort', 'duration', 'start_offset'])
 
 
 def parse_duration(duration_str: str):
@@ -73,13 +73,13 @@ class IntervalWindow(Gtk.DrawingArea):
         urlparts = urlparts._replace(path=new_path)
         uri = urllib.parse.urlunparse(urlparts)
         session = jsonfeed.read_from_uri(uri, 'session.schema.json')
-        session = [Interval(end_offset=0, **interval) for interval in session]
+        session = [Interval(start_offset=0, **interval) for interval in session]
         session = [interval._replace(duration=parse_duration(interval.duration)) for interval in session]
-        end_offset = 0
+        start_offset = 0
         for index in range(len(session)):
             interval = session[index]
-            end_offset += interval.duration
-            interval = interval._replace(end_offset=timedelta(seconds=end_offset))
+            interval = interval._replace(start_offset=timedelta(seconds=start_offset))
+            start_offset += interval.duration
             session[index] = interval
         return session
 
@@ -103,9 +103,10 @@ class IntervalWindow(Gtk.DrawingArea):
                 return
 
             interval = self.intervals[self.current_interval_index]
-            interval_end_time = self.start_time + interval.end_offset
+            interval_start_time = self.start_time + interval.start_offset
+            interval_end = interval_start_time + timedelta(seconds=interval.duration)
 
-            if now < interval_end_time:
+            if now < interval_end:
                 break
 
             self.current_interval_index += 1
@@ -114,7 +115,7 @@ class IntervalWindow(Gtk.DrawingArea):
                 return
             # loop, to update interval, interval_start_time and interval_end
 
-        interval_remaining = (interval_end_time - now).seconds
+        interval_remaining = (interval_end - now).seconds
 
         context.select_font_face('Sans', cairo.FontSlant.NORMAL, cairo.FontWeight.NORMAL)
         context.set_antialias(cairo.Antialias.SUBPIXEL)
