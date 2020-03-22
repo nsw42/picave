@@ -31,7 +31,7 @@ def default_binary(binary):
 
 def default_player(ext):
     # TODO: Will need something more clever than this...
-    return default_binary('vlc')
+    return default_binary('mpv')
 
 
 class Config(object):
