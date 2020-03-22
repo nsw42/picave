@@ -4,19 +4,16 @@ import mutagen
 
 from config import Config
 from mp3index import Mp3Index
+from utils import format_mm_ss
 from windowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango  # noqa: E402 # need to call require_version before we can call this
-
-
-def format_mm_ss(ss):
-    mm = ss / 60.
-    ss = ss - int(mm) * 60
-    return '%02u:%02u' % (mm, ss)
 
 
 class Mp3IndexWindow(PlayerWindowInterface):

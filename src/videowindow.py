@@ -109,6 +109,8 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         vbox.pack_start(back_button, expand=False, fill=True, padding=10)
         stack.add_named(vbox, "main_session_index_window")
 
+        stack.add_named(self.interval_window, "interval_window")
+
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
         if self.downloading_id:
@@ -150,7 +152,8 @@ class MainSessionIndexWindow(PlayerWindowInterface):
             # play it!
             player = self.config.players[video_file.suffix]
             player.play(video_file)
-        self.interval_window.show(video_id)
+        self.interval_window.play(video_id)
+        self.stack.set_visible_child_name("interval_window")
 
     def update_download_icons(self):
         # Update the display whether files are in the cache
