@@ -40,6 +40,7 @@ class Config(object):
         self.players = {}  # map from '.ext' to Player instance
         self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
+        self.ftp = None  # number
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json.load(open(schema_filename))
@@ -90,6 +91,8 @@ class Config(object):
         else:
             self.warm_up_music_directory = None
 
+        self.ftp = json_content['FTP']
+
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()
         if not self.video_cache_directory.exists():
@@ -100,3 +103,5 @@ class Config(object):
 
         for binary in self.schema['definitions']['executable']['properties']['name']['enum']:
             self.executables[binary] = default_binary(binary)
+
+        self.ftp = 200

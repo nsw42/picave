@@ -2,6 +2,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import urllib.parse
 
+from config import Config
 import jsonfeed
 from utils import format_mm_ss
 
@@ -53,8 +54,9 @@ def parse_duration(duration_str: str):
 
 
 class IntervalWindow(Gtk.DrawingArea):
-    def __init__(self, feed_url: str):
+    def __init__(self, config: Config, feed_url: str):
         super().__init__()
+        self.config = config
         self.feed_url = feed_url
 
         self.fontoptions = cairo.FontOptions()
@@ -80,6 +82,13 @@ class IntervalWindow(Gtk.DrawingArea):
             interval = session[index]
             interval = interval._replace(start_offset=timedelta(seconds=start_offset))
             start_offset += interval.duration
+            if interval.type == r'%FTP':
+                assert interval.effort.endswith('%')
+                effort = interval.effort[:-1]
+                effort = int(effort)
+                effort = self.config.ftp * effort / 100.0
+                effort = '%uW (%s)' % (effort, interval.effort)
+                interval = interval._replace(effort=effort)
             session[index] = interval
         return session
 

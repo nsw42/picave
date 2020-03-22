@@ -20,6 +20,10 @@
         "warm_up_music_directory": {
             "description": "Where to find MP3s of music for warm-up",
             "type": "string"
+        },
+        "FTP": {
+            "description": "Functional Threshold Power of the current user",
+            "type": "number"
         }
     },
     "required": ["video_cache_directory"],

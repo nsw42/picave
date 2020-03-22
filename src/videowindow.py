@@ -57,7 +57,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         self.downloading_icon = downloading_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
-        self.interval_window = IntervalWindow(session_feed.url)
+        self.interval_window = IntervalWindow(config, session_feed.url)
 
     def build_list_store(self):
         # columns in the tree model:
