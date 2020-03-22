@@ -148,7 +148,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         video_id = self.list_store[selected_row][1]
         video_file = self.video_cache.cached_downloads.get(video_id)
         # TODO: FIX ME
-        if video_file and False:
+        if video_file:
             # play it!
             player = self.config.players[video_file.suffix]
             player.play(video_file)
