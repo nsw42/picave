@@ -11,6 +11,14 @@ class Mp3Index(object):
         self.files = []
         for root, dirs, files in os.walk(parentdir):
             self.files.extend([pathlib.Path(root) / file for file in files if file.endswith('.mp3')])
+        # TODO: Error if not self.files?
+        self.generator_indices = None  # initialised if/when random_file() is called
 
     def random_file(self):
-        return random.choice(self.files)
+        if not self.files:
+            return None
+        if not self.generator_indices:
+            self.generator_indices = list(range(len(self.files)))
+            random.shuffle(self.generator_indices)
+        index = self.generator_indices.pop(0)
+        return self.files[index]

@@ -77,25 +77,26 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         self.list_store = self.build_list_store()
         tree = Gtk.TreeView(self.list_store)
         tree.connect('row-activated', self.on_video_button_clicked)
+        tree.connect('size-allocate', self.set_column_widths)
 
         title_renderer = Gtk.CellRendererText()
-        title_column = Gtk.TreeViewColumn("Title", title_renderer, text=0)
-        title_column.set_sort_column_id(0)
-        tree.append_column(title_column)
+        self.title_column = Gtk.TreeViewColumn("Title", title_renderer, text=0)
+        self.title_column.set_sort_column_id(0)
+        tree.append_column(self.title_column)
 
         date_renderer = Gtk.CellRendererText()
-        date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
-        date_column.set_sort_column_id(2)
-        tree.append_column(date_column)
+        self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
+        self.date_column.set_sort_column_id(2)
+        tree.append_column(self.date_column)
 
         duration_renderer = Gtk.CellRendererText()
-        duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=3)
-        duration_column.set_sort_column_id(3)
-        tree.append_column(duration_column)
+        self.duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=3)
+        self.duration_column.set_sort_column_id(3)
+        tree.append_column(self.duration_column)
 
         icon_renderer = Gtk.CellRendererPixbuf()
-        icon_column = Gtk.TreeViewColumn("Status", icon_renderer, pixbuf=4)
-        tree.append_column(icon_column)
+        self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=4)
+        tree.append_column(self.icon_column)
 
         scrollable_tree = Gtk.ScrolledWindow()
         scrollable_tree.set_vexpand(True)
@@ -115,6 +116,20 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         # and show the index of videos
         assert self.stack
         self.stack.set_visible_child_name("main_session_index_window")
+
+    def set_column_widths(self, widget, allocation):
+        new_icon_width = 100
+        extra_space = self.icon_column.get_width() - new_icon_width
+
+        for column in (self.title_column, self.date_column, self.duration_column):
+            column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+            column.set_resizable(True)
+            column.set_min_width(column.get_width() + extra_space / 3)
+
+        self.icon_column.set_fixed_width(new_icon_width)
+        self.icon_column.set_max_width(new_icon_width)
+        self.icon_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        self.icon_column.set_resizable(False)
 
     def on_back_button_clicked(self, widget):
         self.stack.set_visible_child_name("main_window_buttons")
