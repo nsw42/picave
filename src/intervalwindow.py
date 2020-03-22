@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import urllib.parse
 
 import jsonfeed
-from utils import format_mm_ss
+from utils import clip, format_mm_ss
 
 import cairo
 import gi
@@ -118,10 +118,12 @@ class IntervalWindow(Gtk.DrawingArea):
         interval_remaining = (interval_end - now).seconds
         interval_pct = (now - interval_start_time).seconds / interval.duration
 
+        interval_h = drawingarea.get_allocated_height() * (1.0 - interval_pct)
+
         context.rectangle(0,
                           0,
                           drawingarea.get_allocated_width(),
-                          drawingarea.get_allocated_height() * (1.0 - interval_pct))
+                          interval_h)
         context.set_source_rgb(1.0, 0.0, 0.0)
         context.fill_preserve()
         context.set_source_rgb(0.0, 0.0, 0.0)
@@ -132,9 +134,20 @@ class IntervalWindow(Gtk.DrawingArea):
         context.set_font_size(24)  # TODO: units??
 
         x0 = 20
-        yd = 30
+        y0 = 20
+        y = self.show_interval(context, interval, x0, y0, interval_remaining)
+        if self.current_interval_index + 1 < len(self.intervals):
+            block_h = y - y0
+            max_permitted_y = drawingarea.get_allocated_height() - block_h
+            next_interval = self.intervals[self.current_interval_index + 1]
+            self.show_interval(context,
+                               next_interval,
+                               x0,
+                               clip(y, interval_h + 24, max_permitted_y),
+                               next_interval.duration)
 
-        y = 20
+    def show_interval(self, context, interval, x0, y, interval_remaining):
+        yd = 30
 
         context.move_to(x0, y)
         context.show_text(interval.name)
@@ -150,3 +163,5 @@ class IntervalWindow(Gtk.DrawingArea):
 
         context.move_to(x0, y)
         context.show_text(format_mm_ss(interval_remaining))
+        y += yd
+        return y
