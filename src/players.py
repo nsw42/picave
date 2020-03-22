@@ -28,8 +28,9 @@ class PlayerInterface(object):
 
 class MPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
+        if default_args is None:
+            default_args = ['-geometry', '0:0']
         super().__init__(exe, default_args)
-        self.child = None
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath]
@@ -40,7 +41,11 @@ class MPlayer(PlayerInterface):
 
 
 class Mpg123(PlayerInterface):
-    # nothing needed - default behaviour is fine
+    def __init__(self, exe, default_args):
+        if default_args is None:
+            default_args = ['--quiet']
+        super().__init__(exe, default_args)
+
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath.resolve()]
         self.child = subprocess.Popen(cmd,
@@ -50,16 +55,25 @@ class Mpg123(PlayerInterface):
 
 
 class MPVPlayer(PlayerInterface):
-    # nothing needed - default behaviour is fine
-    pass
+    def __init__(self, exe, default_args):
+        if default_args is None:
+            default_args = ['--geometry=0:0']
+        super().__init__(exe, default_args)
 
 
 class OmxPlayer(PlayerInterface):
-    # nothing needed - default behaviour is fine
-    pass
+    def __init__(self, exe, default_args):
+        if default_args is None:
+            default_args = []
+        super().__init__(exe, default_args)
 
 
 class VlcPlayer(PlayerInterface):
+    def __init__(self, exe, default_args):
+        if default_args is None:
+            default_args = []  # TODO: Better default arguments for VLC?
+        super().__init__(exe, default_args)
+
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
         subprocess.Popen(cmd)

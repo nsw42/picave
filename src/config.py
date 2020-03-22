@@ -31,7 +31,7 @@ def default_binary(binary):
 
 def default_player(ext):
     # TODO: Will need something more clever than this...
-    return default_binary('mpv')
+    return 'mpv'
 
 
 class Config(object):
@@ -43,6 +43,16 @@ class Config(object):
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json.load(open(schema_filename))
+        self.executable_names = (self.schema['definitions']['supported_players']['enum']
+                                 + self.schema['definitions']['other_executables']['enum'])
+
+        self.player_lookup = {
+            'mpg123': Mpg123,
+            'mplayer': MPlayer,
+            'mpv': MPVPlayer,
+            'omxplayer': OmxPlayer,
+            'vlc': VlcPlayer
+        }
 
         if filename:
             self._init_from_file(filename)
@@ -58,25 +68,16 @@ class Config(object):
         json_content = json.load(handle)
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
-        binaries = (self.schema['definitions']['supported_players']['enum']
-                    + self.schema['definitions']['other_executables']['enum'])
-        for binary in binaries:
+        for binary in self.executable_names:
             self.executables[binary] = config_binary(json_content, binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
-        player_lookup = {
-            'mpg123': Mpg123,
-            'mplayer': MPlayer,
-            'mpv': MPVPlayer,
-            'omxplayer': OmxPlayer,
-            'vlc': VlcPlayer
-        }
         for player_config in json_content['filetypes']:
             ext = player_config['ext']
             player = player_config['player']
             cmd_args = player_config.get('options', [])
-            player_class = player_lookup[player]
-            self.players[ext] = player_class(self.executables[player], cmd_args)
+            player_class = self.player_lookup[player]
+            self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args)
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
@@ -98,8 +99,10 @@ class Config(object):
         if not self.video_cache_directory.exists():
             self.video_cache_directory.mkdir()
 
-        for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
-            self.players[ext] = default_player(ext)
-
-        for binary in self.schema['definitions']['executable']['properties']['name']['enum']:
+        for binary in self.executable_names:
             self.executables[binary] = default_binary(binary)
+
+        for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
+            player_name = default_player(ext)
+            player_class = self.player_lookup[player_name]
+            self.players[ext] = player_class(exe=self.executables[player_name], default_args=None)
