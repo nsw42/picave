@@ -49,6 +49,11 @@ class Mpg123(PlayerInterface):
                                       stderr=subprocess.DEVNULL)
 
 
+class MPVPlayer(PlayerInterface):
+    # nothing needed - default behaviour is fine
+    pass
+
+
 class OmxPlayer(PlayerInterface):
     # nothing needed - default behaviour is fine
     pass

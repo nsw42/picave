@@ -28,9 +28,10 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "description": "The name of the binary",
-                    "type": "string",
-                    "enum": ["mpg123", "mplayer", "omxplayer", "vlc", "youtube-dl"]
+                    "oneOf": [
+                        { "$ref": "#/definitions/supported_players" },
+                        { "$ref": "#/definitions/other_executables" }
+                    ]
                 },
                 "path": {
                     "description": "The path of the binary",
@@ -48,9 +49,7 @@
                     "enum": [".mp3", ".mp4", ".mkv"]
                 },
                 "player": {
-                    "description": "The player to use to play this type of file",
-                    "type": "string",
-                    "enum": ["mpg123", "mplayer", "omxplayer", "vlc"]
+                    "$ref": "#/definitions/supported_players"
                 },
                 "options": {
                     "description": "Command-line arguments for the player",
@@ -61,6 +60,24 @@
                 }
             },
             "required": ["ext", "player"]
+        },
+        "supported_players": {
+            "description": "The player to use to play this type of file",
+            "type": "string",
+            "enum": [
+                "mpg123",
+                "mplayer",
+                "mpv",
+                "omxplayer",
+                "vlc"
+            ]
+        },
+        "other_executables": {
+            "description": "Other binaries that picave needs to know about",
+            "type": "string",
+            "enum": [
+                "youtube-dl"
+            ]
         }
     }
 }

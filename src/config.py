@@ -6,7 +6,7 @@ import sys
 
 import jsonschema
 
-from players import Mpg123, MPlayer, OmxPlayer, VlcPlayer
+from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, VlcPlayer
 
 
 def config_binary(json_content, binary):
@@ -58,13 +58,16 @@ class Config(object):
         json_content = json.load(handle)
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
-        for binary in self.schema['definitions']['executable']['properties']['name']['enum']:
+        binaries = (self.schema['definitions']['supported_players']['enum']
+                    + self.schema['definitions']['other_executables']['enum'])
+        for binary in binaries:
             self.executables[binary] = config_binary(json_content, binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
         player_lookup = {
             'mpg123': Mpg123,
             'mplayer': MPlayer,
+            'mpv': MPVPlayer,
             'omxplayer': OmxPlayer,
             'vlc': VlcPlayer
         }
