@@ -30,6 +30,15 @@
                 "description": "The duration for this interval",
                 "type": "string",
                 "pattern": "([0-9]+h)? *([0-9]+m)? *([0-9]+s)?"
+            },
+            "color": {
+                "description": "The color to use when representing this interval",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                    "type": "number"
+                }
             }
         },
         "required": ["type", "effort", "duration"]

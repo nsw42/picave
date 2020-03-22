@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import urllib.parse
 
 import jsonfeed
-from utils import clip, format_mm_ss
+from utils import format_mm_ss
 
 import cairo
 import gi
@@ -13,7 +13,7 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
 
 
-Interval = namedtuple('Interval', ['name', 'type', 'cadence', 'effort', 'duration', 'start_offset'])
+Interval = namedtuple('Interval', ['name', 'type', 'cadence', 'effort', 'duration', 'color', 'start_offset'])
 
 
 def parse_duration(duration_str: str):
@@ -91,77 +91,82 @@ class IntervalWindow(Gtk.DrawingArea):
 
     def force_redraw(self):
         if self.current_interval_index is None:
-            return False  # don't call again, until restarted
+            return False  # don't call again until restarted
         self.queue_draw()
         return True
 
     def on_draw(self, drawingarea, context: cairo.Context):
         now = datetime.now()
 
-        while True:
-            if self.current_interval_index is None:
-                return
+        if self.current_interval_index is None:
+            return
 
-            interval = self.intervals[self.current_interval_index]
-            interval_start_time = self.start_time + interval.start_offset
-            interval_end = interval_start_time + timedelta(seconds=interval.duration)
-
-            if now < interval_end:
-                break
-
+        while now >= (self.start_time
+                      + self.intervals[self.current_interval_index].start_offset
+                      + timedelta(seconds=self.intervals[self.current_interval_index].duration)):
             self.current_interval_index += 1
             if self.current_interval_index >= len(self.intervals):
                 self.current_interval_index = None
                 return
-            # loop, to update interval, interval_start_time and interval_end
 
-        interval_remaining = (interval_end - now).seconds
-        interval_pct = (now - interval_start_time).seconds / interval.duration
+        text_h = 30
+        block_h = text_h * 4
 
-        interval_h = drawingarea.get_allocated_height() * (1.0 - interval_pct)
-
-        context.rectangle(0,
-                          0,
-                          drawingarea.get_allocated_width(),
-                          interval_h)
-        context.set_source_rgb(1.0, 0.0, 0.0)
-        context.fill_preserve()
-        context.set_source_rgb(0.0, 0.0, 0.0)
-        context.stroke()
+        y0 = 0
+        one_minute_h = drawingarea.get_allocated_height() - block_h
 
         context.select_font_face('Sans', cairo.FontSlant.NORMAL, cairo.FontWeight.NORMAL)
         context.set_antialias(cairo.Antialias.SUBPIXEL)
         context.set_font_size(24)  # TODO: units??
 
-        x0 = 20
-        y0 = 20
-        y = self.show_interval(context, interval, x0, y0, interval_remaining)
-        if self.current_interval_index + 1 < len(self.intervals):
-            block_h = y - y0
-            max_permitted_y = drawingarea.get_allocated_height() - block_h
-            next_interval = self.intervals[self.current_interval_index + 1]
-            self.show_interval(context,
-                               next_interval,
-                               x0,
-                               clip(y, interval_h + 24, max_permitted_y),
-                               next_interval.duration)
+        draw_interval_index = self.current_interval_index
+        while draw_interval_index < len(self.intervals):
+            draw_interval = self.intervals[draw_interval_index]
+            interval_start_time = self.start_time + draw_interval.start_offset
+            if interval_start_time < now:
+                y = y0
+            else:
+                start_delta = interval_start_time - now
+                y = y0 + (start_delta.seconds / 60) * one_minute_h
+            if y > drawingarea.get_allocated_height():
+                break
 
-    def show_interval(self, context, interval, x0, y, interval_remaining):
-        yd = 30
+            if draw_interval_index == self.current_interval_index:
+                draw_interval_end = (self.start_time
+                                     + draw_interval.start_offset
+                                     + timedelta(seconds=draw_interval.duration))
+                draw_interval_remaining = (draw_interval_end - now).seconds
+            else:
+                draw_interval_remaining = draw_interval.duration
+            h = draw_interval_remaining / 60.0 * one_minute_h
 
-        context.move_to(x0, y)
-        context.show_text(interval.name)
-        y += yd
+            context.rectangle(0,
+                              y,
+                              drawingarea.get_allocated_width(),
+                              h)
+            context.set_source_rgb(draw_interval.color[0] / 255.0,
+                                   draw_interval.color[1] / 255.0,
+                                   draw_interval.color[2] / 255.0)
+            context.fill_preserve()
+            context.set_source_rgb(0.0, 0.0, 0.0)
+            context.stroke()
 
-        context.move_to(x0, y)
-        context.show_text(interval.effort)
-        y += yd
+            text_x = 20  # offset the text slightly into the rectangle
+            text_y = y + text_h
+            context.move_to(text_x, text_y)
+            context.show_text(draw_interval.name)
+            text_y += text_h
 
-        context.move_to(x0, y)
-        context.show_text('RPM: %u' % interval.cadence)
-        y += yd
+            context.move_to(text_x, text_y)
+            context.show_text(draw_interval.effort)
+            text_y += text_h
 
-        context.move_to(x0, y)
-        context.show_text(format_mm_ss(interval_remaining))
-        y += yd
-        return y
+            context.move_to(text_x, text_y)
+            context.show_text('RPM: %u' % draw_interval.cadence)
+            text_y += text_h
+
+            context.move_to(text_x, text_y)
+            context.show_text(format_mm_ss(draw_interval_remaining))
+            text_y += text_h
+
+            draw_interval_index += 1
