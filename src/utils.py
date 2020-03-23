@@ -1,4 +1,12 @@
 def clip(low, val, high):
+    '''
+    >>> clip(5, 3, 10)
+    5
+    >>> clip(5, 5, 10)
+    5
+    >>> clip(5, 12, 10)
+    10
+    '''
     return min(max(low, val), high)
 
 
