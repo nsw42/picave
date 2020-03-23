@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import jsonfeed
 
-VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date', 'duration'])
+VideoFeedItem = namedtuple('VideoFeedItem', ['name', 'id', 'url', 'date', 'duration', 'type'])
 
 
 class VideoFeed(object):

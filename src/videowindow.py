@@ -62,13 +62,14 @@ class MainSessionIndexWindow(PlayerWindowInterface):
     def build_list_store(self):
         # columns in the tree model:
         #   0: video name (str)
-        #   1: video id (str)
+        #   1: video type (str)
         #   2: video date (str)
         #   3: video duration (str)
         #   4: download status (pixbuf)
-        list_store = Gtk.ListStore(str, str, str, str, GdkPixbuf.Pixbuf)
+        #   5: video id (str)
+        list_store = Gtk.ListStore(str, str, str, str, GdkPixbuf.Pixbuf, str)
         for video in self.session_feed:
-            list_store.append([video.name, video.id, video.date, video.duration, None])
+            list_store.append([video.name, video.type, video.date, video.duration, None, video.id])
         return list_store
 
     def add_windows_to_stack(self, stack):
@@ -84,15 +85,20 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         self.title_column.set_sort_column_id(0)
         tree.append_column(self.title_column)
 
-        date_renderer = Gtk.CellRendererText()
-        self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
-        self.date_column.set_sort_column_id(2)
-        tree.append_column(self.date_column)
+        type_renderer = Gtk.CellRendererText()
+        self.type_column = Gtk.TreeViewColumn("Type", type_renderer, text=1)
+        self.type_column.set_sort_column_id(1)
+        tree.append_column(self.type_column)
 
         duration_renderer = Gtk.CellRendererText()
         self.duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=3)
         self.duration_column.set_sort_column_id(3)
         tree.append_column(self.duration_column)
+
+        date_renderer = Gtk.CellRendererText()
+        self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
+        self.date_column.set_sort_column_id(2)
+        tree.append_column(self.date_column)
 
         icon_renderer = Gtk.CellRendererPixbuf()
         self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=4)
@@ -123,10 +129,14 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         new_icon_width = 100
         extra_space = self.icon_column.get_width() - new_icon_width
 
-        for column in (self.title_column, self.date_column, self.duration_column):
+        for column, sizing in [(self.title_column, Gtk.TreeViewColumnSizing.AUTOSIZE),
+                               (self.type_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
+                               (self.date_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
+                               (self.duration_column, Gtk.TreeViewColumnSizing.GROW_ONLY)]:
             column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
             column.set_resizable(True)
-            column.set_min_width(column.get_width() + extra_space / 3)
+            if extra_space > 0:
+                column.set_min_width(column.get_width() + extra_space / 4)
 
         self.icon_column.set_fixed_width(new_icon_width)
         self.icon_column.set_max_width(new_icon_width)
@@ -145,7 +155,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
 
     def on_video_button_clicked(self, widget, selected_row, column):
         # widget is the Button (in the ListBoxRow)
-        video_id = self.list_store[selected_row][1]
+        video_id = self.list_store[selected_row][5]
         video_file = self.video_cache.cached_downloads.get(video_id)
         # TODO: FIX ME
         if video_file:
@@ -159,7 +169,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         # Update the display whether files are in the cache
         self.downloading_id = None
         for row in self.list_store:
-            video_id = row[1]
+            video_id = row[5]
             if self.video_cache.cached_downloads.get(video_id):
                 row[4] = self.downloaded_icon
             elif row.feed_item and self.video_cache.active_download_id == video_id:
