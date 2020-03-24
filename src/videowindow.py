@@ -111,6 +111,7 @@ class MainSessionIndexWindow(PlayerWindowInterface):
         back_button = Gtk.Button(label='Back')
         back_button.connect('clicked', self.on_back_button_clicked)
         vbox = Gtk.VBox()
+        vbox.set_border_width(200)
         vbox.pack_start(scrollable_tree, expand=True, fill=True, padding=10)
         vbox.pack_start(back_button, expand=False, fill=True, padding=10)
         stack.add_named(vbox, "main_session_index_window")

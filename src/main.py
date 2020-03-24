@@ -3,6 +3,7 @@ import logging
 import pathlib
 
 from config import Config
+from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3IndexWindow
 from videocache import VideoCache
@@ -48,9 +49,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                                                            "Main session",
                                                            main_session_feed,
                                                            self.video_cache)
-
-        # Initialise the window
-        self.set_border_width(200)
+        self.main_buttons = MainButtonWindow([self.warmup_handler,
+                                              self.main_session_handler])
 
         display = Gdk.Display().get_default()
         monitor = display.get_primary_monitor()
@@ -62,11 +62,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(1000)
 
-        main_window_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        main_window_buttons.pack_start(self.warmup_handler.button, expand=True, fill=True, padding=100)
-        main_window_buttons.pack_start(self.main_session_handler.button, expand=True, fill=True, padding=100)
-        self.stack.add_named(main_window_buttons, "main_window_buttons")
-
+        self.main_buttons.add_windows_to_stack(self.stack)
         self.warmup_handler.add_windows_to_stack(self.stack)
         self.main_session_handler.add_windows_to_stack(self.stack)
 

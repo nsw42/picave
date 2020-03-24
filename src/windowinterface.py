@@ -1,11 +1,12 @@
 from config import Config
+from stackwindow import StackWindow
 
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
-class PlayerWindowInterface(object):
+class PlayerWindowInterface(StackWindow):
     def __init__(self,
                  config: Config,
                  label: str):

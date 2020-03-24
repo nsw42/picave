@@ -55,6 +55,7 @@ class Mp3IndexWindow(PlayerWindowInterface):
         self.back_button.connect('clicked', self.on_back_button_clicked)
 
         vbox = Gtk.VBox()
+        vbox.set_border_width(200)
         vbox.pack_start(self.artist_label, expand=True, fill=True, padding=10)
         vbox.pack_start(self.title_label, expand=True, fill=True, padding=10)
         hbox = Gtk.HBox()
