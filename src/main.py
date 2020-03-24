@@ -8,7 +8,7 @@ from mp3index import Mp3Index
 from mp3window import Mp3IndexWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
-from videoindexwindow import MainSessionIndexWindow
+from videoindexwindow import VideoIndexWindow
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -45,10 +45,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect('key-press-event', self.on_key_press)
 
         self.warmup_handler = Mp3IndexWindow(self.config, "Warm up", mp3index)
-        self.main_session_handler = MainSessionIndexWindow(self.config,
-                                                           "Main session",
-                                                           main_session_feed,
-                                                           self.video_cache)
+        self.main_session_handler = VideoIndexWindow(self.config,
+                                                     "Main session",
+                                                     main_session_feed,
+                                                     self.video_cache)
         self.main_buttons = MainButtonWindow([self.warmup_handler,
                                               self.main_session_handler])
 

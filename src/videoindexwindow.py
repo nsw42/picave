@@ -41,7 +41,7 @@ def downloading_icon():
                       'emblem-synchronizing'])
 
 
-class MainSessionIndexWindow(PlayerWindowInterface):
+class VideoIndexWindow(PlayerWindowInterface):
     def __init__(self,
                  config: Config,
                  label: str,
