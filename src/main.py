@@ -5,7 +5,7 @@ import pathlib
 from config import Config
 from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
-from mp3window import Mp3IndexWindow
+from mp3window import Mp3Window
 from videocache import VideoCache
 from videofeed import VideoFeed
 from videoindexwindow import VideoIndexWindow
@@ -44,7 +44,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
         self.connect('key-press-event', self.on_key_press)
 
-        self.warmup_handler = Mp3IndexWindow(self.config, "Warm up", mp3index)
+        self.warmup_handler = Mp3Window(self.config, "Warm up", mp3index)
         self.main_session_handler = VideoIndexWindow(self.config,
                                                      "Main session",
                                                      main_session_feed,

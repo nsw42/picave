@@ -16,7 +16,7 @@ gi.require_version('Pango', '1.0')
 from gi.repository import Pango  # noqa: E402 # need to call require_version before we can call this
 
 
-class Mp3IndexWindow(PlayerWindowInterface):
+class Mp3Window(PlayerWindowInterface):
     def __init__(self,
                  config: Config,
                  label: str,
