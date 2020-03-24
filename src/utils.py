@@ -11,6 +11,24 @@ def clip(low, val, high):
 
 
 def format_mm_ss(ss):
+    '''
+    >>> format_mm_ss(0)
+    '00:00'
+    >>> format_mm_ss(1)
+    '00:01'
+    >>> format_mm_ss(10)
+    '00:10'
+    >>> format_mm_ss(60)
+    '01:00'
+    >>> format_mm_ss(61)
+    '01:01'
+    >>> format_mm_ss(70)
+    '01:10'
+    >>> format_mm_ss(119)
+    '01:59'
+    >>> format_mm_ss(181)
+    '03:01'
+    '''
     mm = ss / 60.
     ss = ss - int(mm) * 60
     return '%02u:%02u' % (mm, ss)
