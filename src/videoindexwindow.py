@@ -116,7 +116,10 @@ class VideoIndexWindow(PlayerWindowInterface):
         vbox.pack_start(back_button, expand=False, fill=True, padding=10)
         stack.add_named(vbox, "main_session_index_window")
 
-        stack.add_named(self.interval_window, "interval_window")
+        video_layout = Gtk.HBox()
+        video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
+        self.interval_window.set_margin_start(1500)  # pad on left side only
+        stack.add_named(video_layout, "interval_window")
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
