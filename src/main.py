@@ -8,7 +8,7 @@ from mp3index import Mp3Index
 from mp3window import Mp3IndexWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
-from videowindow import MainSessionIndexWindow
+from videoindexwindow import MainSessionIndexWindow
 
 import gi
 gi.require_version('Gtk', '3.0')
