@@ -1,0 +1,14 @@
+[
+  { "name": "Warm up",        "type": "%FTP", "cadence": 100, "effort":  "50%", "duration": "3m 30s", "color": [ 51, 153, 51] },
+  { "name": "Higher cadence", "type": "%FTP", "cadence": 110, "effort":  "90%", "duration": "5m 04s", "color": [255, 102,  0] },
+  { "name": "Slow threshold", "type": "%FTP", "cadence":  60, "effort": "100%", "duration": "4m 57s", "color": [255,  77,  0] },
+  { "name": "Higher cadence", "type": "%FTP", "cadence": 110, "effort":  "90%", "duration": "5m 11s", "color": [255, 102,  0] },
+  { "name": "Slow threshold", "type": "%FTP", "cadence":  60, "effort": "100%", "duration": "4m 48s", "color": [255,  77,  0] },
+  { "name": "Higher cadence", "type": "%FTP", "cadence": 110, "effort":  "90%", "duration": "5m 17s", "color": [255, 102,  0] },
+  { "name": "Slow threshold", "type": "%FTP", "cadence":  60, "effort": "100%", "duration": "4m 57s", "color": [255,  77,  0] },
+  { "name": "Higher cadence", "type": "%FTP", "cadence": 110, "effort":  "90%", "duration": "1m 55s", "color": [255, 102,  0] },
+  { "name": "Over threshold", "type": "%FTP", "cadence":  60, "effort": "110%", "duration": "2m 02s", "color": [255,  51,  0] },
+  { "name": "Higher cadence", "type": "%FTP", "cadence": 110, "effort":  "90%", "duration": "2m 02s", "color": [255, 102,  0] },
+  { "name": "Over threshold", "type": "%FTP", "cadence":  60, "effort": "110%", "duration": "2m 04s", "color": [255,  51,  0] },
+  { "name": "Cool down",      "type": "%FTP", "cadence":  90, "effort":  "30%", "duration": "1m 53s", "color": [ 51, 153, 51] }
+]
