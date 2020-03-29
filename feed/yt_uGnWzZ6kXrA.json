@@ -1,0 +1,16 @@
+[
+  { "name": "Warm up",      "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m 03s",  "color": [ 51, 153,  51] },
+  { "name": "High cadence", "type": "%FTP",  "cadence": 120,  "effort": "105%",  "duration": "15s",     "color": [255, 102,   0] },
+  { "name": "Warm up",      "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "1m",      "color": [ 51, 153,  51] },
+  { "name": "High cadence", "type": "%FTP",  "cadence": 120,  "effort": "105%",  "duration": "15s",     "color": [255, 102,   0] },
+  { "name": "Climb 1",      "type":  "MAX",  "cadence":  90,  "effort":  "MAX",  "duration": "1m 30s",  "color": [255,   0,   0] },
+  { "name": "Rest",         "type": "%FTP",  "cadence":  70,  "effort":  "40%",  "duration": "2m",      "color": [ 51, 153,  51] },
+  { "name": "Climb 2",      "type":  "MAX",  "cadence":  90,  "effort":  "MAX",  "duration": "2m 00s",  "color": [255,   0,   0] },
+  { "name": "Rest",         "type": "%FTP",  "cadence":  70,  "effort":  "40%",  "duration": "2m",      "color": [ 51, 153,  51] },
+  { "name": "Climb 3",      "type":  "MAX",  "cadence":  90,  "effort":  "MAX",  "duration": "2m 30s",  "color": [255,   0,   0] },
+  { "name": "Rest",         "type": "%FTP",  "cadence":  70,  "effort":  "40%",  "duration": "2m",      "color": [ 51, 153,  51] },
+  { "name": "Climb 4",      "type":  "MAX",  "cadence":  90,  "effort":  "MAX",  "duration": "2m 00s",  "color": [255,   0,   0] },
+  { "name": "Rest",         "type": "%FTP",  "cadence":  70,  "effort":  "40%",  "duration": "2m",      "color": [ 51, 153,  51] },
+  { "name": "Climb 5",      "type":  "MAX",  "cadence":  90,  "effort":  "MAX",  "duration": "1m 30s",  "color": [255,   0,   0] },
+  { "name": "Cool down",    "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "3m",      "color": [ 51, 153,  51] }
+]
