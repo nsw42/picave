@@ -121,22 +121,32 @@ def parse_args():
     return args
 
 
+def safe_check_dir(dirpath):
+    try:
+        if dirpath.is_dir():
+            return True
+        return False
+    except PermissionError:
+        logging.warning("%s PermissionError" % dirpath)
+        return False
+
+
 def check_media(args):
     if args.wait_for_media:
-        while not args.config.video_cache_directory.is_dir():
+        while not safe_check_dir(args.config.video_cache_directory):
             logging.warning("%s does not exist. Waiting." % args.config.video_cache_directory)
             time.sleep(1)
 
         if args.config.warm_up_music_directory:
-            while not args.config.warm_up_music_directory.is_dir():
+            while not safe_check_dir(args.config.warm_up_music_directory):
                 logging.warning("%s does not exist. Waiting." % args.config.warm_up_music_directory)
                 time.sleep(1)
     else:
-        if not args.config.video_cache_directory.is_dir():
+        if not safe_check_dir(args.config.video_cache_directory):
             sys.exit("%s does not exist" % args.config.video_cache_directory)
 
         if args.config.warm_up_music_directory:
-            if not args.config.warm_up_music_directory.is_dir():
+            if not safe_check_dir(args.config.warm_up_music_directory):
                 logging.warning('Warm up music directory does not exist or is not a directory')
                 args.config.warm_up_music_directory = None
 
