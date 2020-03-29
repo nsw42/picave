@@ -67,6 +67,12 @@ class OmxPlayer(PlayerInterface):
             default_args = []
         super().__init__(exe, default_args)
 
+    def play(self, filepath):
+        cmd = [self.exe] + self.default_args + [filepath]
+        self.child = subprocess.Popen(cmd,
+                                      stdin=None,
+                                      stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL)
 
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
