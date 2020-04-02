@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
+import logging
 import urllib.parse
 
 from config import Config
@@ -38,7 +39,11 @@ class IntervalWindow(Gtk.DrawingArea):
         new_path = urlparts.path[:slash + 1] + new_leaf
         urlparts = urlparts._replace(path=new_path)
         uri = urllib.parse.urlunparse(urlparts)
-        session = jsonfeed.read_from_uri(uri, 'session.schema.json')
+        try:
+            session = jsonfeed.read_from_uri(uri, 'session.schema.json')
+        except jsonfeed.NotFoundError as e:
+            logging.warning("%s could not be read: %s" % (uri, e.message))
+            return []
         session = [Interval(start_offset=0, **interval) for interval in session]
         session = [interval._replace(duration=parse_duration(interval.duration)) for interval in session]
         start_offset = 0
@@ -74,9 +79,10 @@ class IntervalWindow(Gtk.DrawingArea):
         if self.current_interval_index is None:
             return
 
-        while now >= (self.start_time
-                      + self.intervals[self.current_interval_index].start_offset
-                      + timedelta(seconds=self.intervals[self.current_interval_index].duration)):
+        while (self.current_interval_index < len(self.intervals)
+               and now >= (self.start_time
+                           + self.intervals[self.current_interval_index].start_offset
+                           + timedelta(seconds=self.intervals[self.current_interval_index].duration))):
             self.current_interval_index += 1
             if self.current_interval_index >= len(self.intervals):
                 self.current_interval_index = None
