@@ -52,6 +52,9 @@ class Mp3Window(PlayerWindowInterface):
             font_desc.set_size(font_size * Pango.SCALE)
             label.override_font(font_desc)
 
+        self.next_button = Gtk.Button(label="Next track")
+        self.next_button.connect('clicked', self.on_next_button_clicked)
+
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
 
@@ -63,6 +66,7 @@ class Mp3Window(PlayerWindowInterface):
         hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
         hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
         vbox.pack_start(hbox, expand=True, fill=True, padding=10)
+        vbox.pack_start(self.next_button, expand=True, fill=True, padding=10)
         vbox.pack_start(self.back_button, expand=True, fill=True, padding=10)
         stack.add_named(vbox, "mp3_info_box")
 
@@ -75,6 +79,10 @@ class Mp3Window(PlayerWindowInterface):
         assert self.stack
         self.stack.set_visible_child_name("mp3_info_box")
         GLib.timeout_add_seconds(1, self.on_timer_tick)
+
+    def on_next_button_clicked(self, widget):
+        self.stop()
+        self.play_random_file()
 
     def on_timer_tick(self):
         if self.player:
