@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import mutagen
 
@@ -90,15 +91,34 @@ class Mp3Window(PlayerWindowInterface):
         else:
             return False  # don't call me again
 
+    def trim_text_to_pixels(self, label, text_lines, max_width=None):
+        if max_width is None:
+            max_width = self.stack.get_allocation().width - 2 * self.PADDING
+        logging.debug("Max width is %u" % max_width)
+        layout = label.create_pango_layout()
+        for line_number in range(len(text_lines)):
+            text = text_lines[line_number]
+            while text != ' ...':
+                layout.set_text(text)
+                ink, logical = layout.get_pixel_extents()
+                logging.debug("%s is %u pixels wide" % (text, logical.width))
+                if logical.width < max_width:
+                    break  # this text is short enough
+                text = text[:-5] + ' ...'  # makes the text one character shorter
+            text_lines[line_number] = text
+        return text_lines
+
     def play_random_file(self):
         mp3filename = self.mp3index.random_file()
         reader = mutagen.File(mp3filename)
         artist = reader.tags.get('TPE1')
         if artist:
-            self.artist_label.set_label('\n'.join(artist.text))
+            artist_text = self.trim_text_to_pixels(self.artist_label, artist.text)
+            self.artist_label.set_label('\n'.join(artist_text))
         title = reader.tags.get('TIT2')
         if title:
-            self.title_label.set_label('\n'.join(title.text))
+            title_text = self.trim_text_to_pixels(self.title_label, title.text)
+            self.title_label.set_label('\n'.join(title_text))
         duration_ss = reader.info.length
         if duration_ss:
             self.time_label.set_label(format_mm_ss(0))

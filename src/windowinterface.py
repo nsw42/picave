@@ -16,6 +16,7 @@ class PlayerWindowInterface(StackWindow):
          * create one or more windows, to show the player
          * set up the click handler for that button to switch the stack to the appropriate window
         """
+        super().__init__()
         self.stack = None  # initialised during add_windows_to_stack
         self.config = config
         self.button = Gtk.Button(label=label)
