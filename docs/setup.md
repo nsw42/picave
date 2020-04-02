@@ -27,8 +27,23 @@
 ## Install additional software
 
 * `sudo apt remove youtube-dl`
+* `sudo apt install mpg123`
 * Install youtube-dl as per <https://ytdl-org.github.io/youtube-dl/download.html>
 * `pip install jsonschema`
 * `pip install mutagen`
 * `pip install python-vlc`
 * `pip install requests`
+
+## Set to run at boot
+
+```
+cd deployment
+sudo ./install.sh
+```
+
+## To remove the autostart at boot
+
+```
+cd deployment
+sudo ./uninstall.sh
+```

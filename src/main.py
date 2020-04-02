@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 import logging
 import pathlib
+import sys
+import time
 
 from config import Config
 from mainwindow import MainButtonWindow
@@ -90,6 +92,9 @@ def parse_args():
                              "Default %(default)s")
     parser.add_argument('--no-cache', action='store_false', dest='update_cache',
                         help="Disable populating the cache")
+    parser.add_argument('--wait-for-media', action='store_true',
+                        help="Wait until the video cache directory is present. "
+                             "Default behaviour is to report an error and exit.")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
     default_config = pathlib.Path.home() / '.picaverc'
@@ -109,8 +114,41 @@ def parse_args():
     return args
 
 
+def safe_check_dir(dirpath):
+    try:
+        if dirpath.is_dir():
+            return True
+        return False
+    except PermissionError:
+        logging.warning("%s PermissionError" % dirpath)
+        return False
+
+
+def check_media(args):
+    if args.wait_for_media:
+        while not safe_check_dir(args.config.video_cache_directory):
+            logging.warning("%s does not exist. Waiting." % args.config.video_cache_directory)
+            time.sleep(1)
+
+        if args.config.warm_up_music_directory:
+            while not safe_check_dir(args.config.warm_up_music_directory):
+                logging.warning("%s does not exist. Waiting." % args.config.warm_up_music_directory)
+                time.sleep(1)
+    else:
+        if not safe_check_dir(args.config.video_cache_directory):
+            sys.exit("%s does not exist" % args.config.video_cache_directory)
+
+        if args.config.warm_up_music_directory:
+            if not safe_check_dir(args.config.warm_up_music_directory):
+                logging.warning('Warm up music directory does not exist or is not a directory')
+                args.config.warm_up_music_directory = None
+
+
 def main():
     args = parse_args()
+
+    check_media(args)  # will sys.exit() if media do not exist
+
     video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)

@@ -82,16 +82,10 @@ class Config(object):
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
-        if not self.video_cache_directory.is_dir():
-            # TODO: Use a proper exception type
-            raise Exception('Video cache directory does not exist or is not a directory')
 
         warm_up_dir = json_content.get('warm_up_music_directory')
         if warm_up_dir:
             self.warm_up_music_directory = pathlib.Path(warm_up_dir).expanduser().resolve()
-            if not self.warm_up_music_directory.is_dir():
-                logging.warning('Warm up music directory does not exist or is not a directory')
-                self.warm_up_music_directory = None
         else:
             self.warm_up_music_directory = None
 
