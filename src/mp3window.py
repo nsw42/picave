@@ -58,17 +58,36 @@ class Mp3Window(PlayerWindowInterface):
         self.back_button = Gtk.Button(label="Back")
         self.back_button.connect('clicked', self.on_back_button_clicked)
 
-        vbox = Gtk.VBox()
-        vbox.set_border_width(200)
-        vbox.pack_start(self.artist_label, expand=True, fill=True, padding=10)
-        vbox.pack_start(self.title_label, expand=True, fill=True, padding=10)
-        hbox = Gtk.HBox()
-        hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
-        hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
-        vbox.pack_start(hbox, expand=True, fill=True, padding=10)
-        vbox.pack_start(self.next_button, expand=True, fill=True, padding=10)
-        vbox.pack_start(self.back_button, expand=True, fill=True, padding=10)
-        stack.add_named(vbox, "mp3_info_box")
+        #       0         1             2
+        #  0            artist
+        #  1   pad      label         Next
+        #  2        time/duration
+        #  3            Back
+        time_hbox = Gtk.HBox()
+        time_hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
+        time_hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
+
+        grid = Gtk.Grid()
+        self.artist_label.set_hexpand(True)
+        self.artist_label.set_vexpand(True)
+        grid.attach(self.artist_label, left=1, top=0, width=1, height=1)
+        self.title_label.set_hexpand(True)
+        self.title_label.set_vexpand(True)
+        grid.attach(self.title_label, left=1, top=1, width=1, height=1)
+        time_hbox.set_hexpand(True)
+        time_hbox.set_vexpand(True)
+        grid.attach(time_hbox, left=1, top=2, width=1, height=1)
+
+        self.next_button.set_size_request(0, 32)
+        self.next_button.set_vexpand(False)
+        grid.attach(self.next_button, left=2, top=1, width=1, height=1)
+
+        self.back_button.set_hexpand(True)
+        self.back_button.set_size_request(0, 80)  # only sets height of button - width is set by grid
+        grid.attach(self.back_button, left=0, top=3, width=3, height=1)
+
+        grid.set_border_width(200)
+        stack.add_named(grid, "mp3_info_box")
 
     def on_back_button_clicked(self, widget):
         self.stop()
@@ -101,7 +120,7 @@ class Mp3Window(PlayerWindowInterface):
 
     def trim_text_to_pixels(self, label, text_lines, max_width=None):
         if max_width is None:
-            max_width = self.stack.get_allocation().width - 2 * self.PADDING
+            max_width = self.stack.get_allocation().width - 2 * self.PADDING  # TODO: Needs updating - no longer have entire width available
         logging.debug("Max width is %u" % max_width)
         layout = label.create_pango_layout()
         for line_number in range(len(text_lines)):
