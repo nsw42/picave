@@ -135,7 +135,7 @@ class Mp3Window(PlayerWindowInterface):
         for line_number in range(len(text_lines)):
             text = text_lines[line_number]
             while text != ' ...':
-                layout.set_text(text)
+                layout.set_text(text, len(text))
                 ink, logical = layout.get_pixel_extents()
                 logging.debug("%s is %u pixels wide" % (text, logical.width))
                 if logical.width < max_width:
