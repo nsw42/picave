@@ -28,6 +28,7 @@
 
 * `sudo apt remove youtube-dl`
 * `sudo apt install mpg123`
+* `sudo apt install python3-gi-cairo`
 * Install youtube-dl as per <https://ytdl-org.github.io/youtube-dl/download.html>
 * `pip install jsonschema`
 * `pip install mutagen`
