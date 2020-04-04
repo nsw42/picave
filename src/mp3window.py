@@ -58,6 +58,15 @@ class Mp3Window(PlayerWindowInterface):
             font_desc.set_size(font_size * Pango.SCALE)
             label.override_font(font_desc)
 
+        time_hbox = Gtk.HBox()
+        time_hbox.pack_start(self.time_label, expand=True, fill=True, padding=0)
+        time_hbox.pack_start(self.duration_label, expand=True, fill=True, padding=0)
+        time_hbox.set_hexpand(True)
+        time_hbox.set_vexpand(True)
+
+        pad = Gtk.Fixed()
+        pad.set_size_request(80, 32)
+
         self.next_button = Gtk.Button(label="Next track")
         self.next_button.connect('clicked', self.on_next_button_clicked)
 
@@ -69,13 +78,9 @@ class Mp3Window(PlayerWindowInterface):
         #  1   pad      label         Next
         #  2        time/duration
         #  3            Back
-        time_hbox = Gtk.HBox()
-        time_hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
-        time_hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
-        time_hbox.set_hexpand(True)
-        time_hbox.set_vexpand(True)
 
         grid = Gtk.Grid()
+        grid.attach(pad, left=0, top=1, width=1, height=1)
         grid.attach(self.artist_label, left=1, top=0, width=1, height=1)
         grid.attach(self.title_label, left=1, top=1, width=1, height=1)
         grid.attach(time_hbox, left=1, top=2, width=1, height=1)
@@ -108,9 +113,9 @@ class Mp3Window(PlayerWindowInterface):
         if self.player:
             if self.play_started_at:
                 delta = datetime.datetime.now() - self.play_started_at
-                time_str = format_mm_ss(delta.seconds)
+                time_str = format_mm_ss(delta.seconds) + ' '
             else:
-                time_str = ''
+                time_str = ' '
             self.time_label.set_label(time_str)
 
             if self.player.is_finished():
