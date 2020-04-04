@@ -94,8 +94,6 @@ class Mp3Window(PlayerWindowInterface):
         grid.set_border_width(200)
         stack.add_named(grid, "mp3_info_box")
 
-        grid.connect('size-allocate', self.on_size_allocate)
-
     def on_back_button_clicked(self, widget):
         self.stop()
         self.stack.set_visible_child_name("main_window_buttons")
@@ -168,6 +166,7 @@ class Mp3Window(PlayerWindowInterface):
             self.play_random_file = None  # don't attempt to show time in file
         self.player = self.config.players['.mp3']
         self.player.play(mp3filename)
+        self.on_size_allocate(None, None)  # do this here rather than wait for 'allocated' signal to avoid screen jiggle
 
     def stop(self):
         if self.player:
