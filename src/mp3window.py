@@ -32,8 +32,14 @@ class Mp3Window(PlayerWindowInterface):
 
         self.artist_label = Gtk.Label()
         self.artist_label.set_label("<artist>")
+        self.artist_label.set_hexpand(True)
+        self.artist_label.set_vexpand(True)
+
         self.title_label = Gtk.Label()
         self.title_label.set_label("<title>")
+        self.title_label.set_hexpand(True)
+        self.title_label.set_vexpand(True)
+
         self.time_label = Gtk.Label()
         self.time_label.set_label("<current time>")
         self.time_label.set_halign(Gtk.Align.END)  # right align
@@ -66,19 +72,14 @@ class Mp3Window(PlayerWindowInterface):
         time_hbox = Gtk.HBox()
         time_hbox.pack_start(self.time_label, expand=True, fill=True, padding=10)
         time_hbox.pack_start(self.duration_label, expand=True, fill=True, padding=10)
-
-        grid = Gtk.Grid()
-        self.artist_label.set_hexpand(True)
-        self.artist_label.set_vexpand(True)
-        grid.attach(self.artist_label, left=1, top=0, width=1, height=1)
-        self.title_label.set_hexpand(True)
-        self.title_label.set_vexpand(True)
-        grid.attach(self.title_label, left=1, top=1, width=1, height=1)
         time_hbox.set_hexpand(True)
         time_hbox.set_vexpand(True)
+
+        grid = Gtk.Grid()
+        grid.attach(self.artist_label, left=1, top=0, width=1, height=1)
+        grid.attach(self.title_label, left=1, top=1, width=1, height=1)
         grid.attach(time_hbox, left=1, top=2, width=1, height=1)
 
-        self.next_button.set_size_request(0, 32)
         self.next_button.set_vexpand(False)
         grid.attach(self.next_button, left=2, top=1, width=1, height=1)
 
