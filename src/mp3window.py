@@ -64,8 +64,7 @@ class Mp3Window(PlayerWindowInterface):
         time_hbox.set_hexpand(True)
         time_hbox.set_vexpand(True)
 
-        pad = Gtk.Fixed()
-        pad.set_size_request(80, 32)
+        self.pad = Gtk.Fixed()
 
         self.next_button = Gtk.Button(label="Next track")
         self.next_button.connect('clicked', self.on_next_button_clicked)
@@ -80,7 +79,7 @@ class Mp3Window(PlayerWindowInterface):
         #  3            Back
 
         grid = Gtk.Grid()
-        grid.attach(pad, left=0, top=1, width=1, height=1)
+        grid.attach(self.pad, left=0, top=1, width=1, height=1)
         grid.attach(self.artist_label, left=1, top=0, width=1, height=1)
         grid.attach(self.title_label, left=1, top=1, width=1, height=1)
         grid.attach(time_hbox, left=1, top=2, width=1, height=1)
@@ -95,6 +94,8 @@ class Mp3Window(PlayerWindowInterface):
         grid.set_border_width(200)
         stack.add_named(grid, "mp3_info_box")
 
+        grid.connect('size-allocate', self.on_size_allocate)
+
     def on_back_button_clicked(self, widget):
         self.stop()
         self.stack.set_visible_child_name("main_window_buttons")
@@ -108,6 +109,9 @@ class Mp3Window(PlayerWindowInterface):
     def on_next_button_clicked(self, widget):
         self.stop()
         self.play_random_file()
+
+    def on_size_allocate(self, widget, allocation):
+        self.pad.set_size_request(self.next_button.get_preferred_width().natural_width, 32)
 
     def on_timer_tick(self):
         if self.player:
@@ -126,7 +130,8 @@ class Mp3Window(PlayerWindowInterface):
 
     def trim_text_to_pixels(self, label, text_lines, max_width=None):
         if max_width is None:
-            max_width = self.stack.get_allocation().width - 2 * self.PADDING  # TODO: Needs updating - no longer have entire width available
+            max_width = self.stack.get_allocation().width - 2 * self.PADDING
+            max_width -= 2 * self.next_button.get_preferred_width().natural_width
         logging.debug("Max width is %u" % max_width)
         layout = label.create_pango_layout()
         for line_number in range(len(text_lines)):
@@ -154,7 +159,7 @@ class Mp3Window(PlayerWindowInterface):
             self.title_label.set_label('\n'.join(title_text))
         duration_ss = reader.info.length
         if duration_ss:
-            self.time_label.set_label(format_mm_ss(0))
+            self.time_label.set_label(format_mm_ss(0) + ' ')
             self.duration_label.set_label('/ %s' % format_mm_ss(duration_ss))
             self.play_started_at = datetime.datetime.now()
         else:
