@@ -1,11 +1,11 @@
 [
-  { "name": "Warm up",              "type": "%FTP",  "cadence":  90,  "effort": "40%",  "duration": "2m 4s",   "color": [ 51, 153,  51] },
+  { "name": "Warm up",              "type": "%FTP",  "cadence":  90,  "effort": "40%",  "duration": "2m 4s",   "color": "ForestGreen" },
   { "name": "Warm up high cadence", "type": "%FTP",  "cadence": 120,  "effort": "80%",  "duration": "15s",     "color": [255, 102,   0] },
-  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "1m",      "color": [ 51, 153,  51] },
+  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "1m",      "color": "ForestGreen" },
   { "name": "Warm up high cadence", "type": "%FTP",  "cadence": 120,  "effort": "80%",  "duration": "15s",     "color": [255, 102,   0] },
-  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "1m",      "color": [ 51, 153,  51] },
+  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "1m",      "color": "ForestGreen" },
   { "name": "Warm up high cadence", "type": "%FTP",  "cadence": 120,  "effort": "80%",  "duration": "15s",     "color": [255, 102,   0] },
-  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "2m 15s",  "color": [ 51, 153,  51] },
+  { "name": "Warm up",              "type": "%FTP",  "cadence":  70,  "effort": "50%",  "duration": "2m 15s",  "color": "ForestGreen" },
 
   { "name": "Block 1 interval 1",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 1 easier 1",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
@@ -18,7 +18,7 @@
   { "name": "Block 1 interval 5",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 1 easier 5",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
 
-  { "name": "Recovery 1",   "type": "%FTP",  "cadence":  70,  "effort": "40%",  "duration": "4m", "color": [ 51, 153, 51] },
+  { "name": "Recovery 1",   "type": "%FTP",  "cadence":  70,  "effort": "40%",  "duration": "4m", "color": "ForestGreen" },
 
   { "name": "Block 2 interval 1",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 2 easier 1",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
@@ -31,7 +31,7 @@
   { "name": "Block 2 interval 5",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 2 easier 5",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
 
-  { "name": "Recovery 2",   "type": "%FTP",  "cadence":  70,  "effort": "40%",  "duration": "4m", "color": [ 51, 153, 51] },
+  { "name": "Recovery 2",   "type": "%FTP",  "cadence":  70,  "effort": "40%",  "duration": "4m", "color": "ForestGreen" },
 
   { "name": "Block 3 interval 1",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 3 easier 1",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
@@ -44,5 +44,5 @@
   { "name": "Block 3 interval 5",  "type": "%FTP",  "cadence": 110,  "effort": "120%",  "duration": "20s",   "color": [255,   0,   0] },
   { "name": "Block 3 easier 5",    "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "40s",   "color": [255, 102,   0] },
 
-  { "name": "Cool down",   "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "3m",  "color": [ 51, 153,  51] }
+  { "name": "Cool down",   "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "3m",  "color": "ForestGreen" }
 ]

@@ -1,5 +1,5 @@
 [
-  { "name": "Warm up",        "type": "%FTP",  "cadence":  80,  "effort": "50%",  "duration": "5m", "color": [ 51, 153, 51] },
+  { "name": "Warm up",        "type": "%FTP",  "cadence":  80,  "effort": "50%",  "duration": "5m", "color": "ForestGreen" },
   { "name": "Effort 1 of 7",  "type": "%FTP",  "cadence": 110,  "effort": "90%",  "duration": "3m", "color": [255,  51,  0] },
   { "name": "Effort 2 of 7",  "type": "%FTP",  "cadence": 100,  "effort": "90%",  "duration": "3m", "color": [255,  60,  0] },
   { "name": "Effort 3 of 7",  "type": "%FTP",  "cadence":  90,  "effort": "90%",  "duration": "3m", "color": [255,  68,  0] },
@@ -7,7 +7,7 @@
   { "name": "Effort 5 of 7",  "type": "%FTP",  "cadence":  70,  "effort": "90%",  "duration": "3m", "color": [255,  85,  0] },
   { "name": "Effort 6 of 7",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "3m", "color": [255,  94,  0] },
   { "name": "Effort 7 of 7",  "type": "%FTP",  "cadence":  50,  "effort": "90%",  "duration": "3m", "color": [255, 102,  0] },
-  { "name": "Recover",        "type": "%FTP",  "cadence":  90,  "effort": "40%",  "duration": "4m", "color": [ 51, 153, 51] },
+  { "name": "Recover",        "type": "%FTP",  "cadence":  90,  "effort": "40%",  "duration": "4m", "color": "ForestGreen" },
   { "name": "Effort 1 of 6",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "4m", "color": [255,  94,  0] },
   { "name": "Effort 2 of 6",  "type": "%FTP",  "cadence":  70,  "effort": "90%",  "duration": "4m", "color": [255,  85,  0] },
   { "name": "Effort 3 of 6",  "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration": "4m", "color": [255,  77,  0] },
@@ -15,5 +15,5 @@
   { "name": "Effort 5 of 6",  "type": "%FTP",  "cadence": 100,  "effort": "90%",  "duration": "4m", "color": [255,  60,  0] },
   { "name": "Effort 6 of 6",  "type": "%FTP",  "cadence": 110,  "effort": "90%",  "duration": "4m", "color": [255,  51,  0] },
   { "name": "MAX EFFORT",     "type": "MAX",   "cadence": 120,  "effort": "MAX",  "duration": "1m", "color": [255,   0,  0] },
-  { "name": "Cool down",      "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "5m", "color": [ 51, 153, 51] }
+  { "name": "Cool down",      "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "5m", "color": "ForestGreen" }
 ]
