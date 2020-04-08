@@ -52,6 +52,7 @@ class VideoIndexWindow(PlayerWindowInterface):
         self.video_cache = video_cache
         self.stack = None
         self.list_store = None
+        self.player = None  # set when video starts
 
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
@@ -121,6 +122,19 @@ class VideoIndexWindow(PlayerWindowInterface):
         self.interval_window.set_margin_start(1500)  # pad on left side only
         stack.add_named(video_layout, "interval_window")
 
+    def monitor_for_end_of_video(self):
+        if self.player is None:
+            still_playing = False
+        elif self.player.is_finished():
+            still_playing = False
+        else:
+            still_playing = True
+        if not still_playing:
+            self.player = None
+            assert self.stack
+            self.stack.set_visible_child_name("main_session_index_window")
+        return still_playing
+
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
         if self.downloading_id:
@@ -161,13 +175,13 @@ class VideoIndexWindow(PlayerWindowInterface):
         # widget is the Button (in the ListBoxRow)
         video_id = self.list_store[selected_row][5]
         video_file = self.video_cache.cached_downloads.get(video_id)
-        # TODO: FIX ME
         if video_file:
             # play it!
-            player = self.config.players[video_file.suffix]
-            player.play(video_file)
+            self.player = self.config.players[video_file.suffix]
+            self.player.play(video_file)
         self.interval_window.play(video_id)
         self.stack.set_visible_child_name("interval_window")
+        GLib.timeout_add_seconds(1, self.monitor_for_end_of_video)
 
     def update_download_icons(self):
         # Update the display whether files are in the cache
