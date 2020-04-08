@@ -74,6 +74,7 @@ class OmxPlayer(PlayerInterface):
                                       stdout=subprocess.DEVNULL,
                                       stderr=subprocess.DEVNULL)
 
+
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
         if default_args is None:
