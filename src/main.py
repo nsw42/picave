@@ -43,7 +43,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect("destroy", self.on_quit)
         self.connect("delete-event", self.on_quit)
 
-        self.quit_key_accel_keyval, self.quit_key_accel_mods = Gtk.accelerator_parse('<Primary>Q')
+        self.key_table = []
+        for (keyname, handler) in [
+            ('<Primary>Q', self.on_quit),
+            ('Escape', self.on_show_home),  # OSMC 'Home' button
+            ('c', self.on_show_index)  # OSMC 'index' button
+        ]:
+            keyval, mods = Gtk.accelerator_parse(keyname)
+            self.key_table.append((keyval, mods, handler))
         self.connect('key-press-event', self.on_key_press)
 
         self.warmup_handler = Mp3Window(self.config, "Warm up", mp3index)
@@ -71,15 +78,29 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_key_press(self, widget, event):
-        if ((event.state & self.quit_key_accel_mods) == self.quit_key_accel_mods) and \
-           (event.keyval == self.quit_key_accel_keyval):
-            self.on_quit()
+        logging.debug('Key: hw: %s / state: %s / keyval: %s' % (event.hardware_keycode, event.state, event.keyval))
+        for (keyval, mods, handler) in self.key_table:
+            if ((event.state & mods) == mods) and (event.keyval == keyval):
+                handler()
+                return True  # we've handled the event
+        return False
+
+    def on_show_home(self):
+        self.stop_playing()
+        self.stack.set_visible_child_name("main_window_buttons")
+
+    def on_show_index(self):
+        self.stop_playing()
+        self.main_session_handler.on_main_button_clicked(None)
 
     def on_quit(self, *args):
+        self.stop_playing()
         self.video_cache.stop_download()
+        Gtk.main_quit()
+
+    def stop_playing(self):
         self.warmup_handler.stop()
         self.main_session_handler.stop()
-        Gtk.main_quit()
 
 
 def parse_args():
