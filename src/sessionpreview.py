@@ -21,6 +21,7 @@ class SessionPreview(SessionView):
         self.queue_draw()
 
     def on_draw(self, drawingarea, context: cairo.Context):
+        # draw effort rectangles
         for interval in self.intervals:
             x = interval.start_offset.seconds * drawingarea.get_allocated_width() / self.max_duration
             w = interval.duration * drawingarea.get_allocated_width() / self.max_duration
@@ -29,4 +30,16 @@ class SessionPreview(SessionView):
                                    interval.color[1] / 255.0,
                                    interval.color[2] / 255.0)
             context.fill_preserve()
+            context.stroke()
+
+        # now overdraw cadence line
+        for interval in self.intervals:
+            x = interval.start_offset.seconds * drawingarea.get_allocated_width() / self.max_duration
+            w = interval.duration * drawingarea.get_allocated_width() / self.max_duration
+            # cadence y scaling: max_y=40, min_y=130
+            y = max(0, 130 - interval.cadence) * drawingarea.get_allocated_height() / (130 - 40)
+            context.set_source_rgb(0, 0, 0)
+            context.set_line_width(3)
+            context.move_to(x, y)
+            context.line_to(x + w, y)
             context.stroke()
