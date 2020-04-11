@@ -45,8 +45,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.key_table = []
         for (keyname, handler) in [
-            ('<Primary>Q', self.on_quit)
-            ('Escape', self.on_show_home)  # OSMC 'Home' button
+            ('<Primary>Q', self.on_quit),
+            ('Escape', self.on_show_home),  # OSMC 'Home' button
             ('c', self.on_show_index)  # OSMC 'index' button
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
