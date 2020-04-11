@@ -112,24 +112,25 @@ class VideoIndexWindow(PlayerWindowInterface):
         scrollable_tree.add(tree)
 
         self.session_preview = SessionPreview(self.config, self.session_feed.url)
+        self.session_preview.set_vexpand(True)
 
         back_button = Gtk.Button(label='Back')
         back_button.connect('clicked', self.on_back_button_clicked)
+        back_button.set_vexpand(False)
+
         grid = Gtk.Grid()
+        grid.set_margin_top(100)
+        grid.set_margin_bottom(100)
+        grid.set_margin_left(200)
+        grid.set_margin_right(200)
         grid.set_column_homogeneous(True)
-        grid.set_row_homogeneous(True)
+        grid.set_row_homogeneous(False)
         grid.set_row_spacing(10)
         grid.attach(scrollable_tree, 0, 0, 1, 3)
         grid.attach(self.session_preview, 0, 3, 1, 2)
+        grid.attach(back_button, 0, 5, 1, 1)
 
-        vbox = Gtk.VBox()
-        vbox.set_margin_top(100)
-        vbox.set_margin_bottom(100)
-        vbox.set_margin_left(200)
-        vbox.set_margin_right(200)
-        vbox.pack_start(grid, expand=True, fill=True, padding=10)
-        vbox.pack_start(back_button, expand=False, fill=True, padding=10)
-        stack.add_named(vbox, "main_session_index_window")
+        stack.add_named(grid, "main_session_index_window")
 
         video_layout = Gtk.HBox()
         video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
