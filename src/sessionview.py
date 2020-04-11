@@ -14,7 +14,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
-Interval = namedtuple('Interval', ['name', 'type', 'cadence', 'effort', 'duration', 'color', 'start_offset'])
+Interval = namedtuple('Interval', ['name', 'type', 'cadence',
+                                   'effort', 'effort_val', 'duration', 'color', 'start_offset'])
 
 
 class SessionView(Gtk.DrawingArea):
@@ -36,7 +37,7 @@ class SessionView(Gtk.DrawingArea):
         except jsonfeed.NotFoundError as e:
             logging.warning("%s could not be read: %s" % (uri, e.message))
             return []
-        session = [Interval(start_offset=0, **interval) for interval in session]
+        session = [Interval(start_offset=0, effort_val=0, **interval) for interval in session]
         session = [interval._replace(duration=parse_duration(interval.duration)) for interval in session]
         start_offset = 0
         for index in range(len(session)):
@@ -49,8 +50,13 @@ class SessionView(Gtk.DrawingArea):
                 assert interval.effort.endswith('%')
                 effort = interval.effort[:-1]
                 effort = int(effort)
+                interval = interval._replace(effort_val=effort)
                 effort = self.config.ftp * effort / 100.0
                 effort = '%uW (%s)' % (effort, interval.effort)
                 interval = interval._replace(effort=effort)
+            elif interval.type == 'MAX':
+                interval = interval._replace(effort_val=float("inf"))
+            else:
+                assert False
             session[index] = interval
         return session

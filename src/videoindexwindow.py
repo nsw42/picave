@@ -3,6 +3,7 @@ import sys
 
 from config import Config
 from intervalwindow import IntervalWindow
+from sessionpreview import SessionPreview
 from videocache import VideoCache
 from videofeed import VideoFeed
 from windowinterface import PlayerWindowInterface
@@ -78,6 +79,7 @@ class VideoIndexWindow(PlayerWindowInterface):
 
         self.list_store = self.build_list_store()
         tree = Gtk.TreeView(self.list_store)
+        tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
         tree.connect('size-allocate', self.set_column_widths)
 
@@ -109,11 +111,17 @@ class VideoIndexWindow(PlayerWindowInterface):
         scrollable_tree.set_vexpand(True)
         scrollable_tree.add(tree)
 
+        self.session_preview = SessionPreview(self.config, self.session_feed.url)
+
         back_button = Gtk.Button(label='Back')
         back_button.connect('clicked', self.on_back_button_clicked)
         vbox = Gtk.VBox()
-        vbox.set_border_width(200)
+        vbox.set_margin_top(100)
+        vbox.set_margin_bottom(100)
+        vbox.set_margin_left(200)
+        vbox.set_margin_right(200)
         vbox.pack_start(scrollable_tree, expand=True, fill=True, padding=10)
+        vbox.pack_start(self.session_preview, expand=True, fill=True, padding=10)
         vbox.pack_start(back_button, expand=False, fill=True, padding=10)
         stack.add_named(vbox, "main_session_index_window")
 
@@ -134,6 +142,11 @@ class VideoIndexWindow(PlayerWindowInterface):
             assert self.stack
             self.stack.set_visible_child_name("main_session_index_window")
         return still_playing
+
+    def on_index_selection_changed(self, widget):
+        selected_row, _ = widget.get_cursor()
+        video_id = self.list_store[selected_row][5]
+        self.session_preview.show(video_id)
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
