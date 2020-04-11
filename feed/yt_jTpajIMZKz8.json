@@ -1,0 +1,23 @@
+[
+  { "name": "Warm up",     "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m 33s", "color": "forest green" },
+
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "4m",     "color": "forest green" },
+
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+  { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
+  { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
+
+  { "name": "Cool down",   "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "3m",     "color": "forest green" }
+]
