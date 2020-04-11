@@ -138,6 +138,8 @@ class VideoIndexWindow(PlayerWindowInterface):
         self.interval_window.set_margin_start(1500)  # pad on left side only
         stack.add_named(video_layout, "interval_window")
 
+        grid.connect('realize', self.on_shown)
+
     def monitor_for_end_of_video(self):
         if self.player is None:
             still_playing = False
@@ -163,8 +165,6 @@ class VideoIndexWindow(PlayerWindowInterface):
         # and show the index of videos
         assert self.stack
         self.stack.set_visible_child_name("main_session_index_window")
-        self.tree.activate()
-        self.tree.set_cursor(0, None, False)
 
     def set_column_widths(self, widget, allocation):
         new_icon_width = 100
@@ -193,6 +193,10 @@ class VideoIndexWindow(PlayerWindowInterface):
         if self.video_cache.active_download_id != self.downloading_id:
             self.update_download_icons()
         return self.downloading_id is not None
+
+    def on_shown(self, widget):
+        self.tree.grab_focus()
+        self.tree.set_cursor(0, None, False)
 
     def on_video_button_clicked(self, widget, selected_row, column):
         # widget is the Button (in the ListBoxRow)

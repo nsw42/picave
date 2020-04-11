@@ -94,6 +94,8 @@ class Mp3Window(PlayerWindowInterface):
         grid.set_border_width(200)
         stack.add_named(grid, "mp3_info_box")
 
+        grid.connect('realize', self.on_shown)
+
     def on_back_button_clicked(self, widget):
         self.stop()
         self.stack.set_visible_child_name("main_window_buttons")
@@ -110,6 +112,9 @@ class Mp3Window(PlayerWindowInterface):
 
     def on_size_allocate(self, widget, allocation):
         self.pad.set_size_request(self.next_button.get_preferred_width().natural_width, 32)
+
+    def on_shown(self, widget):
+        self.next_button.grab_focus()
 
     def on_timer_tick(self):
         if self.player:
