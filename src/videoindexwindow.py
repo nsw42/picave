@@ -115,13 +115,19 @@ class VideoIndexWindow(PlayerWindowInterface):
 
         back_button = Gtk.Button(label='Back')
         back_button.connect('clicked', self.on_back_button_clicked)
+        grid = Gtk.Grid()
+        grid.set_column_homogeneous(True)
+        grid.set_row_homogeneous(True)
+        grid.set_row_spacing(10)
+        grid.attach(scrollable_tree, 0, 0, 1, 3)
+        grid.attach(self.session_preview, 0, 3, 1, 2)
+
         vbox = Gtk.VBox()
         vbox.set_margin_top(100)
         vbox.set_margin_bottom(100)
         vbox.set_margin_left(200)
         vbox.set_margin_right(200)
-        vbox.pack_start(scrollable_tree, expand=True, fill=True, padding=10)
-        vbox.pack_start(self.session_preview, expand=True, fill=True, padding=10)
+        vbox.pack_start(grid, expand=True, fill=True, padding=10)
         vbox.pack_start(back_button, expand=False, fill=True, padding=10)
         stack.add_named(vbox, "main_session_index_window")
 
