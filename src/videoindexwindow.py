@@ -79,6 +79,7 @@ class VideoIndexWindow(PlayerWindowInterface):
 
         self.list_store = self.build_list_store()
         tree = Gtk.TreeView(self.list_store)
+        self.tree = tree
         tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
         tree.connect('size-allocate', self.set_column_widths)
@@ -162,6 +163,8 @@ class VideoIndexWindow(PlayerWindowInterface):
         # and show the index of videos
         assert self.stack
         self.stack.set_visible_child_name("main_session_index_window")
+        self.tree.activate()
+        self.tree.set_cursor(0, None, False)
 
     def set_column_widths(self, widget, allocation):
         new_icon_width = 100
