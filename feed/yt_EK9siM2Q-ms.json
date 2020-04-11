@@ -14,6 +14,6 @@
   { "name": "Effort 4 of 6",  "type": "%FTP",  "cadence":  90,  "effort": "90%",  "duration": "4m", "color": [255,  68,  0] },
   { "name": "Effort 5 of 6",  "type": "%FTP",  "cadence": 100,  "effort": "90%",  "duration": "4m", "color": [255,  60,  0] },
   { "name": "Effort 6 of 6",  "type": "%FTP",  "cadence": 110,  "effort": "90%",  "duration": "4m", "color": [255,  51,  0] },
-  { "name": "MAX EFFORT",     "type": "MAX",   "cadence": 120,  "effort": "MAX",  "duration": "1m", "color": [255,   0,  0] },
+  { "name": "MAX EFFORT",     "type": "MAX",   "cadence": 120,  "effort": "MAX",  "duration": "1m", "color": "red" },
   { "name": "Cool down",      "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "5m", "color": "ForestGreen" }
 ]
