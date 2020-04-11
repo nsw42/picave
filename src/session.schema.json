@@ -33,12 +33,19 @@
             },
             "color": {
                 "description": "The color to use when representing this interval",
-                "type": "array",
-                "minItems": 3,
-                "maxItems": 3,
-                "items": {
-                    "type": "number"
-                }
+                "anyOf": [
+                    {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "type": "string"
+                    }
+                ]
             }
         },
         "required": ["type", "effort", "duration"]

@@ -1,9 +1,11 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
 import logging
+import os.path
 import urllib.parse
 
 from config import Config
+from colournames import ColourNames
 import jsonfeed
 from utils import format_mm_ss, parse_duration
 
@@ -31,6 +33,7 @@ class IntervalWindow(Gtk.DrawingArea):
         self.start_time = None
         self.current_interval_index = None
         self.connect("draw", self.on_draw)
+        self.colour_names = ColourNames(os.path.join(os.path.dirname(__file__), 'rgb.txt'))
 
     def read_intervals(self, video_id):
         urlparts = urllib.parse.urlparse(self.feed_url)
@@ -50,6 +53,8 @@ class IntervalWindow(Gtk.DrawingArea):
         for index in range(len(session)):
             interval = session[index]
             interval = interval._replace(start_offset=timedelta(seconds=start_offset))
+            if isinstance(interval.color, str):
+                interval = interval._replace(color=self.colour_names[interval.color])
             start_offset += interval.duration
             if interval.type == r'%FTP':
                 assert interval.effort.endswith('%')
