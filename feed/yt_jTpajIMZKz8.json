@@ -8,7 +8,7 @@
   { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
   { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },
 
-  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "4m",     "color": "forest green" },
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "4m",     "color": "yellow" },
 
   { "name": "Sweet spot",  "type": "%FTP",  "cadence":  80,  "effort":  "90%",  "duration": "4m",     "color": "orange red" },
   { "name": "Push hard",   "type": "%FTP",  "cadence": 100,  "effort": "130%",  "duration": "30s",    "color": "red" },

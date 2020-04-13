@@ -7,14 +7,14 @@
   { "name": "Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",      "color": "orange red" },
   { "name": "Max",        "type": "MAX",   "cadence": 110,  "effort": "MAX",   "duration": "30s",     "color": "red" },
 
-  { "name": "Recovery",   "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",      "color": "forest green" },
+  { "name": "Recovery",   "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",      "color": "yellow" },
 
   { "name": "Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",      "color": "orange red" },
   { "name": "Max",        "type": "MAX",   "cadence": 110,  "effort": "MAX",   "duration": "30s",     "color": "red" },
   { "name": "Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",      "color": "orange red" },
   { "name": "Max",        "type": "MAX",   "cadence": 110,  "effort": "MAX",   "duration": "30s",     "color": "red" },
 
-  { "name": "Recovery",   "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",      "color": "forest green" },
+  { "name": "Recovery",   "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",      "color": "yellow" },
 
   { "name": "Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",      "color": "orange red" },
   { "name": "Max",        "type": "MAX",   "cadence": 110,  "effort": "MAX",   "duration": "30s",     "color": "red" },

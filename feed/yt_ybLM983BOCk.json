@@ -18,7 +18,7 @@
   { "name": "Max 8",    "type": "MAX",  "cadence": 100,  "effort": "MAX",  "duration": "40s",   "color": "red" },
   { "name": "Back off", "type": "%FTP", "cadence":  80,  "effort": "80%",  "duration": "20s",   "color": "dark orange" },
 
-  { "name": "Recovery", "type": "%FTP", "cadence":  80,  "effort": "50%",  "duration": "3m",    "color": "forest green" },
+  { "name": "Recovery", "type": "%FTP", "cadence":  80,  "effort": "50%",  "duration": "3m",    "color": "yellow" },
 
   { "name": "Max 1",    "type": "MAX",  "cadence": 100,  "effort": "MAX",  "duration": "40s",   "color": "red" },
   { "name": "Back off", "type": "%FTP", "cadence":  80,  "effort": "80%",  "duration": "20s",   "color": "dark orange" },

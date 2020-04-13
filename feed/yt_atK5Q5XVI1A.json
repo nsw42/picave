@@ -7,25 +7,25 @@
   { "name": "Blk 1 Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",    "color": "orange red" },
   { "name": "Blk 1 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
 
-  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "forest green" },
+  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
 
   { "name": "Blk 2 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
   { "name": "Blk 2 Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",    "color": "orange red" },
   { "name": "Blk 2 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
 
-  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "forest green" },
+  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
 
   { "name": "Blk 3 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
   { "name": "Blk 3 Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",    "color": "orange red" },
   { "name": "Blk 3 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
 
-  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "forest green" },
+  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
 
   { "name": "Blk 4 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
   { "name": "Blk 4 Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "2m",    "color": "orange red" },
   { "name": "Blk 4 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
 
-  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "forest green" },
+  { "name": "Recovery",         "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
 
   { "name": "Blk 5 Max",        "type": "MAX",   "cadence": 110,  "effort":  "MAX",  "duration": "30s",   "color": "red" },
   { "name": "Blk 5 Threshold",  "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "3m",    "color": "orange red" },

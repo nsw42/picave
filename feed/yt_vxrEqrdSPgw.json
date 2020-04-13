@@ -6,7 +6,7 @@
     { "name": "Sprint 2",     "type": "MAX",   "cadence": 100,  "effort": "MAX",  "duration":     "10s", "color": "red" },
     { "name": "Sweet spot 3", "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration":  "5m 05s", "color": "orange red" },
     { "name": "Sprint 3",     "type": "MAX",   "cadence": 100,  "effort": "MAX",  "duration":     "10s", "color": "red" },
-    { "name": "Recovery",     "type": "%FTP",  "cadence":  90,  "effort": "70%",  "duration":  "2m 45s", "color": "forest green" },
+    { "name": "Recovery",     "type": "%FTP",  "cadence":  90,  "effort": "70%",  "duration":  "2m 45s", "color": "yellow" },
     { "name": "Sweet spot 4", "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration":  "4m 50s", "color": "orange red" },
     { "name": "Sprint 4",     "type": "MAX",   "cadence": 100,  "effort": "MAX",  "duration":     "10s", "color": "red" },
     { "name": "Sweet spot 5", "type": "%FTP",  "cadence":  80,  "effort": "90%",  "duration":  "4m 50s", "color": "orange red" },

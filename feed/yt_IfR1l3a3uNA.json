@@ -10,7 +10,7 @@
   { "name": "Zone 4",      "type": "%FTP",  "cadence": 90,  "effort": "100%",  "duration": "1m",      "color": "orange red"  },
   { "name": "Zone 3",      "type": "%FTP",  "cadence": 95,  "effort":  "80%",  "duration": "4m",      "color": "dark orange" },
 
-  { "name": "Recovery",    "type": "%FTP",  "cadence": 90,  "effort":  "50%",  "duration": "5m",      "color": "forest green" },
+  { "name": "Recovery",    "type": "%FTP",  "cadence": 90,  "effort":  "50%",  "duration": "5m",      "color": "yellow" },
 
   { "name": "Zone 4",      "type": "%FTP",  "cadence": 90,  "effort": "100%",  "duration": "1m",      "color": "orange red"  },
   { "name": "Zone 3",      "type": "%FTP",  "cadence": 95,  "effort":  "80%",  "duration": "4m",      "color": "dark orange" },
