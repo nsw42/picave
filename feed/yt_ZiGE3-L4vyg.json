@@ -1,0 +1,21 @@
+[
+  { "name": "Warm up",     "type": "%FTP",  "cadence":  70,  "effort":  "50%",  "duration": "5m 2s",  "color": "forest green" },
+
+  { "name": "Max 1",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "3m",     "color": "yellow" },
+  { "name": "Max 2",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "2m 30s", "color": "yellow" },
+  { "name": "Max 3",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "2m 30s", "color": "yellow" },
+  { "name": "Max 4",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "2m",     "color": "yellow" },
+  { "name": "Max 5",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "2m",     "color": "yellow" },
+  { "name": "Max 6",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "1m 30s", "color": "yellow" },
+  { "name": "Max 7",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+  { "name": "Rest",    "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "1m 30s", "color": "yellow" },
+  { "name": "Max 8",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",    "color": "red" },
+
+  { "name": "Cool down",   "type": "%FTP",  "cadence":  70,  "effort":  "30%",  "duration": "6m",  "color": "forest green" }
+]
