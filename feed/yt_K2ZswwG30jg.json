@@ -6,21 +6,27 @@
   { "name": "Block 1 Max 2",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "30s", "color": "red" },
   { "name": "Blk 1 Tempo 3",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 1 Max 3",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "45s", "color": "red" },
-  { "name": "Recover",        "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "forest green" },
+
+  { "name": "Recovery",       "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "yellow" },
+
   { "name": "Blk 2 Tempo 1",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 2 Max 1",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "15s", "color": "red" },
   { "name": "Blk 2 Tempo 2",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 2 Max 2",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "30s", "color": "red" },
   { "name": "Blk 2 Tempo 3",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 2 Max 3",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "45s", "color": "red" },
-  { "name": "Recover",        "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "forest green" },
+
+  { "name": "Recovery",       "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "yellow" },
+
   { "name": "Blk 3 Tempo 1",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 3 Max 1",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "15s", "color": "red" },
   { "name": "Blk 3 Tempo 2",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 3 Max 2",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "30s", "color": "red" },
   { "name": "Blk 3 Tempo 3",  "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 3 Max 3",  "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "45s", "color": "red" },
-  { "name": "Recover",        "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "forest green" },
+
+  { "name": "Recovery",       "type": "%FTP",  "cadence": 100,  "effort": "40%",  "duration": "3m",  "color": "yellow" },
+
   { "name": "Blk 4 Tempo",    "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",  "color": "DarkOrange1" },
   { "name": "Block 4 Max",    "type": "MAX",   "cadence": 110,  "effort": "MAX",  "duration": "1m",  "color": "red" },
   { "name": "Cool down",      "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "90s", "color": "forest green" }
