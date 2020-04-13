@@ -1,0 +1,49 @@
+[
+  { "name": "Warm up",     "type": "%FTP",  "cadence": 100,  "effort":  "50%",  "duration": "5m 6s",  "color": "forest green" },
+
+  { "name": "Blk 1 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 1 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 1 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 1 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Blk 2 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 2 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 2 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 2 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Blk 3 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 3 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 3 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 3 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Blk 4 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 4 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 4 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 4 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Blk 5 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 5 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 5 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 5 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Blk 6 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 6 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+  { "name": "Blk 6 Push",           "type": "%FTP",  "cadence": 80,  "effort": "120%",  "duration": "30s",      "color": "red" },
+  { "name": "Blk 6 out of saddle",  "type": "%FTP",  "cadence": 60,  "effort": "120%",  "duration": "30s",      "color": "orange red" },
+
+  { "name": "Recovery",    "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "3m",  "color": "yellow" },
+
+  { "name": "Tempo",       "type": "%FTP",  "cadence": 100,  "effort":  "90%",  "duration": "5m",  "color": "dark orange" },
+
+  { "name": "Cool down",   "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "5m",  "color": "forest green" }
+]
