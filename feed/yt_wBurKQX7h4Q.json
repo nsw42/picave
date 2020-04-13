@@ -1,0 +1,29 @@
+[
+  { "name": "Warm up",  "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "3m 2s",  "color": "forest green" },
+
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 1",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 2",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 3",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 4",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 5",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+
+  { "name": "Recovery", "type": "%FTP",  "cadence":  80,  "effort": "50%",   "duration": "4m",  "color": "yellow" },
+
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 6",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 7",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 8",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 9",    "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+  { "name": "Rest",     "type": "%FTP",  "cadence":  80,  "effort": "30%",   "duration": "30s",  "color": "lime green" },
+  { "name": "Max 10",   "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "30s",  "color": "red" },
+
+  { "name": "Cool down", "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "3m",  "color": "forest green" }
+]
