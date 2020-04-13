@@ -1,0 +1,17 @@
+[
+  { "name": "Warm up",       "type": "%FTP",  "cadence":  90,  "effort":  "50%",  "duration": "10m 2s",  "color": "forest green" },
+
+  { "name": "Torque",        "type": "%FTP",  "cadence":  70,  "effort": "100%",  "duration": "5m",      "color": "red" },
+  { "name": "Cadence",       "type": "%FTP",  "cadence": 100,  "effort":  "90%",  "duration": "2m",      "color": "orange red" },
+  { "name": "Torque",        "type": "%FTP",  "cadence":  70,  "effort": "100%",  "duration": "3m",      "color": "red" },
+  { "name": "Out of saddle", "type": "%FTP",  "cadence":  55,  "effort": "100%",  "duration": "2m",      "color": "red" },
+
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "4m",      "color": "forest green" },
+
+  { "name": "Torque",        "type": "%FTP",  "cadence":  70,  "effort": "100%",  "duration": "5m",      "color": "red" },
+  { "name": "Cadence",       "type": "%FTP",  "cadence": 100,  "effort":  "90%",  "duration": "2m",      "color": "orange red" },
+  { "name": "Torque",        "type": "%FTP",  "cadence":  70,  "effort": "100%",  "duration": "3m",      "color": "red" },
+  { "name": "Out of saddle", "type": "%FTP",  "cadence":  55,  "effort": "100%",  "duration": "2m",      "color": "red" },
+
+  { "name": "Cool down",     "type": "%FTP",  "cadence":  90,  "effort":  "30%",  "duration": "2m",  "color": "forest green" }
+]
