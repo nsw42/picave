@@ -1,0 +1,20 @@
+[
+  { "name": "Warm up",   "type": "%FTP",  "cadence":  90,  "effort": "50%",  "duration": "3m 9s",  "color": "forest green" },
+
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "3m",     "color": "dark orange" },
+  { "name": "Torque 1",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "5m",     "color": "orange red"  },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "3m",     "color": "dark orange" },
+  { "name": "Torque 2",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "5m",     "color": "orange red"  },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "3m",     "color": "dark orange" },
+  { "name": "Torque 3",  "type": "%FTP",  "cadence":  60,  "effort": "90%",  "duration": "5m",     "color": "orange red"  },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "3m",     "color": "dark orange" },
+  { "name": "Max 1",     "type": "MAX",   "cadence":  60,  "effort": "MAX",  "duration": "1m",     "color": "red"         },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",     "color": "dark orange" },
+  { "name": "Max 2",     "type": "MAX",   "cadence":  60,  "effort": "MAX",  "duration": "1m",     "color": "red"         },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",     "color": "dark orange" },
+  { "name": "Max 3",     "type": "MAX",   "cadence":  60,  "effort": "MAX",  "duration": "1m",     "color": "red"         },
+  { "name": "Tempo",     "type": "%FTP",  "cadence":  90,  "effort": "80%",  "duration": "2m",     "color": "dark orange" },
+  { "name": "Max 4",     "type": "MAX",   "cadence":  60,  "effort": "MAX",  "duration": "1m",     "color": "red"         },
+
+  { "name": "Cool down", "type": "%FTP",  "cadence":  90,  "effort": "30%",  "duration": "3m",     "color": "forest green" }
+]
