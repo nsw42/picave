@@ -1,0 +1,40 @@
+[
+  { "name": "Warm up",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "2m 30s",  "color": "forest green" },
+  { "name": "Warm up",       "type": "%FTP",  "cadence":  85,  "effort":  "65%",  "duration": "2m",    "color": "forest green" },
+  { "name": "Warm up",       "type": "%FTP",  "cadence":  90,  "effort":  "75%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Warm up",       "type": "%FTP",  "cadence": 100,  "effort":  "90%",  "duration": "30s",   "color": "dark orange" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "60s",   "color": "yellow" },
+  { "name": "Opener",        "type": "%FTP",  "cadence": 100,  "effort": "110%",  "duration": "60s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "60s",   "color": "yellow" },
+  { "name": "Opener",        "type": "%FTP",  "cadence":  60,  "effort": "100%",  "duration": "90s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Opener",        "type": "%FTP",  "cadence":  90,  "effort": "150%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
+
+  { "name": "Slow start #1", "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "20s",   "color": "red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  60,  "effort":  "40%",  "duration": "40s",   "color": [255, 255, 180] },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
+
+  { "name": "Torque 1",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 2",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 3",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 4",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "3m",    "color": "yellow" },
+
+  { "name": "Slow start #2", "type": "MAX",   "cadence": 100,  "effort": "MAX",   "duration": "20s",   "color": "red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  60,  "effort":  "40%",  "duration": "40s",   "color": [255, 255, 180] },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "2m",    "color": "yellow" },
+
+  { "name": "Torque 1",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 2",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 3",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+  { "name": "Recovery",      "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",   "color": "yellow" },
+  { "name": "Torque 4",      "type": "%FTP",  "cadence":  60,  "effort": "120%",  "duration": "30s",   "color": "orange red" },
+
+  { "name": "Cool down",     "type": "%FTP",  "cadence":  80,  "effort":  "30%",  "duration": "3m",    "color": "forest green" }
+]
