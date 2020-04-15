@@ -38,6 +38,8 @@ def parse_duration(duration_str: str):
     '''
     >>> parse_duration('2s')
     2
+    >>> parse_duration('90s')
+    90
     >>> parse_duration('1m')
     60
     >>> parse_duration('10m 5s')
