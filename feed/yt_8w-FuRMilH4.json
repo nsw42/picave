@@ -1,0 +1,37 @@
+[
+  { "name": "Warm up",     "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "2m 59s",  "color": "forest green" },
+
+  { "name": "2/10",      "type": "%FTP",  "cadence":  90,  "effort":  "60%",  "duration": "2m",      "color": [255, 204, 0] },
+  { "name": "4/10",      "type": "%FTP",  "cadence": 100,  "effort":  "70%",  "duration": "1m",      "color": [255, 153, 0] },
+  { "name": "2/10",      "type": "%FTP",  "cadence":  80,  "effort":  "60%",  "duration": "90s",     "color": [255, 204, 0] },
+
+  { "name": "5/10",      "type": "%FTP",  "cadence":  90,  "effort":  "80%",  "duration": "90s",     "color": [255,  51, 0] },
+  { "name": "6/10",      "type": "%FTP",  "cadence":  95,  "effort":  "85%",  "duration": "60s",     "color": [255,  25, 0] },
+  { "name": "4/10",      "type": "%FTP",  "cadence":  85,  "effort":  "75%",  "duration": "30s",     "color": [255, 127, 0] },
+
+  { "name": "7/10",      "type": "%FTP",  "cadence":  80,  "effort":  "85%",  "duration": "90s",     "color": [255,  76, 0] },
+  { "name": "7/10",      "type": "%FTP",  "cadence":  90,  "effort":  "90%",  "duration": "60s",     "color": [255,  51, 0] },
+  { "name": "5/10",      "type": "%FTP",  "cadence":  85,  "effort":  "80%",  "duration": "30s",     "color": [255, 102, 0] },
+
+  { "name": "7/10",      "type": "%FTP",  "cadence": 100,  "effort":  "90%",  "duration": "90s",     "color": [255,  51, 0] },
+  { "name": "7/10",      "type": "%FTP",  "cadence": 100,  "effort":  "95%",  "duration": "60s",     "color": [255,  25, 0] },
+  { "name": "6/10",      "type": "%FTP",  "cadence":  80,  "effort":  "85%",  "duration": "30s",     "color": [255,  76, 0] },
+
+  { "name": "7/10",      "type": "%FTP",  "cadence":  90,  "effort":  "95%",  "duration": "90s",     "color": [255,  25, 0] },
+  { "name": "8/10",      "type": "%FTP",  "cadence":  90,  "effort": "100%",  "duration": "60s",     "color": [255,   0, 0] },
+  { "name": "7/10",      "type": "%FTP",  "cadence":  90,  "effort":  "90%",  "duration": "30s",     "color": [255,  51, 0] },
+
+  { "name": "8/10",      "type": "%FTP",  "cadence":  95,  "effort": "100%",  "duration": "90s",     "color": [255,   0, 0] },
+  { "name": "9/10",      "type": "%FTP",  "cadence": 100,  "effort": "105%",  "duration": "60s",     "color": [255,   0, 0] },
+  { "name": "8/10",      "type": "%FTP",  "cadence":  90,  "effort":  "95%",  "duration": "30s",     "color": [255,  25, 0] },
+
+  { "name": "Recovery",  "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",     "color": "yellow" },
+
+  { "name": "8/10",      "type": "%FTP",  "cadence":  85,  "effort":  "90%",  "duration": "90s",     "color": [255,  51, 0] },
+  { "name": "8/10",      "type": "%FTP",  "cadence":  90,  "effort":  "95%",  "duration": "60s",     "color": [255,  25, 0] },
+  { "name": "7/10",      "type": "%FTP",  "cadence":  80,  "effort":  "85%",  "duration": "30s",     "color": [255,  76, 0] },
+
+  { "name": "8/10",      "type": "%FTP",  "cadence":  95,  "effort":  "95%",  "duration": "90s",     "color": [255,  25, 0] },
+  { "name": "9/10",      "type": "%FTP",  "cadence": 100,  "effort": "100%",  "duration": "60s",     "color": [255,   0, 0] },
+  { "name": "Cool down", "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "90s",     "color": "forest green" }
+]

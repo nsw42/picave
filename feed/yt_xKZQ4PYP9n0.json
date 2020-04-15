@@ -1,0 +1,20 @@
+[
+  { "name": "Warm up",        "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "3m",  "color": "forest green" },
+  { "name": "Warm up",        "type": "%FTP",  "cadence":  85,  "effort":  "55%",  "duration": "2m",  "color": [255, 229, 0] },
+  { "name": "Warm up",        "type": "%FTP",  "cadence":  90,  "effort":  "60%",  "duration": "1m",  "color": [255, 204, 0] },
+  { "name": "Low tempo",      "type": "%FTP",  "cadence":  95,  "effort":  "70%",  "duration": "30s", "color": [255, 153, 0] },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "1m",  "color": "yellow" },
+  { "name": "Low tempo",      "type": "%FTP",  "cadence": 100,  "effort":  "80%",  "duration": "1m",  "color": [255, 102, 0] },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "1m",  "color": "yellow" },
+  { "name": "Tempo",          "type": "%FTP",  "cadence":  90,  "effort":  "85%",  "duration": "3m",  "color": [255, 76, 0] },
+  { "name": "Threshold",      "type": "%FTP",  "cadence": 100,  "effort":  "95%",  "duration": "1m",  "color": [255, 25, 0] },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "1m 30s", "color": "yellow" },
+  { "name": "Over threshold", "type": "%FTP",  "cadence":  70,  "effort": "110%",  "duration": "30s",  "color": "orange red" },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "30s",  "color": "yellow" },
+  { "name": "Over threshold", "type": "%FTP",  "cadence": 110,  "effort": "105%",  "duration": "1m 30s", "color": "orange red" },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "1m 30s", "color": "yellow" },
+  { "name": "Threshold",      "type": "%FTP",  "cadence":  95,  "effort": "100%",  "duration": "1m",  "color": "orange red" },
+  { "name": "Recovery",       "type": "%FTP",  "cadence":  80,  "effort":  "50%",  "duration": "1m",  "color": "yellow" },
+  { "name": "Sprint",         "type": "%FTP",  "cadence": 120,  "effort": "150%",  "duration": "10s", "color": "red" },
+  { "name": "Easy spin",      "type": "%FTP",  "cadence":  85,  "effort":  "30%",  "duration": "1m 50s",  "color": "forest green" }
+]
