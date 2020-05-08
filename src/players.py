@@ -87,7 +87,7 @@ class MPVPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
         self.ipc_address = '/tmp/picave-mpv-socket'
         if default_args is None:
-            default_args = ['--geometry=0:0', '--input-ipc-server=%s' % self.ipc_address]
+            default_args = ['--geometry=0:0', '--ontop', '--input-ipc-server=%s' % self.ipc_address]
         super().__init__(exe, default_args)
 
         self.pause = MPVPlayer.encode_command(['set_property_string', 'pause', 'yes'])
