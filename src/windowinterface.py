@@ -28,5 +28,8 @@ class PlayerWindowInterface(StackWindow):
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant player window class
 
+    def play_pause(self):
+        raise NotImplementedError()
+
     def stop(self):
         raise NotImplementedError()

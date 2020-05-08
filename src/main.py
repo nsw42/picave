@@ -66,6 +66,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ('<Primary>Q', self.on_quit),
             ('Escape', self.on_show_home),  # OSMC 'Home' button
             ('c', self.on_show_index),  # OSMC 'index' button
+            ('P', self.on_play_pause),  # TODO: Remove me
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
             self.key_table.append((keyval, mods, handler))
@@ -105,6 +106,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             logging.debug("OSMC enabled")
             self.osmc_handlers = {
                 osmc.KEY_BACK: self.on_back_button,
+                osmc.KEY_PLAYPAUSE: self.on_play_pause,
             }
             GLib.timeout_add(50, self.check_osmc_events)  # 50ms = 1/20s
 
@@ -142,6 +144,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.on_shutdown()
         else:
             self.on_show_home()
+
+    def on_play_pause(self):
+        visible_child = self.stack.get_visible_child_name()
+        logging.debug("on_play_pause: visible child %s", visible_child)
+        # TODO: Checking the child name is a layering violation
+        if visible_child == 'main_window_buttons':
+            logging.debug('Ignoring play/pause on main window')
+        elif visible_child == 'mp3_info_box':
+            self.warmup_handler.play_pause()
+        elif visible_child == 'interval_window':
+            self.main_session_handler.play_pause()
 
     def on_show_home(self):
         self.stop_playing()

@@ -173,6 +173,10 @@ class Mp3Window(PlayerWindowInterface):
         self.player.play(mp3filename)
         self.on_size_allocate(None, None)  # do this here rather than wait for 'allocated' signal to avoid screen jiggle
 
+    def play_pause(self):
+        if self.player:
+            self.player.play_pause()
+
     def stop(self):
         if self.player:
             self.player.stop()

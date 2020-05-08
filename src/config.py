@@ -76,7 +76,7 @@ class Config(object):
         for player_config in json_content['filetypes']:
             ext = player_config['ext']
             player = player_config['player']
-            cmd_args = player_config.get('options', [])
+            cmd_args = player_config.get('options', None)
             player_class = self.player_lookup[player]
             self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args)
             logging.debug("player %s=%s" % (ext, self.players[ext]))

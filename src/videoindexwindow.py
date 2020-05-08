@@ -223,5 +223,10 @@ class VideoIndexWindow(PlayerWindowInterface):
             else:
                 row[4] = None
 
+    def play_pause(self):
+        if self.player:
+            self.player.play_pause()
+
     def stop(self):
-        pass  # TODO
+        if self.player:
+            self.player.stop()
