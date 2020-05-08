@@ -31,8 +31,8 @@ class ExitDialog(Gtk.Dialog):
                          parent=parent,
                          flags=0)
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-        self.add_button("Quit",           Gtk.ResponseType.OK)
-        self.add_button("Shutdown",       Gtk.ResponseType.CLOSE)
+        self.add_button("Quit", Gtk.ResponseType.OK)
+        self.add_button("Shutdown", Gtk.ResponseType.CLOSE)
         self.set_default_size(150, 100)
 
         self.show_all()
@@ -104,8 +104,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if self.osmc:
             logging.debug("OSMC enabled")
             self.osmc_handlers = {
-                    osmc.KEY_BACK: self.on_back_button
-                }
+                osmc.KEY_BACK: self.on_back_button,
+            }
             GLib.timeout_add(50, self.check_osmc_events)  # 50ms = 1/20s
 
     def check_osmc_events(self):
