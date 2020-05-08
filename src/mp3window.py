@@ -27,7 +27,7 @@ class Mp3Window(PlayerWindowInterface):
         self.player = None  # set when the main button is clicked and we start playing
         self.button.set_sensitive(self.mp3index is not None)
 
-    def add_windows_to_stack(self, stack):
+    def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
 
         self.artist_label = Gtk.Label()
@@ -92,7 +92,9 @@ class Mp3Window(PlayerWindowInterface):
         grid.attach(self.back_button, left=0, top=3, width=3, height=1)
 
         grid.set_border_width(200)
-        stack.add_named(grid, "mp3_info_box")
+        window_name = "mp3_info_box"
+        stack.add_named(grid, window_name)
+        window_name_to_handler[window_name] = self
 
         grid.connect('realize', self.on_shown)
 

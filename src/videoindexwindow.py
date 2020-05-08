@@ -74,7 +74,7 @@ class VideoIndexWindow(PlayerWindowInterface):
             list_store.append([video.name, video.type, video.date, video.duration, None, video.id])
         return list_store
 
-    def add_windows_to_stack(self, stack):
+    def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
 
         self.list_store = self.build_list_store()
@@ -131,22 +131,28 @@ class VideoIndexWindow(PlayerWindowInterface):
         grid.attach(self.session_preview, 0, 3, 1, 2)
         grid.attach(back_button, 0, 5, 1, 1)
 
-        stack.add_named(grid, "main_session_index_window")
+        index_window_name = "main_session_index_window"
+        stack.add_named(grid, index_window_name)
+        window_name_to_handler[index_window_name] = self
 
         video_layout = Gtk.HBox()
         video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
         self.interval_window.set_margin_start(1500)  # pad on left side only
-        stack.add_named(video_layout, "interval_window")
+
+        interval_window_name = "interval_window"
+        stack.add_named(video_layout, interval_window_name)
+        window_name_to_handler[interval_window_name] = self
 
         grid.connect('realize', self.on_shown)
 
     def monitor_for_end_of_video(self):
         if self.player is None:
-            still_playing = False
+            return False  # we've already taken appropriate actions
         elif self.player.is_finished():
             still_playing = False
         else:
             still_playing = True
+
         if not still_playing:
             self.player = None
             assert self.stack
@@ -229,4 +235,6 @@ class VideoIndexWindow(PlayerWindowInterface):
 
     def stop(self):
         if self.player:
+            logging.debug("videoindexwindow: stop")
             self.player.stop()
+            self.player = None  # prevent monitor_for_end_of_video controlling the visible page

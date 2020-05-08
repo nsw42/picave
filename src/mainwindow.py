@@ -11,9 +11,11 @@ class MainButtonWindow(StackWindow):
         super().__init__()
         self.button_providers = button_providers
 
-    def add_windows_to_stack(self, stack):
+    def add_windows_to_stack(self, stack, window_name_to_handler):
         main_window_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         main_window_buttons.set_border_width(self.PADDING)
         for provider in self.button_providers:
             main_window_buttons.pack_start(provider.button, expand=True, fill=True, padding=100)
-        stack.add_named(main_window_buttons, "main_window_buttons")
+        window_name = "main_window_buttons"
+        stack.add_named(main_window_buttons, window_name)
+        window_name_to_handler[window_name] = self

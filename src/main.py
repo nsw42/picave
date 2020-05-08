@@ -48,6 +48,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
            * Button("Main session") (clicking shows the main session video index)
          * main session index (a listbox of videos)
     """
+    stack_window_parents = {
+        "main_window_buttons": None,
+        "mp3_info_box": "main_window_buttons",
+        "main_session_index_window": "main_window_buttons",
+        "interval_window": "main_session_index_window"
+    }
 
     def __init__(self,
                  config: Config,
@@ -67,6 +73,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ('Escape', self.on_show_home),  # OSMC 'Home' button
             ('c', self.on_show_index),  # OSMC 'index' button
             ('P', self.on_play_pause),  # TODO: Remove me
+            ('X', self.on_back_button),  # TODO: Remove me
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
             self.key_table.append((keyval, mods, handler))
@@ -90,9 +97,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(1000)
 
-        self.main_buttons.add_windows_to_stack(self.stack)
-        self.warmup_handler.add_windows_to_stack(self.stack)
-        self.main_session_handler.add_windows_to_stack(self.stack)
+        self.window_name_to_handler = {}
+
+        self.main_buttons.add_windows_to_stack(self.stack, self.window_name_to_handler)
+        self.warmup_handler.add_windows_to_stack(self.stack, self.window_name_to_handler)
+        self.main_session_handler.add_windows_to_stack(self.stack, self.window_name_to_handler)
 
         self.stack.set_visible_child_name("main_window_buttons")
 
@@ -128,33 +137,38 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         return False
 
     def on_back_button(self):
-        if self.stack.get_visible_child_name() == "main_window_buttons":
-            dialog = ExitDialog(self)
-            response = dialog.run()
-            dialog.destroy()
+        current_window = self.stack.get_visible_child_name()
+        if current_window in self.stack_window_parents:
+            parent = self.stack_window_parents[current_window]
 
-            logging.debug("Response %u", response)
+            if parent:
+                stack_window = self.window_name_to_handler[current_window]
+                stack_window.stop()
+                self.stack.set_visible_child_name(parent)
 
-            if response == Gtk.ResponseType.CANCEL:
-                # No action required
-                pass
-            elif response == Gtk.ResponseType.OK:
-                self.on_quit()
-            elif response == Gtk.ResponseType.CLOSE:
-                self.on_shutdown()
+            else:
+                dialog = ExitDialog(self)
+                response = dialog.run()
+                dialog.destroy()
+
+                logging.debug("Response %u", response)
+
+                if response == Gtk.ResponseType.CANCEL:
+                    # No action required
+                    pass
+                elif response == Gtk.ResponseType.OK:
+                    self.on_quit()
+                elif response == Gtk.ResponseType.CLOSE:
+                    self.on_shutdown()
         else:
+            logging.debug("Internal error: No parent window found for %s", current_window)
             self.on_show_home()
 
     def on_play_pause(self):
-        visible_child = self.stack.get_visible_child_name()
-        logging.debug("on_play_pause: visible child %s", visible_child)
-        # TODO: Checking the child name is a layering violation
-        if visible_child == 'main_window_buttons':
-            logging.debug('Ignoring play/pause on main window')
-        elif visible_child == 'mp3_info_box':
-            self.warmup_handler.play_pause()
-        elif visible_child == 'interval_window':
-            self.main_session_handler.play_pause()
+        current_window = self.stack.get_visible_child_name()
+        logging.debug("on_play_pause: current window %s", current_window)
+        stack_window = self.window_name_to_handler[current_window]
+        stack_window.play_pause()
 
     def on_show_home(self):
         self.stop_playing()
