@@ -2,12 +2,14 @@ from argparse import ArgumentParser
 import logging
 import pathlib
 import sys
+import subprocess
 import time
 
 from config import Config
 from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3Window
+import osmc
 from videocache import VideoCache
 from videofeed import VideoFeed
 from videoindexwindow import VideoIndexWindow
@@ -18,6 +20,22 @@ from gi.repository import Gtk  # noqa: E402 # need to call require_version befor
 
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk  # noqa: E402 # need to call require_version before we can call this
+
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
+
+
+class ExitDialog(Gtk.Dialog):
+    def __init__(self, parent):
+        super().__init__(title="Really quit?",
+                         parent=parent,
+                         flags=0)
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_button("Quit",           Gtk.ResponseType.OK)
+        self.add_button("Shutdown",       Gtk.ResponseType.CLOSE)
+        self.set_default_size(150, 100)
+
+        self.show_all()
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
@@ -47,7 +65,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         for (keyname, handler) in [
             ('<Primary>Q', self.on_quit),
             ('Escape', self.on_show_home),  # OSMC 'Home' button
-            ('c', self.on_show_index)  # OSMC 'index' button
+            ('c', self.on_show_index),  # OSMC 'index' button
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
             self.key_table.append((keyval, mods, handler))
@@ -77,6 +95,28 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.stack.set_visible_child_name("main_window_buttons")
 
+        self.quit_menu = Gtk.Menu()
+        self.quit_menu.append(Gtk.MenuItem.new_with_label("Cancel"))
+        self.quit_menu.append(Gtk.MenuItem.new_with_label("Quit"))
+        self.quit_menu.append(Gtk.MenuItem.new_with_label("Shutdown"))
+
+        self.osmc = osmc.look_for_osmc()
+        if self.osmc:
+            logging.debug("OSMC enabled")
+            self.osmc_handlers = {
+                    osmc.KEY_BACK: self.on_back_button
+                }
+            GLib.timeout_add(50, self.check_osmc_events)  # 50ms = 1/20s
+
+    def check_osmc_events(self):
+        event = self.osmc.poll_for_key_event()
+        if event:
+            logging.debug("OSMC %u", event.key)
+            handler = self.osmc_handlers.get(event.key)
+            if handler:
+                handler()
+        return True  # keep looking for OSMC events
+
     def on_key_press(self, widget, event):
         logging.debug('Key: hw: %s / state: %s / keyval: %s' % (event.hardware_keycode, event.state, event.keyval))
         for (keyval, mods, handler) in self.key_table:
@@ -84,6 +124,24 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 handler()
                 return True  # we've handled the event
         return False
+
+    def on_back_button(self):
+        if self.stack.get_visible_child_name() == "main_window_buttons":
+            dialog = ExitDialog(self)
+            response = dialog.run()
+            dialog.destroy()
+
+            logging.debug("Response %u", response)
+
+            if response == Gtk.ResponseType.CANCEL:
+                # No action required
+                pass
+            elif response == Gtk.ResponseType.OK:
+                self.on_quit()
+            elif response == Gtk.ResponseType.CLOSE:
+                self.on_shutdown()
+        else:
+            self.on_show_home()
 
     def on_show_home(self):
         self.stop_playing()
@@ -97,6 +155,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.stop_playing()
         self.video_cache.stop_download()
         Gtk.main_quit()
+
+    def on_shutdown(self, *args):
+        self.on_quit()
+        subprocess.run(['sudo', 'shutdown', '-h', '+1'])  # give a minute to interrupt (shutdown -c)
 
     def stop_playing(self):
         self.warmup_handler.stop()
