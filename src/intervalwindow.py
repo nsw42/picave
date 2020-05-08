@@ -17,6 +17,7 @@ class IntervalWindow(SessionView):
         self.fontoptions.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
 
         self.intervals = []
+        self.playing = False
         self.start_time = None
         self.current_interval_index = None
         self.connect("draw", self.on_draw)
@@ -25,7 +26,18 @@ class IntervalWindow(SessionView):
         self.intervals = self.read_intervals(video_id)
         self.start_time = datetime.now()
         self.current_interval_index = 0
+        self.playing = True
         GLib.timeout_add_seconds(1, self.force_redraw)
+
+    def play_pause(self):
+        now = datetime.now()
+        if self.playing:
+            self.pause_time = now
+            self.elapsed = now - self.start_time
+        else:
+            self.start_time = now - self.elapsed
+        self.playing = not self.playing
+        self.force_redraw()
 
     def force_redraw(self):
         if self.current_interval_index is None:
@@ -34,7 +46,7 @@ class IntervalWindow(SessionView):
         return True
 
     def on_draw(self, drawingarea, context: cairo.Context):
-        now = datetime.now()
+        now = datetime.now() if self.playing else self.pause_time
 
         if self.current_interval_index is None:
             return

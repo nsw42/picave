@@ -232,6 +232,7 @@ class VideoIndexWindow(PlayerWindowInterface):
     def play_pause(self):
         if self.player:
             self.player.play_pause()
+            self.interval_window.play_pause()
 
     def stop(self):
         if self.player:
