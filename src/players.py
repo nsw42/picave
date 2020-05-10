@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import requests
 import socket
 import subprocess
 
@@ -136,10 +137,24 @@ class OmxPlayer(PlayerInterface):
 
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
+        self.vlc_port = 28771  # 28771 = 0x7063; 0x70=ord('p'), 0x63=ord('c')
+        self.vlc_password = 'picave'
         if default_args is None:
-            default_args = []  # TODO: Better default arguments for VLC?
+            default_args = ['--video-on-top',
+                            '--control', 'http',
+                            '--http-host', 'localhost',
+                            '--http-port', str(self.vlc_port),
+                            '--http-password', self.vlc_password]
         super().__init__(exe, default_args)
 
     def play(self, filepath):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
-        subprocess.Popen(cmd)
+        self.child = subprocess.Popen(cmd)
+
+    def play_pause(self):
+        if not self.child:
+            return
+        addr = 'http://localhost:%u/requests/status.xml?command=pl_pause' % self.vlc_port
+        response = requests.get(addr, auth=('', self.vlc_password))
+        if not response.ok:
+            logging.warning("VLC response: %s", response)
