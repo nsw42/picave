@@ -19,3 +19,6 @@ class MainButtonWindow(StackWindow):
         window_name = "main_window_buttons"
         stack.add_named(main_window_buttons, window_name)
         window_name_to_handler[window_name] = self
+
+    def is_playing(self):
+        return False

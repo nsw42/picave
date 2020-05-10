@@ -22,14 +22,11 @@ class PlayerWindowInterface(StackWindow):
         self.button = Gtk.Button(label=label)
         self.button.connect("clicked", self.on_main_button_clicked)
 
-    def add_windows_to_stack(self, stack):
-        raise NotImplementedError()
-
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant player window class
 
-    def play_pause(self):
-        raise NotImplementedError()
-
-    def stop(self):
-        raise NotImplementedError()
+    # inherited from StackWindow:
+    #   add_windows_to_stack(self, stack, window_name_to_handler)
+    #   is_playing(self)
+    #   play_pause(self)
+    #   stop(self)

@@ -145,6 +145,9 @@ class VideoIndexWindow(PlayerWindowInterface):
 
         grid.connect('realize', self.on_shown)
 
+    def is_playing(self):
+        return self.player is not None
+
     def monitor_for_end_of_video(self):
         if self.player is None:
             return False  # we've already taken appropriate actions

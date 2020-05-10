@@ -98,6 +98,9 @@ class Mp3Window(PlayerWindowInterface):
 
         grid.connect('realize', self.on_shown)
 
+    def is_playing(self):
+        return self.player is not None
+
     def on_back_button_clicked(self, widget):
         self.stop()
         self.stack.set_visible_child_name("main_window_buttons")

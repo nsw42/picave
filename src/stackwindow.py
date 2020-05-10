@@ -5,8 +5,11 @@ class StackWindow(object):
     def add_windows_to_stack(self, stack, window_name_to_handler):
         raise NotImplementedError()
 
+    def is_playing(self):
+        raise NotImplementedError()
+
     def play_pause(self):
-        pass
+        raise NotImplementedError()
 
     def stop(self):
-        pass
+        raise NotImplementedError()

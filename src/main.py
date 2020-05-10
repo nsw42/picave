@@ -74,6 +74,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ('c', self.on_show_index),  # OSMC 'index' button
             ('P', self.on_play_pause),  # TODO: Remove me
             ('X', self.on_back_button),  # TODO: Remove me
+            ('Z', self.on_stop_button),  # TODO: Remove me
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
             self.key_table.append((keyval, mods, handler))
@@ -116,6 +117,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.osmc_handlers = {
                 osmc.KEY_BACK: self.on_back_button,
                 osmc.KEY_PLAYPAUSE: self.on_play_pause,
+                osmc.KEY_STOP: self.on_stop_button,
             }
             GLib.timeout_add(50, self.check_osmc_events)  # 50ms = 1/20s
 
@@ -128,6 +130,37 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 handler()
         return True  # keep looking for OSMC events
 
+    def do_quit_dialog(self):
+        dialog = ExitDialog(self)
+        response = dialog.run()
+        dialog.destroy()
+
+        logging.debug("Response %u", response)
+
+        if response == Gtk.ResponseType.CANCEL:
+            # No action required
+            pass
+        elif response == Gtk.ResponseType.OK:
+            self.on_quit()
+        elif response == Gtk.ResponseType.CLOSE:
+            self.on_shutdown()
+
+    def do_stop_or_back(self, show_quit_dialog):
+        current_window = self.stack.get_visible_child_name()
+        if current_window in self.stack_window_parents:
+            parent = self.stack_window_parents[current_window]
+            if parent:
+                stack_window = self.window_name_to_handler[current_window]
+                stack_window.stop()
+                self.stack.set_visible_child_name(parent)
+            else:
+                if show_quit_dialog:
+                    self.do_quit_dialog()
+
+        else:
+            logging.debug("Internal error: No parent window found for %s", current_window)
+            self.on_show_home()
+
     def on_key_press(self, widget, event):
         logging.debug('Key: hw: %s / state: %s / keyval: %s' % (event.hardware_keycode, event.state, event.keyval))
         for (keyval, mods, handler) in self.key_table:
@@ -137,32 +170,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         return False
 
     def on_back_button(self):
-        current_window = self.stack.get_visible_child_name()
-        if current_window in self.stack_window_parents:
-            parent = self.stack_window_parents[current_window]
-
-            if parent:
-                stack_window = self.window_name_to_handler[current_window]
-                stack_window.stop()
-                self.stack.set_visible_child_name(parent)
-
-            else:
-                dialog = ExitDialog(self)
-                response = dialog.run()
-                dialog.destroy()
-
-                logging.debug("Response %u", response)
-
-                if response == Gtk.ResponseType.CANCEL:
-                    # No action required
-                    pass
-                elif response == Gtk.ResponseType.OK:
-                    self.on_quit()
-                elif response == Gtk.ResponseType.CLOSE:
-                    self.on_shutdown()
-        else:
-            logging.debug("Internal error: No parent window found for %s", current_window)
-            self.on_show_home()
+        self.do_stop_or_back(show_quit_dialog=True)
 
     def on_play_pause(self):
         current_window = self.stack.get_visible_child_name()
@@ -186,6 +194,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def on_shutdown(self, *args):
         self.on_quit()
         subprocess.run(['sudo', 'shutdown', '-h', '+1'])  # give a minute to interrupt (shutdown -c)
+
+    def on_stop_button(self):
+        current_window = self.stack.get_visible_child_name()
+        stack_window = self.window_name_to_handler[current_window]
+        if stack_window.is_playing():
+            self.do_stop_or_back(show_quit_dialog=False)
 
     def stop_playing(self):
         self.warmup_handler.stop()
