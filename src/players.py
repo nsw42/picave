@@ -49,16 +49,31 @@ class PlayerInterface(object):
 
 class MPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
+        self.fifo_name = '/tmp/picave.mplayer-fifo'
         if default_args is None:
-            default_args = ['-geometry', '0:0']
+            default_args = ['-geometry', '0:0',
+                            '-slave',
+                            '-input', 'file=%s' % self.fifo_name]
         super().__init__(exe, default_args)
+        if os.path.exists(self.fifo_name):
+            os.remove(self.fifo_name)
+
+    def __del__(self):
+        if os.path.exists(self.fifo_name):
+            os.remove(self.fifo_name)
 
     def play(self, filepath):
+        # TODO: Switch to using _play() ?
+        if not os.path.exists(self.fifo_name):
+            os.mkfifo(self.fifo_name)
         cmd = [self.exe] + self.default_args + [filepath]
         self.child = subprocess.Popen(cmd,
                                       stdin=subprocess.PIPE,
-                                      stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL)
+                                      stdout=subprocess.DEVNULL)
+
+    def play_pause(self):
+        with open(self.fifo_name, 'w') as handle:
+            handle.write('pause\n')
 
 
 class Mpg123(PlayerInterface):
@@ -86,7 +101,7 @@ class MPVPlayer(PlayerInterface):
         return command
 
     def __init__(self, exe, default_args):
-        self.ipc_address = '/tmp/picave-mpv-socket'
+        self.ipc_address = '/tmp/picave.mpv-socket'
         if default_args is None:
             default_args = ['--geometry=0:0', '--ontop', '--input-ipc-server=%s' % self.ipc_address]
         super().__init__(exe, default_args)
@@ -95,6 +110,10 @@ class MPVPlayer(PlayerInterface):
         self.resume = MPVPlayer.encode_command(['set_property_string', 'pause', 'no'])
         self.sock = None
 
+        if os.path.exists(self.ipc_address):
+            os.remove(self.ipc_address)
+
+    def __del__(self):
         if os.path.exists(self.ipc_address):
             os.remove(self.ipc_address)
 
