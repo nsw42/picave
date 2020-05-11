@@ -7,9 +7,9 @@ import subprocess
 
 try:
     from omxplayer.player import OMXPlayer
-    have_omxplayer = True
+    HAVE_OMXPLAYER = True
 except ModuleNotFoundError:
-    have_omxplayer = False
+    HAVE_OMXPLAYER = False
 
 
 class PlayerInterface(object):
@@ -157,7 +157,7 @@ class OmxPlayer(PlayerInterface):
         super().__init__(exe, default_args)
 
     def play(self, filepath):
-        if have_omxplayer:
+        if HAVE_OMXPLAYER:
             # Use the wrapper, which allows full control
             self.child = OMXPlayer(filepath, args=self.default_args)
         else:
@@ -169,19 +169,19 @@ class OmxPlayer(PlayerInterface):
                                           stderr=subprocess.DEVNULL)
 
     def is_finished(self):
-        if have_omxplayer:
+        if HAVE_OMXPLAYER:
             return self.child.playback_status() == 'Stopped'
         else:
             return super().is_finished()
 
     def play_pause(self):
         logging.debug("OmxPlayer::play_pause")
-        if self.child and have_omxplayer:
+        if self.child and HAVE_OMXPLAYER:
             self.child.play_pause()
 
     def stop(self):
         logging.debug("OmxPlayer::stop")
-        if have_omxplayer:
+        if HAVE_OMXPLAYER:
             self.child.stop()
             self.child = None
         else:
