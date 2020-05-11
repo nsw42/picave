@@ -153,7 +153,7 @@ class MPVPlayer(PlayerInterface):
 class OmxPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
         if default_args is None:
-            default_args = ['--win', '0,0,1024,768']  # TODO: Remove restricted window size
+            default_args = []
         super().__init__(exe, default_args)
 
     def play(self, filepath):
