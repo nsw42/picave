@@ -156,10 +156,14 @@ class OmxPlayer(PlayerInterface):
             default_args = []
         super().__init__(exe, default_args)
 
+    def playback_finished_handler(self, player, exit_status):
+        self.child = None
+
     def play(self, filepath):
         if HAVE_OMXPLAYER:
             # Use the wrapper, which allows full control
             self.child = OMXPlayer(filepath, args=self.default_args)
+            self.child.exitEvent += self.playback_finished_handler
         else:
             logging.warning("Launching omxplayer without control")
             cmd = [self.exe] + self.default_args + [filepath]
@@ -170,7 +174,7 @@ class OmxPlayer(PlayerInterface):
 
     def is_finished(self):
         if HAVE_OMXPLAYER:
-            return self.child.playback_status() == 'Stopped'
+            return self.child is None
         else:
             return super().is_finished()
 
@@ -182,13 +186,15 @@ class OmxPlayer(PlayerInterface):
     def stop(self):
         logging.debug("OmxPlayer::stop")
         if HAVE_OMXPLAYER:
-            self.child.stop()
-            self.child = None
+            if self.child:
+                self.child.stop()
+                self.child = None
+            # else it's already terminated
         else:
             # Do not use super().stop(): omxplayer is a shell script that runs
-            # omxplayer.bin killing omxplayer does not kill the actual video
-            # player, leaving a full-screen application that cannot be
-            # terminated...
+            # omxplayer.bin
+            # Killing omxplayer does not kill the actual video player, leaving
+            # a full-screen application that cannot be terminated...
             subprocess.run(['pkill', 'omxplayer.bin'])
 
 
