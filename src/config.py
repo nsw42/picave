@@ -30,8 +30,20 @@ def default_binary(binary):
 
 
 def default_player(ext):
-    # TODO: Will need something more clever than this...
-    return 'mpv'
+    if ext == '.mp3':
+        return first_available_player(['mpg123', 'mplayer', 'mpv'])
+    elif ext == '.mp4' or ext == '.mkv':
+        return first_available_player(['omxplayer', 'mpv', 'vlc'])
+    else:
+        assert False, "Missing default player for " + ext
+
+
+def first_available_player(binaries):
+    for binary in binaries:
+        path = default_binary(binary)
+        if path:
+            return binary
+    return None
 
 
 class Config(object):
@@ -98,10 +110,16 @@ class Config(object):
 
         for binary in self.executable_names:
             self.executables[binary] = default_binary(binary)
+            logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
         for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
             player_name = default_player(ext)
             player_class = self.player_lookup[player_name]
-            self.players[ext] = player_class(exe=self.executables[player_name], default_args=None)
+            player = player_class(exe=self.executables[player_name], default_args=None)
+            self.players[ext] = player
+            if player is None:
+                logging.warning("No player found for %s files" % ext)
+            else:
+                logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.ftp = 200

@@ -5,6 +5,12 @@ import requests
 import socket
 import subprocess
 
+try:
+    from omxplayer.player import OMXPlayer
+    HAVE_OMXPLAYER = True
+except ModuleNotFoundError:
+    HAVE_OMXPLAYER = False
+
 
 class PlayerInterface(object):
     def __init__(self, exe, default_args):
@@ -42,6 +48,7 @@ class PlayerInterface(object):
         raise NotImplementedError()
 
     def stop(self):
+        logging.debug("PlayerInterface::stop (%s)", self.child)
         if self.child:
             self.child.kill()
             self.child = None
@@ -72,6 +79,7 @@ class MPlayer(PlayerInterface):
                                       stdout=subprocess.DEVNULL)
 
     def play_pause(self):
+        logging.debug("MPlayer::play_pause")
         with open(self.fifo_name, 'w') as handle:
             handle.write('pause\n')
 
@@ -86,6 +94,7 @@ class Mpg123(PlayerInterface):
         return self._play(filepath, allocate_pty=True)
 
     def play_pause(self):
+        logging.debug("Mpg123::play_pause")
         # Credit to https://stackoverflow.com/questions/17416158/python-2-7-subprocess-control-interaction-with-mpg123
         if self.child:
             logging.debug("Mpg123::play_pause")
@@ -123,6 +132,7 @@ class MPVPlayer(PlayerInterface):
         return self._play(filepath, allocate_pty=False)
 
     def play_pause(self):
+        logging.debug("MPVPlayer::play_pause")
         if not self.child:
             return
         if self.sock is None:
@@ -147,11 +157,39 @@ class OmxPlayer(PlayerInterface):
         super().__init__(exe, default_args)
 
     def play(self, filepath):
-        cmd = [self.exe] + self.default_args + [filepath]
-        self.child = subprocess.Popen(cmd,
-                                      stdin=None,
-                                      stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL)
+        if HAVE_OMXPLAYER:
+            # Use the wrapper, which allows full control
+            self.child = OMXPlayer(filepath, args=self.default_args)
+        else:
+            logging.warning("Launching omxplayer without control")
+            cmd = [self.exe] + self.default_args + [filepath]
+            self.child = subprocess.Popen(cmd,
+                                          stdin=None,
+                                          stdout=subprocess.DEVNULL,
+                                          stderr=subprocess.DEVNULL)
+
+    def is_finished(self):
+        if HAVE_OMXPLAYER:
+            return self.child.playback_status() == 'Stopped'
+        else:
+            return super().is_finished()
+
+    def play_pause(self):
+        logging.debug("OmxPlayer::play_pause")
+        if self.child and HAVE_OMXPLAYER:
+            self.child.play_pause()
+
+    def stop(self):
+        logging.debug("OmxPlayer::stop")
+        if HAVE_OMXPLAYER:
+            self.child.stop()
+            self.child = None
+        else:
+            # Do not use super().stop(): omxplayer is a shell script that runs
+            # omxplayer.bin killing omxplayer does not kill the actual video
+            # player, leaving a full-screen application that cannot be
+            # terminated...
+            subprocess.run(['pkill', 'omxplayer.bin'])
 
 
 class VlcPlayer(PlayerInterface):
@@ -171,6 +209,7 @@ class VlcPlayer(PlayerInterface):
         self.child = subprocess.Popen(cmd)
 
     def play_pause(self):
+        logging.debug("VlcPlayer::play_pause")
         if not self.child:
             return
         addr = 'http://localhost:%u/requests/status.xml?command=pl_pause' % self.vlc_port
