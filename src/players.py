@@ -6,7 +6,8 @@ import socket
 import subprocess
 
 try:
-    from omxplayer.player import OMXPlayer
+    # omxplayer is only available on Raspberry Pi
+    from omxplayer.player import OMXPlayer  # noqa
     HAVE_OMXPLAYER = True
 except ModuleNotFoundError:
     HAVE_OMXPLAYER = False
