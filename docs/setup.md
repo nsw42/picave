@@ -34,17 +34,18 @@
 * `pip install mutagen`
 * `pip install python-vlc`
 * `pip install requests`
+* `pip install omxplayer-wrapper`
 
 ## Set to run at boot
 
-```
+```bash
 cd deployment
 sudo ./install.sh
 ```
 
 ## To remove the autostart at boot
 
-```
+```bash
 cd deployment
 sudo ./uninstall.sh
 ```
