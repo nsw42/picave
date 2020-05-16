@@ -5,6 +5,9 @@ class StackWindow(object):
     def add_windows_to_stack(self, stack, window_name_to_handler):
         raise NotImplementedError()
 
+    def handle_volume_change(self, change):
+        pass
+
     def is_playing(self):
         raise NotImplementedError()
 

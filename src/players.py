@@ -4,6 +4,7 @@ import os
 import requests
 import socket
 import subprocess
+import urllib.parse
 
 try:
     # omxplayer is only available on Raspberry Pi
@@ -54,6 +55,9 @@ class PlayerInterface(object):
             self.child.kill()
             self.child = None
 
+    def volume_change(self, change):
+        pass
+
 
 class MPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
@@ -81,8 +85,15 @@ class MPlayer(PlayerInterface):
 
     def play_pause(self):
         logging.debug("MPlayer::play_pause")
+        self.send_command('pause')
+
+    def send_command(self, command):
         with open(self.fifo_name, 'w') as handle:
-            handle.write('pause\n')
+            handle.write(command + '\n')
+
+    def volume_change(self, change):
+        logging.debug("MPlayer::volume_change %u", change)
+        self.send_command('volume %u' % (10 if (change > 0) else -10))
 
 
 class Mpg123(PlayerInterface):
@@ -101,6 +112,13 @@ class Mpg123(PlayerInterface):
             logging.debug("Mpg123::play_pause")
             os.write(self.child_stdin, b's')
 
+    def volume_change(self, change):
+        if self.child:
+            logging.debug("Mpg123::volume_change %u", change)
+            change = b'+' if (change > 0) else b'-'
+            change = 3 * change
+            os.write(self.child_stdin, change)
+
 
 class MPVPlayer(PlayerInterface):
     @staticmethod
@@ -118,6 +136,7 @@ class MPVPlayer(PlayerInterface):
 
         self.pause = MPVPlayer.encode_command(['set_property_string', 'pause', 'yes'])
         self.resume = MPVPlayer.encode_command(['set_property_string', 'pause', 'no'])
+        self.current_volume = 100
         self.sock = None
 
         if os.path.exists(self.ipc_address):
@@ -134,6 +153,10 @@ class MPVPlayer(PlayerInterface):
 
     def play_pause(self):
         logging.debug("MPVPlayer::play_pause")
+        self.send_command(self.pause if (self.playing) else self.resume)
+        self.playing = not self.playing
+
+    def send_command(self, command):
         if not self.child:
             return
         if self.sock is None:
@@ -145,10 +168,14 @@ class MPVPlayer(PlayerInterface):
                 self.sock = None
                 return
 
-        command = self.pause if (self.playing) else self.resume
-        logging.debug("MPVPlayer::play_pause %s", command)
+        logging.debug("MPVPlayer::send_command %s", command)
         self.sock.sendall(command)
-        self.playing = not self.playing
+
+    def volume_change(self, change):
+        self.current_volume = max(0, self.current_volume + 5 * change)
+        self.current_volume = min(self.current_volume, 100)
+        logging.debug("MPlayer::volume_change %u -> %u", change, self.current_volume)
+        self.send_command(MPVPlayer.encode_command(['set_property', 'volume', self.current_volume]))
 
 
 class OmxPlayer(PlayerInterface):
@@ -198,6 +225,13 @@ class OmxPlayer(PlayerInterface):
             # a full-screen application that cannot be terminated...
             subprocess.run(['pkill', 'omxplayer.bin'])
 
+    def volume_change(self, change):
+        if HAVE_OMXPLAYER and self.child:
+            volume = self.child.volume() + change
+            volume = max(0, volume)
+            volume = min(volume, 10)
+            self.child.set_volume(volume)
+
 
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args):
@@ -217,9 +251,18 @@ class VlcPlayer(PlayerInterface):
 
     def play_pause(self):
         logging.debug("VlcPlayer::play_pause")
+        self.send_command(command='pl_pause')
+
+    def send_command(self, **kwargs):
         if not self.child:
             return
-        addr = 'http://localhost:%u/requests/status.xml?command=pl_pause' % self.vlc_port
+        params = urllib.parse.urlencode(kwargs)
+        addr = 'http://localhost:%u/requests/status.xml?%s' % (self.vlc_port, params)
+        logging.debug("VlcPlayer::send_command %s", addr)
         response = requests.get(addr, auth=('', self.vlc_password))
         if not response.ok:
             logging.warning("VLC response: %s", response)
+
+    def volume_change(self, change):
+        change = '%+u' % (change * 8)
+        self.send_command(command='volume', val=change)

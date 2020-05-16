@@ -75,9 +75,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ('P', self.on_play_pause),  # TODO: Remove me
             ('X', self.on_back_button),  # TODO: Remove me
             ('Z', self.on_stop_button),  # TODO: Remove me
+            ('<Shift>plus', self.on_volume_up),  # TODO: Remove me
+            ('minus', self.on_volume_down),  # TODO: Remove m
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
-            self.key_table.append((keyval, mods, handler))
+            if keyval:
+                logging.debug("%s + %s -> %s", mods, keyval, handler)
+                self.key_table.append((keyval, mods, handler))
+            else:
+                logging.warning("Unable to parse accelerator %s", keyname)
         self.connect('key-press-event', self.on_key_press)
 
         self.warmup_handler = Mp3Window(self.config, "Warm up", mp3index)
@@ -163,8 +169,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def on_key_press(self, widget, event):
         logging.debug('Key: hw: %s / state: %s / keyval: %s' % (event.hardware_keycode, event.state, event.keyval))
+        event_mods = event.state
+        if sys.platform == 'darwin':
+            # Command-Q is shown as GDK_MOD2_MASK | GDK_META_MASK
+            # yet accelerator_parse('<Primary>Q') returns
+            # just GDK_META_MASK. As we don't currently use
+            # GDK_MOD2_MASK for anything else, this is a quick
+            # hack.
+            # But (flags &~ Gdk.ModifierType.MOD2_MASK) returns
+            # an int, rather than a Gdk.ModifierType - hence
+            # this convoluted expression.
+            event_mods = (event_mods | Gdk.ModifierType.MOD2_MASK) ^ Gdk.ModifierType.MOD2_MASK
         for (keyval, mods, handler) in self.key_table:
-            if ((event.state & mods) == mods) and (event.keyval == keyval):
+            if (event_mods == mods) and (event.keyval == keyval):
                 handler()
                 return True  # we've handled the event
         return False
@@ -172,10 +189,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def on_back_button(self):
         self.do_stop_or_back(show_quit_dialog=True)
 
-    def on_play_pause(self):
+    def get_visible_stack_window(self):
         current_window = self.stack.get_visible_child_name()
-        logging.debug("on_play_pause: current window %s", current_window)
+        logging.debug("get_visible_stack_window: current window %s", current_window)
         stack_window = self.window_name_to_handler[current_window]
+        logging.debug("  %s", stack_window)
+        return stack_window
+
+    def on_play_pause(self):
+        stack_window = self.get_visible_stack_window()
         stack_window.play_pause()
 
     def on_show_home(self):
@@ -196,10 +218,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         subprocess.run(['sudo', 'shutdown', '-h', '+1'])  # give a minute to interrupt (shutdown -c)
 
     def on_stop_button(self):
-        current_window = self.stack.get_visible_child_name()
-        stack_window = self.window_name_to_handler[current_window]
+        stack_window = self.get_visible_stack_window()
         if stack_window.is_playing():
             self.do_stop_or_back(show_quit_dialog=False)
+
+    def on_volume_change(self, change):
+        logging.debug("on_volume_change: %u", change)
+        stack_window = self.get_visible_stack_window()
+        stack_window.handle_volume_change(change)
+
+    def on_volume_down(self):
+        self.on_volume_change(-1)
+
+    def on_volume_up(self):
+        self.on_volume_change(1)
 
     def stop_playing(self):
         self.warmup_handler.stop()

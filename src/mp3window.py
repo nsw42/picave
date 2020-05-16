@@ -24,7 +24,6 @@ class Mp3Window(PlayerWindowInterface):
                  mp3index: Mp3Index):
         super().__init__(config, label)
         self.mp3index = mp3index
-        self.player = None  # set when the main button is clicked and we start playing
         self.button.set_sensitive(self.mp3index is not None)
 
     def add_windows_to_stack(self, stack, window_name_to_handler):

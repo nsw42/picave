@@ -21,12 +21,18 @@ class PlayerWindowInterface(StackWindow):
         self.config = config
         self.button = Gtk.Button(label=label)
         self.button.connect("clicked", self.on_main_button_clicked)
+        self.player = None  # set when we start playing
+
+    def handle_volume_change(self, change):
+        if self.player:
+            self.player.volume_change(change)
 
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant player window class
 
     # inherited from StackWindow:
     #   add_windows_to_stack(self, stack, window_name_to_handler)
+    #   handle_volume_change
     #   is_playing(self)
     #   play_pause(self)
     #   stop(self)
