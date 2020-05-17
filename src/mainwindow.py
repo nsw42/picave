@@ -20,5 +20,14 @@ class MainButtonWindow(StackWindow):
         stack.add_named(main_window_buttons, window_name)
         window_name_to_handler[window_name] = self
 
+    def handle_volume_change(self, change):
+        pass  # No effect on the main window
+
     def is_playing(self):
         return False
+
+    def play_pause(self):
+        pass  # No effect on the main window
+
+    def stop(self):
+        pass  # No effect on the main window

@@ -6,7 +6,7 @@ class StackWindow(object):
         raise NotImplementedError()
 
     def handle_volume_change(self, change):
-        pass
+        raise NotImplementedError()
 
     def is_playing(self):
         raise NotImplementedError()
