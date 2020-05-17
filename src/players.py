@@ -14,6 +14,9 @@ except ModuleNotFoundError:
     HAVE_OMXPLAYER = False
 
 
+def clip(minval, val, maxval):
+    return max(minval, min(val, maxval))
+
 class PlayerInterface(object):
     def __init__(self, exe, default_args):
         self.exe = exe
@@ -172,8 +175,7 @@ class MPVPlayer(PlayerInterface):
         self.sock.sendall(command)
 
     def volume_change(self, change):
-        self.current_volume = max(0, self.current_volume + 5 * change)
-        self.current_volume = min(self.current_volume, 100)
+        self.current_volume = clip(0, self.current_volume + 5 * change, 100)
         logging.debug("MPlayer::volume_change %u -> %u", change, self.current_volume)
         self.send_command(MPVPlayer.encode_command(['set_property', 'volume', self.current_volume]))
 
@@ -227,9 +229,10 @@ class OmxPlayer(PlayerInterface):
 
     def volume_change(self, change):
         if HAVE_OMXPLAYER and self.child:
-            volume = self.child.volume() + change
-            volume = max(0, volume)
-            volume = min(volume, 10)
+            # omxplayer volume is [0, 10] - with 1 = 100%
+            current_volume = self.child.volume()
+            volume = clip(0, current_volume + change/10, 10)
+            logging.debug("OmxPlayer::volume_change %u -> %u", current_volume, volume)
             self.child.set_volume(volume)
 
 

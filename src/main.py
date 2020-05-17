@@ -76,7 +76,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ('X', self.on_back_button),  # TODO: Remove me
             ('Z', self.on_stop_button),  # TODO: Remove me
             ('<Shift>plus', self.on_volume_up),  # TODO: Remove me
-            ('minus', self.on_volume_down),  # TODO: Remove m
+            ('equal', self.on_volume_up),  # OSMC 'Vol +'
+            ('minus', self.on_volume_down),  # OSMC 'Vol -'
         ]:
             keyval, mods = Gtk.accelerator_parse(keyname)
             if keyval:
