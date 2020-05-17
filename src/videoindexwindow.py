@@ -145,9 +145,6 @@ class VideoIndexWindow(PlayerWindowInterface):
 
         grid.connect('realize', self.on_shown)
 
-    def is_playing(self):
-        return self.player is not None
-
     def monitor_for_end_of_video(self):
         if self.player is None:
             return False  # we've already taken appropriate actions
@@ -236,9 +233,3 @@ class VideoIndexWindow(PlayerWindowInterface):
         if self.player:
             self.player.play_pause()
             self.interval_window.play_pause()
-
-    def stop(self):
-        if self.player:
-            logging.debug("videoindexwindow: stop")
-            self.player.stop()
-            self.player = None  # prevent monitor_for_end_of_video controlling the visible page

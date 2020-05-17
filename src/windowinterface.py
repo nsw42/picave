@@ -1,3 +1,5 @@
+import logging
+
 from config import Config
 from stackwindow import StackWindow
 
@@ -27,12 +29,18 @@ class PlayerWindowInterface(StackWindow):
         if self.player:
             self.player.volume_change(change)
 
+    def is_playing(self):
+        return self.player is not None
+
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant player window class
 
+    def stop(self):
+        logging.debug("PlayerWindowInterface: stop (%s)", self.player)
+        if self.player:
+            self.player.stop()
+            self.player = None
+
     # inherited from StackWindow:
     #   add_windows_to_stack(self, stack, window_name_to_handler)
-    #   handle_volume_change
-    #   is_playing(self)
     #   play_pause(self)
-    #   stop(self)
