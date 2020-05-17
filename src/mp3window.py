@@ -25,6 +25,7 @@ class Mp3Window(PlayerWindowInterface):
         super().__init__(config, label)
         self.mp3index = mp3index
         self.button.set_sensitive(self.mp3index is not None)
+        self.paused_elapsed = None
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
@@ -119,11 +120,13 @@ class Mp3Window(PlayerWindowInterface):
 
     def on_timer_tick(self):
         if self.player:
-            if self.play_started_at:
+            if self.paused_elapsed:
+                delta = self.paused_elapsed
+            elif self.play_started_at:
                 delta = datetime.datetime.now() - self.play_started_at
-                time_str = format_mm_ss(delta.seconds) + ' '
             else:
-                time_str = ' '
+                delta = datetime.timedelta(seconds=0)  # Should never happen
+            time_str = format_mm_ss(delta.seconds) + ' '
             self.time_label.set_label(time_str)
 
             if self.player.is_finished():
@@ -173,7 +176,15 @@ class Mp3Window(PlayerWindowInterface):
         self.player = self.config.players['.mp3']
         self.player.play(mp3filename)
         self.on_size_allocate(None, None)  # do this here rather than wait for 'allocated' signal to avoid screen jiggle
+        self.paused_elapsed = None
 
     def play_pause(self):
         if self.player:
             self.player.play_pause()
+            if self.paused_elapsed:
+                # We were paused; now restarting
+                self.play_started_at = datetime.datetime.now() - self.paused_elapsed
+                self.paused_elapsed = None
+            else:
+                self.paused_elapsed = datetime.datetime.now() - self.play_started_at
+            self.on_timer_tick()
