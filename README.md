@@ -4,7 +4,7 @@ A Raspberry Pi-powered Personal Trainer for cyclists
 
 (Cyclists often call their turbo trainer setup their 'pain cave' - hence the project name)
 
-See <http://www.picave.org> for the main website.
+See <https://www.picave.org> for the main website.
 
 See [docs/setup.md](docs/setup.md) for the quick summary of how to set up a Raspberry Pi to run this.
 
