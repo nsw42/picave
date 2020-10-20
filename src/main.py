@@ -59,11 +59,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                  config: Config,
                  mp3index: Mp3Index,
                  main_session_feed: VideoFeed,
-                 video_cache: VideoCache):
+                 video_cache: VideoCache,
+                 hide_mouse_pointer: bool):
         self.config = config
         self.main_session_feed = main_session_feed
         self.video_cache = video_cache
+        self.hide_mouse_pointer = hide_mouse_pointer
         Gtk.Window.__init__(self, title="Pi Cave")
+        self.connect("realize", self.on_realized)
         self.connect("destroy", self.on_quit)
         self.connect("delete-event", self.on_quit)
 
@@ -214,6 +217,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.video_cache.stop_download()
         Gtk.main_quit()
 
+    def on_realized(self, *args):
+        if self.hide_mouse_pointer:
+            self.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.BLANK_CURSOR))
+
     def on_shutdown(self, *args):
         self.on_quit()
         subprocess.run(['sudo', 'shutdown', '-h', '+1'])  # give a minute to interrupt (shutdown -c)
@@ -252,6 +259,8 @@ def parse_args():
     parser.add_argument('--wait-for-media', action='store_true',
                         help="Wait until the video cache directory is present. "
                              "Default behaviour is to report an error and exit.")
+    parser.add_argument('--hide-mouse-pointer', action='store_true',
+                        help="Hide the mouse pointer over the main window")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
     default_config = pathlib.Path.home() / '.picaverc'
@@ -309,7 +318,7 @@ def main():
     video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache)
+    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache, args.hide_mouse_pointer)
     window.show_all()
     Gtk.main()
 
