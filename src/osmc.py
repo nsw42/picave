@@ -1,7 +1,6 @@
 import ctypes
 import os.path
 import select
-import sys
 
 # python-libinput exists and would do all of this for us,
 # but pip install on the Pi only finds v0.1.0, and that
@@ -18,6 +17,7 @@ KEY_BACK = 158
 KEY_STOP = 128
 KEY_PLAYPAUSE = 164
 
+
 # TODO: This is correct for the Raspberry Pi,
 # but not for all platforms
 class Timeval(ctypes.Structure):
@@ -30,6 +30,7 @@ class Event(ctypes.Structure):
                 ("type",    ctypes.c_ushort),
                 ("code",    ctypes.c_ushort),
                 ("value",   ctypes.c_int)]
+
 
 class KeyboardEvent(object):
     def __init__(self, event_struct):
