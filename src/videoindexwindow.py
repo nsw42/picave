@@ -223,7 +223,7 @@ class VideoIndexWindow(PlayerWindowInterface):
             video_id = row[5]
             if self.video_cache.cached_downloads.get(video_id):
                 row[4] = self.downloaded_icon
-            elif row.feed_item and self.video_cache.active_download_id == video_id:
+            elif self.video_cache.active_download_id == video_id:
                 self.downloading_id = video_id
                 row[4] = self.downloading_icon
             else:
