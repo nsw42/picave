@@ -60,7 +60,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                  mp3index: Mp3Index,
                  main_session_feed: VideoFeed,
                  video_cache: VideoCache,
-                 hide_mouse_pointer: bool):
+                 hide_mouse_pointer: bool,
+                 full_screen: bool):
         self.config = config
         self.main_session_feed = main_session_feed
         self.video_cache = video_cache
@@ -98,10 +99,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.main_buttons = MainButtonWindow([self.warmup_handler,
                                               self.main_session_handler])
 
-        display = Gdk.Display().get_default()
-        monitor = display.get_primary_monitor()
-        workarea = monitor.get_workarea()
-        self.set_size_request(workarea.width, workarea.height)
+        if full_screen:
+            self.fullscreen()
+        else:
+            display = Gdk.Display().get_default()
+            monitor = display.get_primary_monitor()
+            workarea = monitor.get_workarea()
+            self.set_size_request(workarea.width, workarea.height)
 
         self.stack = Gtk.Stack()
         self.add(self.stack)
@@ -157,8 +161,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def do_stop_or_back(self, show_quit_dialog):
         current_window = self.stack.get_visible_child_name()
+        logging.debug("do_stop_or_back: current_window=%s", current_window)
         if current_window in self.stack_window_parents:
             parent = self.stack_window_parents[current_window]
+            logging.debug(".. parent=%s", parent)
             if parent:
                 stack_window = self.window_name_to_handler[current_window]
                 stack_window.stop()
@@ -261,6 +267,8 @@ def parse_args():
                              "Default behaviour is to report an error and exit.")
     parser.add_argument('--hide-mouse-pointer', action='store_true',
                         help="Hide the mouse pointer over the main window")
+    parser.add_argument('--full-screen', action='store_true',
+                        help="Go full screen when starting")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
     default_config = pathlib.Path.home() / '.picaverc'
@@ -318,7 +326,7 @@ def main():
     video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache, args.hide_mouse_pointer)
+    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache, args.hide_mouse_pointer, args.full_screen)
     window.show_all()
     Gtk.main()
 
