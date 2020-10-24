@@ -12,26 +12,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
-def get_window_handle_helper(widget):
-    # https://gitlab.gnome.org/GNOME/pygobject/issues/112
-    if sys.platform == "darwin":
-        return get_window_handle_helper_darwin(widget)
-    else:
-        return widget.get_window().get_xid()
-
-
-def get_window_handle_helper_darwin(widget):
-    window = widget.get_property('window')
-    ctypes.pythonapi.PyCapsule_GetPointer.restype = ctypes.c_void_p
-    ctypes.pythonapi.PyCapsule_GetPointer.argtypes = [ctypes.py_object]
-    gpointer = ctypes.pythonapi.PyCapsule_GetPointer(window.__gpointer__, None)
-    libgdk = ctypes.CDLL("libgdk-3.dylib")
-    libgdk.gdk_quartz_window_get_nsview.restype = ctypes.c_void_p
-    libgdk.gdk_quartz_window_get_nsview.argtypes = [ctypes.c_void_p]
-    handle = libgdk.gdk_quartz_window_get_nsview(gpointer)
-    return handle
-
-
 class SessionWindow(PlayerWindowInterface):
     def __init__(self,
                  config: Config,
@@ -61,12 +41,39 @@ class SessionWindow(PlayerWindowInterface):
         assert self.playing
         self.vlcInstance = vlc.Instance("--no-xlib")
         self.video_player = self.vlcInstance.media_player_new()
-        win_id = get_window_handle_helper(widget)
-        self.video_player.set_xwindow(win_id)
+        if sys.platform == 'win32':
+            raise NotImplementedError()
+        elif sys.platform == 'darwin':
+            self.set_player_window_darwin()
+        else:
+            self.set_player_window_x11()
+
         self.video_player.set_mrl(self.video_file.as_uri())
-        # TODO reinstate - self.video_player.play()
+        self.video_player.play()
         # self.playback_button.set_image(self.pause_image)
         # self.is_player_active = True
+
+    def set_player_window_darwin(self):
+        # https://gitlab.gnome.org/GNOME/pygobject/issues/112
+        # and https://www.mail-archive.com/vlc-commits@videolan.org/msg55659.html
+        window = self.video_area.get_window()
+
+        getpointer = ctypes.pythonapi.PyCapsule_GetPointer
+        getpointer.restype = ctypes.c_void_p
+        getpointer.argtypes = [ctypes.py_object]
+        pointer = getpointer(window.__gpointer__, None)
+
+        libgdk = ctypes.CDLL("libgdk-3.dylib")
+        get_nsview = libgdk.gdk_quartz_window_get_nsview
+        get_nsview.restype = ctypes.c_void_p
+        get_nsview.argtypes = [ctypes.c_void_p]
+        handle = get_nsview(pointer)
+
+        self.video_player.set_nsobject(handle)
+
+    def set_player_window_x11(self):
+        win_id = self.video_area.get_window().get_xid()
+        self.video_player.set_xwindow(win_id)
 
     def play(self, video_file, video_id):
         self.playing = True
