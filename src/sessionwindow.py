@@ -1,4 +1,5 @@
 import ctypes
+import logging
 import sys
 
 import vlc
@@ -9,7 +10,7 @@ from windowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gdk, GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
 class SessionWindow(PlayerWindowInterface):
@@ -19,8 +20,6 @@ class SessionWindow(PlayerWindowInterface):
                  feed_url: str):
         super().__init__(config, label)
         self.video_area = Gtk.DrawingArea()
-        # self.video_area.set_size_request(1500, 0)  # set the width, allow height to sort itself out
-        self.video_area.connect("realize", self.on_realized)
         self.video_player = None
         self.video_file = None
         self.playing = False
@@ -29,8 +28,12 @@ class SessionWindow(PlayerWindowInterface):
         self.interval_window = IntervalWindow(config, feed_url)
 
         self.video_layout = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.video_layout.pack_start(self.video_area, expand=True, fill=True, padding=100)
-        self.video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
+        self.video_layout.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(red=0, green=0, blue=1.0, alpha=1.0))  # TODO: Remove this Debugging
+        self.video_layout.pack_start(self.video_area, expand=True, fill=True, padding=0)
+        self.video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)
+
+        self.video_area.connect("realize", self.on_realized)
+        self.video_area.connect("size-allocate", self.on_size_changed)
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         session_window_name = "session_window"
@@ -42,20 +45,31 @@ class SessionWindow(PlayerWindowInterface):
         assert self.playing
         self.vlcInstance = vlc.Instance("--no-xlib")
         self.video_player = self.vlcInstance.media_player_new()
+        self.realized = True
+        self.play_when_realized()
+        self.set_player_window()
+
+    def on_size_changed(self, widget, allocation):
+        logging.debug(f"Video area allocated size {allocation.width} x {allocation.height}")
+        self.set_player_window()
+
+    def set_player_window(self):
         if sys.platform == 'win32':
             raise NotImplementedError()
         elif sys.platform == 'darwin':
             self.set_player_window_darwin()
         else:
             self.set_player_window_x11()
-        self.realized = True
-        self.play_when_realized()
+        self.video_player.video_set_scale(0.5)  # TODO: Debugging scale
 
     def set_player_window_darwin(self):
         # https://gitlab.gnome.org/GNOME/pygobject/issues/112
         # and https://www.mail-archive.com/vlc-commits@videolan.org/msg55659.html
         # and https://github.com/oaubert/python-vlc/blob/master/examples/gtkvlc.py
         window = self.video_area.get_window()
+
+        geometry = window.get_geometry()
+        logging.debug(f"Setting player window. Size = {geometry.width} x {geometry.height}")
 
         getpointer = ctypes.pythonapi.PyCapsule_GetPointer
         getpointer.restype = ctypes.c_void_p
@@ -85,7 +99,6 @@ class SessionWindow(PlayerWindowInterface):
     def play_when_realized(self):
         self.video_player.set_mrl(self.video_file.as_uri())
         self.video_player.play()
-        self.video_player.video_set_scale(0)
         # self.playback_button.set_image(self.pause_image)
         # self.is_player_active = True
 
