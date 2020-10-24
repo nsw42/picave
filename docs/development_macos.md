@@ -18,6 +18,10 @@ See [development_common.md](development_common.md) <!-- TODO: Add anchor to this
 
   * Note that this didn't install default icons. `brew install adwaita-icon-theme` did install them
     but there's an explicit line of code in `main.py` to tell Gtk the right icon search path.
+  * `brew install gstreamer`
+  * `brew install gst-plugins-base`
+  * `brew install gst-plugins-good`
+  * `brew install gst-libav`
 
 ### Install common dependencies
 
