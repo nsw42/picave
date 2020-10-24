@@ -2,8 +2,8 @@ import logging
 import sys
 
 from config import Config
-from intervalwindow import IntervalWindow
 from sessionpreview import SessionPreview
+from sessionwindow import SessionWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
 from windowinterface import PlayerWindowInterface
@@ -59,7 +59,7 @@ class VideoIndexWindow(PlayerWindowInterface):
         self.downloading_icon = downloading_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
-        self.interval_window = IntervalWindow(config, session_feed.url)
+        self.session_window = SessionWindow(config, session_feed.url)
 
     def build_list_store(self):
         # columns in the tree model:
@@ -135,13 +135,9 @@ class VideoIndexWindow(PlayerWindowInterface):
         stack.add_named(grid, index_window_name)
         window_name_to_handler[index_window_name] = self
 
-        video_layout = Gtk.HBox()
-        video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
-        self.interval_window.set_margin_start(1500)  # pad on left side only
-
-        interval_window_name = "interval_window"
-        stack.add_named(video_layout, interval_window_name)
-        window_name_to_handler[interval_window_name] = self
+        session_window_name = "session_window"
+        stack.add_named(self.session_window.window_for_stack, session_window_name)
+        window_name_to_handler[session_window_name] = self.session_window
 
         grid.connect('realize', self.on_shown)
 
@@ -212,8 +208,8 @@ class VideoIndexWindow(PlayerWindowInterface):
             # play it!
             self.player = self.config.players[video_file.suffix]
             self.player.play(video_file)
-        self.interval_window.play(video_id)
-        self.stack.set_visible_child_name("interval_window")
+        self.session_window.play(video_id)
+        self.stack.set_visible_child_name("session_window")
         GLib.timeout_add_seconds(1, self.monitor_for_end_of_video)
 
     def update_download_icons(self):
@@ -232,4 +228,4 @@ class VideoIndexWindow(PlayerWindowInterface):
     def play_pause(self):
         if self.player:
             self.player.play_pause()
-            self.interval_window.play_pause()
+            self.session_window.play_pause()
