@@ -2,7 +2,6 @@ import ctypes
 import logging
 import sys
 
-import cairo
 import vlc
 
 from config import Config
