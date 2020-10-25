@@ -34,9 +34,10 @@ def get_video_size(filepath):
 
 
 class PlayerInterface(object):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         self.exe = exe
         self.default_args = default_args
+        self.player_parameters = player_parameters
         self.child = None
 
     def is_finished(self):
@@ -82,13 +83,13 @@ class PlayerInterface(object):
 
 
 class MPlayer(PlayerInterface):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         self.fifo_name = '/tmp/picave.mplayer-fifo'
         if default_args is None:
             default_args = ['-geometry', '0:0',
                             '-slave',
                             '-input', 'file=%s' % self.fifo_name]
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
 
@@ -119,10 +120,10 @@ class MPlayer(PlayerInterface):
 
 
 class Mpg123(PlayerInterface):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         if default_args is None:
             default_args = ['--quiet', '--control']
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
 
     def play(self, filepath, widget=None):
         return self._play(filepath, allocate_pty=True)
@@ -150,11 +151,11 @@ class MPVPlayer(PlayerInterface):
         command = command.encode()
         return command
 
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         self.ipc_address = '/tmp/picave.mpv-socket'
         if default_args is None:
             default_args = ['--geometry=0:0', '--ontop', '--input-ipc-server=%s' % self.ipc_address]
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
 
         self.pause = MPVPlayer.encode_command(['set_property_string', 'pause', 'yes'])
         self.resume = MPVPlayer.encode_command(['set_property_string', 'pause', 'no'])
@@ -200,10 +201,10 @@ class MPVPlayer(PlayerInterface):
 
 
 class OmxPlayer(PlayerInterface):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         if default_args is None:
             default_args = []
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
 
     def playback_finished_handler(self, player, exit_status):
         self.child = None
@@ -273,9 +274,9 @@ class OmxPlayer(PlayerInterface):
 
 
 class LibVlcPlayer(PlayerInterface):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         assert HAVE_LIBVLC
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
         self.video_player = None
         self.playing = False
         self.video_file_width = None  # The natural size of the video
@@ -357,7 +358,7 @@ class LibVlcPlayer(PlayerInterface):
         self.video_player.set_xwindow(win_id)
 
 class VlcPlayer(PlayerInterface):
-    def __init__(self, exe, default_args):
+    def __init__(self, exe, default_args, player_parameters):
         self.vlc_port = 28771  # 28771 = 0x7063; 0x70=ord('p'), 0x63=ord('c')
         self.vlc_password = 'picave'
         if default_args is None:
@@ -366,7 +367,7 @@ class VlcPlayer(PlayerInterface):
                             '--http-host', 'localhost',
                             '--http-port', str(self.vlc_port),
                             '--http-password', self.vlc_password]
-        super().__init__(exe, default_args)
+        super().__init__(exe, default_args, player_parameters)
 
     def play(self, filepath, widget=None):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
