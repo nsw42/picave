@@ -34,8 +34,7 @@ class SessionWindow(PlayerWindowInterface):
         self.video_file_width = None  # The natural size of the video
         self.playing = False
         self.realized = False
-        self.vlcInstance = vlc.Instance("--no-xlib")
-        self.video_player = self.vlcInstance.media_player_new()
+        self.size_known = False
 
         self.interval_window = IntervalWindow(config, feed_url)
         self.interval_window.set_size_request(256, -1)
@@ -63,7 +62,6 @@ class SessionWindow(PlayerWindowInterface):
         assert self.playing
         self.realized = True
         self.play_when_realized()
-        self.set_player_window()
 
     def on_size_changed(self, widget, allocation):
         assert self.video_file_width
@@ -73,6 +71,7 @@ class SessionWindow(PlayerWindowInterface):
         else:
             # automatically scale down to fit the window
             self.video_player.video_set_scale(0.0)
+        self.size_known = True
 
     def set_player_window(self):
         logging.debug("set_player_window")
@@ -116,8 +115,24 @@ class SessionWindow(PlayerWindowInterface):
             self.play_when_realized()
 
     def play_when_realized(self):
+        # pre-requisites for playing a video:
+        # * what file to play (via play())
+        # * what window to play into (via on_realized())
+        # play() gets called before on_realized() for the first video;
+        # but on_realized() is only called once, whereas play() can be
+        # called multiple times.
+        # For the first video, on_realized() is soon followed by
+        # on_size_changed(), which is where we then set the video scaling;
+        # on_size_changed() is not expected for later videos.
+        self.vlcInstance = vlc.Instance("--no-xlib")
+        self.video_player = self.vlcInstance.media_player_new()
         self.video_player.set_mrl(self.video_file.as_uri())
         self.video_player.play()
+        self.set_player_window()
+        if self.size_known:
+            # this is the 2nd (or later) video. Fake up a size event to
+            # set the video scaling.
+            self.on_size_changed(self.video_area, self.video_area.get_allocation())
 
     def play_pause(self):
         assert self.video_player
@@ -132,6 +147,7 @@ class SessionWindow(PlayerWindowInterface):
         if self.video_player:
             self.video_player.stop()
             self.video_player = None
+            self.vlcInstance = None
         self.video_file = None
         self.playing = False
 
