@@ -46,10 +46,10 @@ class IntervalWindow(SessionView):
         return True
 
     def on_draw(self, drawingarea, context: cairo.Context):
-        now = datetime.now() if self.playing else self.pause_time
-
         if self.current_interval_index is None:
             return
+
+        now = datetime.now() if self.playing else self.pause_time
 
         while (self.current_interval_index < len(self.intervals)
                and now >= (self.start_time
