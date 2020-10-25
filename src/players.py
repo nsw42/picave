@@ -1,4 +1,5 @@
 from collections import namedtuple
+import ctypes
 import json
 import logging
 import os
@@ -296,7 +297,7 @@ class LibVlcPlayer(PlayerInterface):
         logging.debug("is_finished: %f", self.video_player.get_position())
         return self.video_player.get_state() == vlc.State.Ended
 
-    def play(self, filepath):
+    def play(self, filepath, widget=None):
         self.playing = True
         self.video_file_width = get_video_size(filepath).width
         self.vlcInstance = vlc.Instance("--no-xlib")
@@ -347,7 +348,7 @@ class LibVlcPlayer(PlayerInterface):
         # https://gitlab.gnome.org/GNOME/pygobject/issues/112
         # and https://www.mail-archive.com/vlc-commits@videolan.org/msg55659.html
         # and https://github.com/oaubert/python-vlc/blob/master/examples/gtkvlc.py
-        window = self.video_area.get_window()
+        window = widget.get_window()
 
         getpointer = ctypes.pythonapi.PyCapsule_GetPointer
         getpointer.restype = ctypes.c_void_p
