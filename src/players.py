@@ -1,3 +1,4 @@
+from collections import namedtuple
 import json
 import logging
 import os
@@ -20,15 +21,16 @@ try:
 except ModuleNotFoundError:
     HAVE_LIBVLC = False
 
+VideoSize = namedtuple('VideoSize', ['width', 'height'])
 
 def clip(minval, val, maxval):
     return max(minval, min(val, maxval))
 
-def get_video_width(filepath):
+def get_video_size(filepath):
     result = subprocess.run(['ffprobe', '-v', 'error', '-print_format', 'json', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', str(filepath)],
                             capture_output=True, text=True)
     result = json.loads(result.stdout)
-    return result['streams'][0]['width']
+    return VideoSize(width=result['streams'][0]['width'], height=result['streams'][0]['height'])
 
 
 class PlayerInterface(object):
@@ -207,13 +209,30 @@ class OmxPlayer(PlayerInterface):
         self.child = None
 
     def play(self, filepath, widget=None):
+        args = list(self.default_args)
+        if widget:
+            window = widget.get_allocation()
+            video_size = get_video_size(filepath)
+            logging.debug("OmxPlayer.play: window=%u,%u,%u,%u, video size=%s", window.x, window.y, window.width, window.height, str(video_size))
+            width_ratio = window.width / video_size.width
+            height_ratio = window.height / video_size.height
+            draw_w = video_size.width * min(width_ratio, height_ratio)
+            draw_h = video_size.height * min(width_ratio, height_ratio)
+            assert draw_w <= window.width
+            assert draw_h <= window.height
+            draw_x1 = window.x + (window.width - draw_w)/2
+            draw_y1 = window.y + (window.height - draw_h)/2
+            draw_x2 = draw_x1 + draw_w
+            draw_y2 = draw_y1 + draw_h
+            args.extend(['--win', '%u,%u,%u,%u' % (draw_x1, draw_y1, draw_x2, draw_y2), '--aspect-mode', 'letterbox'])
+
         if HAVE_OMXPLAYER:
             # Use the wrapper, which allows full control
-            self.child = OMXPlayer(filepath, args=self.default_args)
+            self.child = OMXPlayer(filepath, args=args)
             self.child.exitEvent += self.playback_finished_handler
         else:
             logging.warning("Launching omxplayer without control")
-            cmd = [self.exe] + self.default_args + [filepath]
+            cmd = [self.exe] + args + [filepath]
             self.child = subprocess.Popen(cmd,
                                           stdin=None,
                                           stdout=subprocess.DEVNULL,
@@ -267,9 +286,9 @@ class LibVlcPlayer(PlayerInterface):
         logging.debug("is_finished: %f", self.video_player.get_position())
         return self.video_player.get_state() == vlc.State.Ended
 
-    def play(self, filepath, widget=None):
+    def play(self, filepath):
         self.playing = True
-        self.video_file_width = get_video_width(filepath)
+        self.video_file_width = get_video_size(filepath).width
         self.vlcInstance = vlc.Instance("--no-xlib")
         self.video_player = self.vlcInstance.media_player_new()
         self.video_player.set_mrl(filepath.as_uri())
