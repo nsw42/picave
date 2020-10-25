@@ -1,5 +1,7 @@
 .DS_Store
+*.swp
 .vscode
 src/__pycache__
 __pycache__
 run.log
+tags

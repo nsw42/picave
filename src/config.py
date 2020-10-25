@@ -6,7 +6,7 @@ import sys
 
 import jsonschema
 
-from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, VlcPlayer
+from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, LibVlcPlayer, VlcPlayer
 
 
 def config_binary(json_content, binary):
@@ -64,6 +64,7 @@ class Config(object):
             'mplayer': MPlayer,
             'mpv': MPVPlayer,
             'omxplayer': OmxPlayer,
+            'libvlc': LibVlcPlayer,
             'vlc': VlcPlayer
         }
 
@@ -89,8 +90,9 @@ class Config(object):
             ext = player_config['ext']
             player = player_config['player']
             cmd_args = player_config.get('options', None)
+            player_parameters = player_config.get('parameters', {})
             player_class = self.player_lookup[player]
-            self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args)
+            self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args, player_parameters=player_parameters)
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()

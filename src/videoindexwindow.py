@@ -2,11 +2,11 @@ import logging
 import sys
 
 from config import Config
-from intervalwindow import IntervalWindow
 from sessionpreview import SessionPreview
+from sessionwindow import SessionWindow
+from stackwindowwithbutton import StackWindowWithButton
 from videocache import VideoCache
 from videofeed import VideoFeed
-from windowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -42,24 +42,23 @@ def downloading_icon():
                       'emblem-synchronizing'])
 
 
-class VideoIndexWindow(PlayerWindowInterface):
+class VideoIndexWindow(StackWindowWithButton):
     def __init__(self,
                  config: Config,
                  label: str,
                  session_feed: VideoFeed,
-                 video_cache: VideoCache):
+                 video_cache: VideoCache,
+                 session_window: SessionWindow):
         super().__init__(config, label)
         self.session_feed = session_feed
         self.video_cache = video_cache
+        self.session_window = session_window
         self.stack = None
         self.list_store = None
-        self.player = None  # set when video starts
 
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
-
-        self.interval_window = IntervalWindow(config, session_feed.url)
 
     def build_list_store(self):
         # columns in the tree model:
@@ -135,29 +134,7 @@ class VideoIndexWindow(PlayerWindowInterface):
         stack.add_named(grid, index_window_name)
         window_name_to_handler[index_window_name] = self
 
-        video_layout = Gtk.HBox()
-        video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)  # TODO: Proper padding
-        self.interval_window.set_margin_start(1500)  # pad on left side only
-
-        interval_window_name = "interval_window"
-        stack.add_named(video_layout, interval_window_name)
-        window_name_to_handler[interval_window_name] = self
-
         grid.connect('realize', self.on_shown)
-
-    def monitor_for_end_of_video(self):
-        if self.player is None:
-            return False  # we've already taken appropriate actions
-        elif self.player.is_finished():
-            still_playing = False
-        else:
-            still_playing = True
-
-        if not still_playing:
-            self.player = None
-            assert self.stack
-            self.stack.set_visible_child_name("main_session_index_window")
-        return still_playing
 
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
@@ -209,12 +186,9 @@ class VideoIndexWindow(PlayerWindowInterface):
         video_id = self.list_store[selected_row][5]
         video_file = self.video_cache.cached_downloads.get(video_id)
         if video_file:
-            # play it!
-            self.player = self.config.players[video_file.suffix]
-            self.player.play(video_file)
-        self.interval_window.play(video_id)
-        self.stack.set_visible_child_name("interval_window")
-        GLib.timeout_add_seconds(1, self.monitor_for_end_of_video)
+            self.session_window.play(video_file, video_id)
+            self.stack.set_visible_child_name("session_window")
+        # TODO: Report that video file not known
 
     def update_download_icons(self):
         # Update the display whether files are in the cache
@@ -228,8 +202,3 @@ class VideoIndexWindow(PlayerWindowInterface):
                 row[4] = self.downloading_icon
             else:
                 row[4] = None
-
-    def play_pause(self):
-        if self.player:
-            self.player.play_pause()
-            self.interval_window.play_pause()

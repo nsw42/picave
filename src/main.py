@@ -10,6 +10,7 @@ from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3Window
 import osmc
+from sessionwindow import SessionWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
 from videoindexwindow import VideoIndexWindow
@@ -92,12 +93,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect('key-press-event', self.on_key_press)
 
         self.warmup_handler = Mp3Window(self.config, "Warm up", mp3index)
-        self.main_session_handler = VideoIndexWindow(self.config,
-                                                     "Main session",
-                                                     main_session_feed,
-                                                     self.video_cache)
+        self.main_session_handler = SessionWindow(self.config, "", main_session_feed.url)
+        self.video_index_window = VideoIndexWindow(self.config,
+                                                   "Main session",
+                                                   main_session_feed,
+                                                   self.video_cache,
+                                                   self.main_session_handler)
         self.main_buttons = MainButtonWindow([self.warmup_handler,
-                                              self.main_session_handler])
+                                              self.video_index_window])
 
         if full_screen:
             self.fullscreen()
@@ -116,6 +119,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.main_buttons.add_windows_to_stack(self.stack, self.window_name_to_handler)
         self.warmup_handler.add_windows_to_stack(self.stack, self.window_name_to_handler)
+        self.video_index_window.add_windows_to_stack(self.stack, self.window_name_to_handler)
         self.main_session_handler.add_windows_to_stack(self.stack, self.window_name_to_handler)
 
         self.stack.set_visible_child_name("main_window_buttons")
@@ -216,7 +220,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def on_show_index(self):
         self.stop_playing()
-        self.main_session_handler.on_main_button_clicked(None)
+        self.video_index_window.on_main_button_clicked(None)
 
     def on_quit(self, *args):
         self.stop_playing()
