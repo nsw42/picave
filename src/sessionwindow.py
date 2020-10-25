@@ -54,6 +54,7 @@ class SessionWindow(PlayerWindowInterface):
         self.set_player_window()
 
     def set_player_window(self):
+        logging.debug("set_player_window")
         if sys.platform == 'win32':
             raise NotImplementedError()
         elif sys.platform == 'darwin':
@@ -67,9 +68,6 @@ class SessionWindow(PlayerWindowInterface):
         # and https://www.mail-archive.com/vlc-commits@videolan.org/msg55659.html
         # and https://github.com/oaubert/python-vlc/blob/master/examples/gtkvlc.py
         window = self.video_area.get_window()
-
-        geometry = window.get_geometry()
-        logging.debug(f"Setting player window. Size = {geometry.width} x {geometry.height}")
 
         getpointer = ctypes.pythonapi.PyCapsule_GetPointer
         getpointer.restype = ctypes.c_void_p
