@@ -349,8 +349,9 @@ class VlcPlayer(PlayerInterface):
                             '--http-password', self.vlc_password]
         super().__init__(exe, default_args)
 
-    def play(self, filepath):
+    def play(self, filepath, widget=None):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
+        logging.debug("VlcPlayer::play %s", cmd)
         self.child = subprocess.Popen(cmd)
 
     def play_pause(self):
