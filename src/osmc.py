@@ -1,6 +1,9 @@
 import ctypes
 import os.path
 import select
+import subprocess
+import sys
+import time
 
 # python-libinput exists and would do all of this for us,
 # but pip install on the Pi only finds v0.1.0, and that
@@ -18,8 +21,11 @@ KEY_STOP = 128
 KEY_PLAYPAUSE = 164
 
 
-# TODO: This is correct for the Raspberry Pi,
-# but not for all platforms
+# This is correct for the Raspberry Pi,
+# but possibly not for all platforms
+# Call selftest() to check.
+# If something is wrong, see your definition of struct timeval
+# start looking in /usr/include/time.h
 class Timeval(ctypes.Structure):
     _fields_ = [("sec", ctypes.c_int),
                 ("usec", ctypes.c_int)]
@@ -37,6 +43,9 @@ class KeyboardEvent(object):
         self.time = event_struct.timeval.sec + event_struct.timeval.usec / 1000000
         self.key = event_struct.code
         self.pressed = event_struct.value
+
+    def __str__(self):
+        return '(K:%u)' % self.key
 
 
 class OsmcRemoteControl(object):
@@ -95,3 +104,78 @@ def look_for_osmc():
         return DebouncedOsmcRemoteControl(filename)
 
     return None
+
+
+def poll():
+    osmc = look_for_osmc()
+    if not osmc:
+        sys.exit("No OSMC input found")
+    start = time.time()
+    while time.time() < start + 60:
+        event = osmc.poll_for_key_event()
+        if event:
+            print(event)
+        time.sleep(0.1)
+
+
+def selftest():
+    failed = False
+    if not selftest_one('struct timeval tv;', 'sizeof(tv.tv_sec)', ctypes.sizeof(ctypes.c_int)):
+        failed = True
+    if not selftest_one('struct timeval tv;', 'sizeof(tv.tv_usec)', ctypes.sizeof(ctypes.c_int)):
+        failed = True
+    if not selftest_one('struct timeval tv;', 'sizeof(tv)', ctypes.sizeof(Timeval)):
+        failed = True
+    if not selftest_one('struct input_event ev;', 'sizeof(ev)', ctypes.sizeof(Event)):
+        failed = True
+    if not selftest_one('struct input_event ev;', 'sizeof(ev.time)', ctypes.sizeof(Timeval)):
+        failed = True
+    if not selftest_one('struct input_event ev;', 'sizeof(ev.type)', ctypes.sizeof(ctypes.c_ushort)):
+        failed = True
+    if not selftest_one('struct input_event ev;', 'sizeof(ev.code)', ctypes.sizeof(ctypes.c_ushort)):
+        failed = True
+    if not selftest_one('struct input_event ev;', 'sizeof(ev.value)', ctypes.sizeof(ctypes.c_int)):
+        failed = True
+
+    if failed:
+        sys.exit("self-test failed")
+    else:
+        print("self-test passed")
+
+
+def selftest_one(vardecl, sizeof_expr, expected_size):
+    with open('/tmp/osmc_sizeof.c', 'w') as handle:
+        print('''
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <linux/input.h>
+int main(void) {
+''', file=handle)
+        print(f'{vardecl}', file=handle)
+        print(r'printf("%u\n", ' + sizeof_expr + ');', file=handle)
+        print('return 0;', file=handle)
+        print('}', file=handle)
+    subprocess.run(['gcc', '-o', '/tmp/osmc_sizeof', '/tmp/osmc_sizeof.c'], check=True)
+    output = subprocess.run(['/tmp/osmc_sizeof'], capture_output=True, check=True, text=True)
+    actual_size = int(output.stdout.strip())
+    if actual_size != expected_size:
+        print(f"{vardecl} {sizeof_expr} gave {actual_size}; expected {expected_size}")
+        return False
+    return True
+
+
+def main():
+    command = sys.argv[1] if len(sys.argv) > 1 else None
+    if command == 'selftest':
+        selftest()
+    elif command == 'poll':
+        poll()
+    else:
+        print("Usage: %s COMMAND" % sys.argv[0])
+        print("Command is one of:")
+        print("  selftest - to check the size of structures")
+        print("  poll - to poll for events and print them as they happen")
+
+if __name__ == '__main__':
+    main()
