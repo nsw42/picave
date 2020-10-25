@@ -36,11 +36,16 @@ class SessionWindow(PlayerWindowInterface):
 
         self.video_area.connect("realize", self.on_realized)
         self.video_area.connect("size-allocate", self.on_size_changed)
+        self.video_area.connect("draw", self.on_draw)
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         session_window_name = "session_window"
         stack.add_named(self.video_layout, session_window_name)
         window_name_to_handler[session_window_name] = self.video_layout
+
+    def on_draw(self, widget, context, data=None):
+        context.set_source_rgb(0, 0, 0)
+        context.paint()
 
     def on_realized(self, widget, data=None):
         assert self.video_file  # play() must be called before this window is realised
