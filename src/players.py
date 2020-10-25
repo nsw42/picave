@@ -21,6 +21,8 @@ try:
 except ModuleNotFoundError:
     HAVE_LIBVLC = False
 
+Rectangle = namedtuple('Rectangle', ['x', 'y', 'width', 'height'])
+
 VideoSize = namedtuple('VideoSize', ['width', 'height'])
 
 def clip(minval, val, maxval):
@@ -213,16 +215,23 @@ class OmxPlayer(PlayerInterface):
         args = list(self.default_args)
         if widget:
             window = widget.get_allocation()
+            physical_window = Rectangle(window.x + self.player_parameters.get('margin_left', 0),
+                                        window.y + self.player_parameters.get('margin_top', 0),
+                                        window.width - self.player_parameters.get('margin_right', 0) - self.player_parameters.get('margin_left', 0),
+                                        window.height - self.player_parameters.get('margin_top', 0) - self.player_parameters.get('margin_bottom', 0))
             video_size = get_video_size(filepath)
-            logging.debug("OmxPlayer.play: window=%u,%u,%u,%u, video size=%s", window.x, window.y, window.width, window.height, str(video_size))
-            width_ratio = window.width / video_size.width
-            height_ratio = window.height / video_size.height
+            logging.debug("OmxPlayer.play: window=%u,%u,%u,%u, physical_window=%u,%u,%u,%u, video size=%s",
+                          window.x, window.y, window.width, window.height,
+                          physical_window.x, physical_window.y, physical_window.width, physical_window.height,
+                          str(video_size))
+            width_ratio = physical_window.width / video_size.width
+            height_ratio = physical_window.height / video_size.height
             draw_w = video_size.width * min(width_ratio, height_ratio)
             draw_h = video_size.height * min(width_ratio, height_ratio)
             assert draw_w <= window.width
             assert draw_h <= window.height
-            draw_x1 = window.x + (window.width - draw_w)/2
-            draw_y1 = window.y + (window.height - draw_h)/2
+            draw_x1 = physical_window.x + (physical_window.width - draw_w)/2
+            draw_y1 = physical_window.y + (physical_window.height - draw_h)/2
             draw_x2 = draw_x1 + draw_w
             draw_y2 = draw_y1 + draw_h
             args.extend(['--win', '%u,%u,%u,%u' % (draw_x1, draw_y1, draw_x2, draw_y2), '--aspect-mode', 'letterbox'])
