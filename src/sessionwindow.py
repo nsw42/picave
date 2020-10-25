@@ -66,7 +66,7 @@ class SessionWindow(PlayerWindowInterface):
             self.set_player_window_darwin()
         else:
             self.set_player_window_x11()
-        self.video_player.video_set_scale(0.5)  # TODO: Debugging scale
+        self.video_player.video_set_scale(0)
 
     def set_player_window_darwin(self):
         # https://gitlab.gnome.org/GNOME/pygobject/issues/112
