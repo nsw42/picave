@@ -97,8 +97,6 @@ class SessionWindow(PlayerWindowInterface):
     def play_when_realized(self):
         self.video_player.set_mrl(self.video_file.as_uri())
         self.video_player.play()
-        # self.playback_button.set_image(self.pause_image)
-        # self.is_player_active = True
 
     def play_pause(self):
         assert self.video_player
