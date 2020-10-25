@@ -31,7 +31,6 @@ class SessionWindow(PlayerWindowInterface):
         self.interval_window = IntervalWindow(config, feed_url)
 
         self.video_layout = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.video_layout.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(red=0, green=0, blue=1.0, alpha=1.0))  # TODO: Remove this Debugging
         self.video_layout.pack_start(self.video_area, expand=True, fill=True, padding=0)
         self.video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)
 
