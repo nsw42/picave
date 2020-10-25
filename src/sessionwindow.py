@@ -49,6 +49,7 @@ class SessionWindow(PlayerWindowInterface):
         self.video_area.connect("size-allocate", self.on_size_changed)
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
+        self.stack = stack
         session_window_name = "session_window"
         stack.add_named(self.video_layout, session_window_name)
         window_name_to_handler[session_window_name] = self.video_layout
@@ -152,15 +153,17 @@ class SessionWindow(PlayerWindowInterface):
         self.playing = False
 
     def monitor_for_end_of_video(self):
-        if self.player is None:
+        if self.video_player is None:
             return False  # we've already taken appropriate actions
-        elif self.player.is_finished():
+
+        logging.debug("monitor_for_end_of_video: %f", self.video_player.get_position())
+        if self.video_player.get_state() == vlc.State.Ended:
             still_playing = False
         else:
             still_playing = True
 
         if not still_playing:
-            self.player = None
+            self.stop()
             assert self.stack
             self.stack.set_visible_child_name("main_session_index_window")
         return still_playing
