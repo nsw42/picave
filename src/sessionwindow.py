@@ -24,6 +24,8 @@ class SessionWindow(PlayerWindowInterface):
         self.video_file = None
         self.playing = False
         self.realized = False
+        self.vlcInstance = vlc.Instance("--no-xlib")
+        self.video_player = self.vlcInstance.media_player_new()
 
         self.interval_window = IntervalWindow(config, feed_url)
 
@@ -43,8 +45,6 @@ class SessionWindow(PlayerWindowInterface):
     def on_realized(self, widget, data=None):
         assert self.video_file  # play() must be called before this window is realised
         assert self.playing
-        self.vlcInstance = vlc.Instance("--no-xlib")
-        self.video_player = self.vlcInstance.media_player_new()
         self.realized = True
         self.play_when_realized()
         self.set_player_window()
