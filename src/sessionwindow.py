@@ -117,6 +117,9 @@ class SessionWindow(PlayerWindowInterface):
     def stop(self):
         if self.video_player:
             self.video_player.stop()
+            self.video_player = None
+        self.video_file = None
+        self.playing = False
 
     def monitor_for_end_of_video(self):
         if self.player is None:
