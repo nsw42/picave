@@ -73,6 +73,7 @@
                 "mplayer",
                 "mpv",
                 "omxplayer",
+		"libvlc",
                 "vlc"
             ]
         },

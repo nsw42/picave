@@ -1,10 +1,6 @@
 import ctypes
 import json
 import logging
-import subprocess
-import sys
-
-import vlc
 
 from config import Config
 from intervalwindow import IntervalWindow
@@ -15,13 +11,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
-def get_video_width(filepath):
-    result = subprocess.run(['ffprobe', '-v', 'error', '-print_format', 'json', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', str(filepath)],
-                            capture_output=True, text=True)
-    result = json.loads(result.stdout)
-    return result['streams'][0]['width']
-
-
 class SessionWindow(PlayerWindowInterface):
     def __init__(self,
                  config: Config,
@@ -29,9 +18,8 @@ class SessionWindow(PlayerWindowInterface):
                  feed_url: str):
         super().__init__(config, label)
         self.video_area = Gtk.DrawingArea()
-        self.video_player = None
         self.video_file = None
-        self.video_file_width = None  # The natural size of the video
+        self.video_id = None
         self.playing = False
         self.realized = False
         self.size_known = False
@@ -69,52 +57,17 @@ class SessionWindow(PlayerWindowInterface):
     def on_size_changed(self, widget, allocation):
         # This might be the final event allowing us to actually start playback,
         # or it might be a size change when we're already playing
-        assert self.video_file_width
         self.size_known = True
-        if self.video_player:
-            self.set_video_scale(allocation)
+        if self.player:
+            self.player.window_size_changed(allocation)
         else:
             if self.have_all_prerequisites_for_playing():
                 self.start_playing()
 
-    def set_player_window(self):
-        logging.debug("set_player_window")
-        if sys.platform == 'win32':
-            raise NotImplementedError()
-        elif sys.platform == 'darwin':
-            self.set_player_window_darwin()
-        else:
-            self.set_player_window_x11()
-
-    def set_player_window_darwin(self):
-        # https://gitlab.gnome.org/GNOME/pygobject/issues/112
-        # and https://www.mail-archive.com/vlc-commits@videolan.org/msg55659.html
-        # and https://github.com/oaubert/python-vlc/blob/master/examples/gtkvlc.py
-        window = self.video_area.get_window()
-
-        getpointer = ctypes.pythonapi.PyCapsule_GetPointer
-        getpointer.restype = ctypes.c_void_p
-        getpointer.argtypes = [ctypes.py_object]
-        pointer = getpointer(window.__gpointer__, None)
-
-        libgdk = ctypes.CDLL("libgdk-3.dylib")
-        get_nsview = libgdk.gdk_quartz_window_get_nsview
-        get_nsview.restype = ctypes.c_void_p
-        get_nsview.argtypes = [ctypes.c_void_p]
-        handle = get_nsview(pointer)
-
-        self.video_player.set_nsobject(handle)
-
-    def set_player_window_x11(self):
-        win_id = self.video_area.get_window().get_xid()
-        self.video_player.set_xwindow(win_id)
-
     def play(self, video_file, video_id):
         self.playing = True
         self.video_file = video_file
-        self.video_file_width = get_video_width(video_file)
-        self.interval_window.play(video_id)
-        GLib.timeout_add_seconds(1, self.monitor_for_end_of_video)
+        self.video_id = video_id
         if self.have_all_prerequisites_for_playing():
             self.start_playing()
 
@@ -129,48 +82,29 @@ class SessionWindow(PlayerWindowInterface):
         # For the first video, on_realized() is soon followed by
         # on_size_changed(), which is where we then set the video scaling;
         # on_size_changed() is not expected for later videos.
-        assert self.video_player is None
-        self.vlcInstance = vlc.Instance("--no-xlib")
-        self.video_player = self.vlcInstance.media_player_new()
-        self.video_player.set_mrl(self.video_file.as_uri())
-        self.video_player.play()
-        self.set_player_window()
-        self.set_video_scale(self.video_area.get_allocation())
-
-    def set_video_scale(self, video_area_allocation):
-        if video_area_allocation.width > self.video_file_width:
-            # Don't attempt to scale up: the R-Pi isn't up to it
-            self.video_player.video_set_scale(1.0)
-        else:
-            # automatically scale down to fit the window
-            self.video_player.video_set_scale(0.0)
+        assert self.player is None
+        self.player = self.config.players[self.video_file.suffix]
+        self.player.play(self.video_file, self.video_area)
+        self.interval_window.play(self.video_id)
+        GLib.timeout_add_seconds(1, self.monitor_for_end_of_video)
 
     def play_pause(self):
-        assert self.video_player
-        if self.playing:
-            self.video_player.pause()
-        else:
-            self.video_player.play()
-        self.playing = not self.playing
+        assert self.player
+        self.player.play_pause()
         self.interval_window.play_pause()
 
     def stop(self):
-        if self.video_player:
-            self.video_player.stop()
-            self.video_player = None
-            self.vlcInstance = None
+        if self.player:
+            self.player.stop()
+        self.player = None
         self.video_file = None
         self.playing = False
 
     def monitor_for_end_of_video(self):
-        if self.video_player is None:
+        if self.player is None:
             return False  # we've already taken appropriate actions
 
-        logging.debug("monitor_for_end_of_video: %f", self.video_player.get_position())
-        if self.video_player.get_state() == vlc.State.Ended:
-            still_playing = False
-        else:
-            still_playing = True
+        still_playing = not self.player.is_finished()
 
         if not still_playing:
             self.stop()

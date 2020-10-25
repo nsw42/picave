@@ -6,7 +6,7 @@ import sys
 
 import jsonschema
 
-from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, VlcPlayer
+from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, LibVlcPlayer, VlcPlayer
 
 
 def config_binary(json_content, binary):
@@ -64,6 +64,7 @@ class Config(object):
             'mplayer': MPlayer,
             'mpv': MPVPlayer,
             'omxplayer': OmxPlayer,
+            'libvlc': LibVlcPlayer,
             'vlc': VlcPlayer
         }
 
