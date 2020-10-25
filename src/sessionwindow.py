@@ -2,6 +2,7 @@ import ctypes
 import logging
 import sys
 
+import cairo
 import vlc
 
 from config import Config
@@ -35,7 +36,6 @@ class SessionWindow(PlayerWindowInterface):
         self.video_layout.pack_start(self.interval_window, expand=True, fill=True, padding=0)
 
         self.video_area.connect("realize", self.on_realized)
-        self.video_area.connect("size-allocate", self.on_size_changed)
         self.video_area.connect("draw", self.on_draw)
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
@@ -52,10 +52,6 @@ class SessionWindow(PlayerWindowInterface):
         assert self.playing
         self.realized = True
         self.play_when_realized()
-        self.set_player_window()
-
-    def on_size_changed(self, widget, allocation):
-        logging.debug(f"Video area allocated size {allocation.width} x {allocation.height}")
         self.set_player_window()
 
     def set_player_window(self):
