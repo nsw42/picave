@@ -16,7 +16,7 @@
                 "enum": ["%FTP", "MAX"]
             },
             "cadence": {
-                "description": "Thw target cadence for this interval",
+                "description": "The target cadence for this interval",
                 "type": "number",
                 "minimum": 0,
                 "maximum": 200
