@@ -330,7 +330,12 @@ def main():
     video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache, args.hide_mouse_pointer, args.full_screen)
+    window = ApplicationWindow(args.config,
+                               warm_up_mp3s,
+                               video_feed,
+                               video_cache,
+                               args.hide_mouse_pointer,
+                               args.full_screen)
     window.show_all()
     Gtk.main()
 

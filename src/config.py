@@ -53,6 +53,7 @@ class Config(object):
         self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
         self.ftp = None  # number
+        self.favourites = []  # list of video ids (str)
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json.load(open(schema_filename))
@@ -92,7 +93,9 @@ class Config(object):
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})
             player_class = self.player_lookup[player]
-            self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args, player_parameters=player_parameters)
+            self.players[ext] = player_class(exe=self.executables[player],
+                                             default_args=cmd_args,
+                                             player_parameters=player_parameters)
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
@@ -104,6 +107,7 @@ class Config(object):
             self.warm_up_music_directory = None
 
         self.ftp = json_content['FTP']
+        self.favourites = json_content['Favourites']
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()
@@ -125,3 +129,4 @@ class Config(object):
                 logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.ftp = 200
+        self.favourites = []

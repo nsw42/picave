@@ -24,6 +24,13 @@
         "FTP": {
             "description": "Functional Threshold Power of the current user",
             "type": "number"
+        },
+        "Favourites": {
+            "description": "List of ids of sessions to highlight",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "required": ["video_cache_directory"],
