@@ -175,6 +175,7 @@ class VideoIndexWindow(StackWindowWithButton):
                     self.config.favourites.append(video_id)
                     self.list_store[row][ListStoreColumns.Favourite] = self.favourite_icon
                     logging.debug("Favourite added: %s [%s]", row, video_id)
+            self.config.save()
             return True
         return False
 
