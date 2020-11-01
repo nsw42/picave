@@ -10,7 +10,7 @@ from videofeed import VideoFeed
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
 
 
 def load_icon(icons_to_try):
@@ -93,6 +93,7 @@ class VideoIndexWindow(StackWindowWithButton):
         tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
         tree.connect('size-allocate', self.set_column_widths)
+        tree.set_enable_search(False)
 
         favourite_renderer = Gtk.CellRendererPixbuf()
         self.fav_column = Gtk.TreeViewColumn("Favourite", favourite_renderer, pixbuf=ListStoreColumns.Favourite)
@@ -150,11 +151,32 @@ class VideoIndexWindow(StackWindowWithButton):
         window_name_to_handler[index_window_name] = self
 
         grid.connect('realize', self.on_shown)
+        tree.connect('key-press-event', self.on_key_press)
 
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
         video_id = self.list_store[selected_row][ListStoreColumns.VideoId]
         self.session_preview.show(video_id)
+
+    def on_key_press(self, widget, event):
+        logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
+        if (event.state, event.keyval) == (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk):
+            _, treepaths = self.tree.get_selection().get_selected_rows()  # returned model is self.list_store
+            for treepath in treepaths:
+                row = treepath.get_indices()[0]
+                video_id = self.list_store[row][ListStoreColumns.VideoId]
+                if video_id in self.config.favourites:
+                    # remove it
+                    self.config.favourites.remove(video_id)
+                    self.list_store[row][ListStoreColumns.Favourite] = None
+                    logging.debug("Favourite removed: %s [%s]", row, video_id)
+                else:
+                    # add it
+                    self.config.favourites.append(video_id)
+                    self.list_store[row][ListStoreColumns.Favourite] = self.favourite_icon
+                    logging.debug("Favourite added: %s [%s]", row, video_id)
+            return True
+        return False
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
