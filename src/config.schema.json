@@ -22,8 +22,12 @@
             "type": "string"
         },
         "FTP": {
-            "description": "Functional Threshold Power of the current user",
-            "type": "number"
+            "description": "Functional Threshold Power of the current user, stored as a mapping from video id (or the literal 'default') to value",
+            "type": "object",
+            "required": ["default"],
+            "patternProperties": {
+                "^": { "type": "integer" }
+            }
         },
         "Favourites": {
             "description": "List of ids of sessions to highlight",
@@ -84,7 +88,7 @@
                 "mplayer",
                 "mpv",
                 "omxplayer",
-		"libvlc",
+		        "libvlc",
                 "vlc"
             ]
         },

@@ -57,7 +57,7 @@ class Config(object):
         self.players = {}  # map from '.ext' to Player instance
         self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
-        self.ftp = None  # number
+        self.ftp = None  # map from video id (or 'default') to number
         self.favourites = []  # list of video ids (str)
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
@@ -126,7 +126,9 @@ class Config(object):
             else:
                 logging.debug("player %s=%s" % (ext, self.players[ext]))
 
-        self.ftp = 200
+        self.ftp = {
+            'default': 200
+        }
         self.favourites = []
 
     def save(self):

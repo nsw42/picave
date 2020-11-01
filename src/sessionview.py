@@ -51,7 +51,10 @@ class SessionView(Gtk.DrawingArea):
                 effort = interval.effort[:-1]
                 effort = int(effort)
                 interval = interval._replace(effort_val=effort)
-                effort = self.config.ftp * effort / 100.0
+                ftp = self.config.ftp.get(video_id, None)
+                if ftp is None:
+                    ftp = self.config.ftp['default']
+                effort = ftp * effort / 100.0
                 effort = '%uW (%s)' % (effort, interval.effort)
                 interval = interval._replace(effort=effort)
             elif interval.type == 'MAX':
