@@ -1,6 +1,5 @@
 import ctypes
-import os.path
-import select
+import os
 import subprocess
 import sys
 import time
@@ -45,23 +44,29 @@ class KeyboardEvent(object):
         self.pressed = event_struct.value
 
     def __str__(self):
-        return '(K:%u)' % self.key
+        return '(%s K:%u)' % (('pressed' if self.pressed else 'released'), self.key)
 
 
 class OsmcRemoteControl(object):
     def __init__(self, input_filepath):
-        self.handle = open(input_filepath, 'rb')
+        self.handle = os.open(input_filepath, os.O_RDONLY | os.O_EXCL | os.O_NDELAY)
+        self.accum = b''
 
     def poll_for_key_event(self):
-        readable, writable, excepted = select.select([self.handle],
-                                                     [],
-                                                     [],
-                                                     0.0)
-        if not readable:
+        to_read = ctypes.sizeof(Event) - len(self.accum)
+
+        try:
+            self.accum += os.read(self.handle, to_read)
+        except BlockingIOError:
+            return None
+        if len(self.accum) < ctypes.sizeof(Event):
             return None
 
-        event = self.handle.read(ctypes.sizeof(Event))
-        event = Event.from_buffer_copy(event)
+        assert len(self.accum) == ctypes.sizeof(Event)
+        event = Event.from_buffer_copy(self.accum)
+
+        self.accum = b''
+
         if event.type != EV_KEY:
             return None
 
@@ -93,23 +98,25 @@ class DebouncedOsmcRemoteControl(OsmcRemoteControl):
         return event
 
 
-def look_for_osmc():
+def look_for_osmc(debounce=True):
     """
     Look for an appropriate /dev/input source and return a
-    DebouncedOsmcRemoteControl if it is found.
+    [Debounced]OsmcRemoteControl if it is found.
     Returns None if no such event source can be found.
     """
     filename = '/dev/input/by-id/usb-OSMC_Remote_Controller_USB_Keyboard_Mouse-event-if01'
     if os.path.exists(filename):
-        return DebouncedOsmcRemoteControl(filename)
+        factory = DebouncedOsmcRemoteControl if debounce else OsmcRemoteControl
+        return factory(filename)
 
     return None
 
 
-def poll():
-    osmc = look_for_osmc()
+def poll(debounce):
+    osmc = look_for_osmc(debounce)
     if not osmc:
         sys.exit("No OSMC input found")
+    print("Polling for events with %s:" % osmc)
     start = time.time()
     while time.time() < start + 60:
         event = osmc.poll_for_key_event()
@@ -170,7 +177,11 @@ def main():
     if command == 'selftest':
         selftest()
     elif command == 'poll':
-        poll()
+        if len(sys.argv) <= 2:
+            debounce = True
+        else:
+            debounce = (sys.argv[2] == 'no-debounce')
+        poll(debounce)
     else:
         print("Usage: %s COMMAND" % sys.argv[0])
         print("Command is one of:")
