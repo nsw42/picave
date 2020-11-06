@@ -32,9 +32,9 @@ class Timeval(ctypes.Structure):
 
 class Event(ctypes.Structure):
     _fields_ = [("timeval", Timeval),
-                ("type",    ctypes.c_ushort),
-                ("code",    ctypes.c_ushort),
-                ("value",   ctypes.c_int)]
+                ("type", ctypes.c_ushort),
+                ("code", ctypes.c_ushort),
+                ("value", ctypes.c_int)]
 
 
 class KeyboardEvent(object):
@@ -187,6 +187,7 @@ def main():
         print("Command is one of:")
         print("  selftest - to check the size of structures")
         print("  poll - to poll for events and print them as they happen")
+
 
 if __name__ == '__main__':
     main()
