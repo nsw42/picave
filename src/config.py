@@ -105,7 +105,7 @@ class Config(object):
             self.warm_up_music_directory = None
 
         self.ftp = json_content['FTP']
-        self.favourites = json_content['Favourites']
+        self.favourites = json_content.get('Favourites', [])
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()
