@@ -63,7 +63,7 @@ class IntervalWindow(SessionView):
         text_h = 30
         block_h = text_h * 4
 
-        y0 = 0
+        y0 = end_y = 0
         one_minute_h = drawingarea.get_allocated_height() - block_h
 
         context.select_font_face('Sans', cairo.FontSlant.NORMAL, cairo.FontWeight.NORMAL)
@@ -120,4 +120,10 @@ class IntervalWindow(SessionView):
             context.show_text(format_mm_ss(draw_interval_remaining))
             text_y += text_h
 
+            end_y = y + h
+
             draw_interval_index += 1
+
+        context.set_source_rgb(0, 0, 0)
+        context.rectangle(0, end_y, drawingarea.get_allocated_width(), drawingarea.get_allocated_height() - end_y)
+        context.fill_preserve()
