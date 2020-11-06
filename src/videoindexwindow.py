@@ -160,7 +160,8 @@ class VideoIndexWindow(StackWindowWithButton):
 
     def on_key_press(self, widget, event):
         logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
-        if (event.state, event.keyval) == (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk):
+        if (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
+                                           (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
             _, treepaths = self.tree.get_selection().get_selected_rows()  # returned model is self.list_store
             for treepath in treepaths:
                 row = treepath.get_indices()[0]
