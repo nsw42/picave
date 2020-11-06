@@ -106,7 +106,9 @@ If not using NOOBS, as of 2020-06-20:
             "player": "omxplayer"
         }
     ],
-    "FTP": 250
+    "FTP": {
+        "default": 250
+    }
 }
 ```
 
