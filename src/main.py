@@ -5,7 +5,7 @@ import sys
 import subprocess
 import time
 
-from config import Config
+import config
 from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3Window
@@ -57,7 +57,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     }
 
     def __init__(self,
-                 config: Config,
+                 config: config.Config,
                  mp3index: Mp3Index,
                  main_session_feed: VideoFeed,
                  video_cache: VideoCache,
@@ -275,7 +275,7 @@ def parse_args():
                         help="Go full screen when starting")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
-    default_config = pathlib.Path.home() / '.picaverc'
+    default_config = config.default_config_path()
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
     parser.set_defaults(config=default_config,
                         debug=False,
@@ -285,10 +285,10 @@ def parse_args():
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
     if args.config.exists():
-        args.config = Config(args.config)
+        args.config = config.Config(args.config)
     else:
         logging.warning("Configuration file not found")
-        args.config = Config()
+        args.config = config.Config()
     return args
 
 
@@ -330,7 +330,12 @@ def main():
     video_feed = VideoFeed(args.session_feed_url)
     warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
     video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config, warm_up_mp3s, video_feed, video_cache, args.hide_mouse_pointer, args.full_screen)
+    window = ApplicationWindow(args.config,
+                               warm_up_mp3s,
+                               video_feed,
+                               video_cache,
+                               args.hide_mouse_pointer,
+                               args.full_screen)
     window.show_all()
     Gtk.main()
 

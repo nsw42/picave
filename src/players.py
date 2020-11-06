@@ -26,19 +26,28 @@ Rectangle = namedtuple('Rectangle', ['x', 'y', 'width', 'height'])
 
 VideoSize = namedtuple('VideoSize', ['width', 'height'])
 
+
 def clip(minval, val, maxval):
     return max(minval, min(val, maxval))
 
+
 def get_video_size(filepath):
-    result = subprocess.run(['ffprobe', '-v', 'error', '-print_format', 'json', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', str(filepath)],
+    result = subprocess.run(['ffprobe',
+                             '-v', 'error',
+                             '-print_format', 'json',
+                             '-select_streams', 'v:0',
+                             '-show_entries', 'stream=width,height',
+                             str(filepath)],
                             capture_output=True, text=True)
     result = json.loads(result.stdout)
     return VideoSize(width=result['streams'][0]['width'], height=result['streams'][0]['height'])
 
 
 class PlayerInterface(object):
-    def __init__(self, exe, default_args, player_parameters):
+    def __init__(self, exe, name, default_args, player_parameters):
         self.exe = exe
+        self.name = name
+        assert name in PlayerLookup.keys()
         self.default_args = default_args
         self.player_parameters = player_parameters
         self.child = None
@@ -54,6 +63,7 @@ class PlayerInterface(object):
 
     def _play(self, filepath, allocate_pty):
         cmd = [self.exe] + self.default_args + [filepath.resolve()]
+        logging.debug("PlayerInterface._play: %s", cmd)
         if allocate_pty:
             master, slave = os.openpty()
             self.child = subprocess.Popen(cmd,
@@ -92,7 +102,7 @@ class MPlayer(PlayerInterface):
             default_args = ['-geometry', '0:0',
                             '-slave',
                             '-input', 'file=%s' % self.fifo_name]
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "mplayer", default_args, player_parameters)
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
 
@@ -126,7 +136,7 @@ class Mpg123(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
         if default_args is None:
             default_args = ['--quiet', '--control']
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "mpg123", default_args, player_parameters)
 
     def play(self, filepath, widget=None):
         return self._play(filepath, allocate_pty=True)
@@ -158,7 +168,7 @@ class MPVPlayer(PlayerInterface):
         self.ipc_address = '/tmp/picave.mpv-socket'
         if default_args is None:
             default_args = ['--geometry=0:0', '--ontop', '--input-ipc-server=%s' % self.ipc_address]
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "mpv", default_args, player_parameters)
 
         self.pause = MPVPlayer.encode_command(['set_property_string', 'pause', 'yes'])
         self.resume = MPVPlayer.encode_command(['set_property_string', 'pause', 'no'])
@@ -207,7 +217,7 @@ class OmxPlayer(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
         if default_args is None:
             default_args = []
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "omxplayer", default_args, player_parameters)
 
     def playback_finished_handler(self, player, exit_status):
         self.child = None
@@ -216,10 +226,15 @@ class OmxPlayer(PlayerInterface):
         args = list(self.default_args)
         if widget:
             window = widget.get_allocation()
-            physical_window = Rectangle(window.x + self.player_parameters.get('margin_left', 0),
-                                        window.y + self.player_parameters.get('margin_top', 0),
-                                        window.width - self.player_parameters.get('margin_right', 0) - self.player_parameters.get('margin_left', 0),
-                                        window.height - self.player_parameters.get('margin_top', 0) - self.player_parameters.get('margin_bottom', 0))
+            x0 = window.x + self.player_parameters.get('margin_left', 0)
+            y0 = window.y + self.player_parameters.get('margin_top', 0)
+            width = (window.width
+                     - self.player_parameters.get('margin_right', 0)
+                     - self.player_parameters.get('margin_left', 0))
+            height = (window.height
+                      - self.player_parameters.get('margin_top', 0)
+                      - self.player_parameters.get('margin_bottom', 0))
+            physical_window = Rectangle(x0, y0, width, height)
             video_size = get_video_size(filepath)
             logging.debug("OmxPlayer.play: window=%u,%u,%u,%u, physical_window=%u,%u,%u,%u, video size=%s",
                           window.x, window.y, window.width, window.height,
@@ -231,8 +246,8 @@ class OmxPlayer(PlayerInterface):
             draw_h = video_size.height * min(width_ratio, height_ratio)
             assert draw_w <= window.width
             assert draw_h <= window.height
-            draw_x1 = physical_window.x + (physical_window.width - draw_w)/2
-            draw_y1 = physical_window.y + (physical_window.height - draw_h)/2
+            draw_x1 = physical_window.x + (physical_window.width - draw_w) / 2
+            draw_y1 = physical_window.y + (physical_window.height - draw_h) / 2
             draw_x2 = draw_x1 + draw_w
             draw_y2 = draw_y1 + draw_h
             args.extend(['--win', '%u,%u,%u,%u' % (draw_x1, draw_y1, draw_x2, draw_y2), '--aspect-mode', 'letterbox'])
@@ -278,7 +293,7 @@ class OmxPlayer(PlayerInterface):
         if HAVE_OMXPLAYER and self.child:
             # omxplayer volume is [0, 10] - with 1 = 100%
             current_volume = self.child.volume()
-            volume = clip(0, current_volume + change/10, 10)
+            volume = clip(0, current_volume + change / 10, 10)
             logging.debug("OmxPlayer::volume_change %u -> %u", current_volume, volume)
             self.child.set_volume(volume)
 
@@ -286,7 +301,7 @@ class OmxPlayer(PlayerInterface):
 class LibVlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
         assert HAVE_LIBVLC
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "libvlc", default_args, player_parameters)
         self.video_player = None
         self.playing = False
         self.video_file_width = None  # The natural size of the video
@@ -367,6 +382,7 @@ class LibVlcPlayer(PlayerInterface):
         win_id = widget.get_window().get_xid()
         self.video_player.set_xwindow(win_id)
 
+
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
         self.vlc_port = 28771  # 28771 = 0x7063; 0x70=ord('p'), 0x63=ord('c')
@@ -377,7 +393,7 @@ class VlcPlayer(PlayerInterface):
                             '--http-host', 'localhost',
                             '--http-port', str(self.vlc_port),
                             '--http-password', self.vlc_password]
-        super().__init__(exe, default_args, player_parameters)
+        super().__init__(exe, "vlc", default_args, player_parameters)
 
     def play(self, filepath, widget=None):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
@@ -401,3 +417,13 @@ class VlcPlayer(PlayerInterface):
     def volume_change(self, change):
         change = '%+u' % (change * 8)
         self.send_command(command='volume', val=change)
+
+
+PlayerLookup = {
+    'mpg123': Mpg123,
+    'mplayer': MPlayer,
+    'mpv': MPVPlayer,
+    'omxplayer': OmxPlayer,
+    'libvlc': LibVlcPlayer,
+    'vlc': VlcPlayer
+}

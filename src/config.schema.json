@@ -28,6 +28,13 @@
             "patternProperties": {
                 "^": { "type": "integer" }
             }
+        },
+        "Favourites": {
+            "description": "List of ids of sessions to highlight",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "required": ["video_cache_directory"],
@@ -81,7 +88,7 @@
                 "mplayer",
                 "mpv",
                 "omxplayer",
-		"libvlc",
+		        "libvlc",
                 "vlc"
             ]
         },

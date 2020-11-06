@@ -1,12 +1,13 @@
 import json
 import logging
+import os
 import pathlib
 import shutil
 import sys
 
 import jsonschema
 
-from players import Mpg123, MPlayer, MPVPlayer, OmxPlayer, LibVlcPlayer, VlcPlayer
+from players import PlayerLookup
 
 
 def config_binary(json_content, binary):
@@ -38,6 +39,10 @@ def default_player(ext):
         assert False, "Missing default player for " + ext
 
 
+def default_config_path():
+    return pathlib.Path.home() / '.picaverc'
+
+
 def first_available_player(binaries):
     for binary in binaries:
         path = default_binary(binary)
@@ -53,25 +58,19 @@ class Config(object):
         self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
         self.ftp = None  # map from video id (or 'default') to number
+        self.favourites = []  # list of video ids (str)
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json.load(open(schema_filename))
         self.executable_names = (self.schema['definitions']['supported_players']['enum']
                                  + self.schema['definitions']['other_executables']['enum'])
 
-        self.player_lookup = {
-            'mpg123': Mpg123,
-            'mplayer': MPlayer,
-            'mpv': MPVPlayer,
-            'omxplayer': OmxPlayer,
-            'libvlc': LibVlcPlayer,
-            'vlc': VlcPlayer
-        }
-
         if filename:
             self._init_from_file(filename)
+            self.filename = filename
         else:
             self._init_with_defaults()
+            self.filename = default_config_path()
 
     def _init_from_file(self, filename):
         try:
@@ -91,8 +90,10 @@ class Config(object):
             player = player_config['player']
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})
-            player_class = self.player_lookup[player]
-            self.players[ext] = player_class(exe=self.executables[player], default_args=cmd_args, player_parameters=player_parameters)
+            player_class = PlayerLookup[player]
+            self.players[ext] = player_class(exe=self.executables[player],
+                                             default_args=cmd_args,
+                                             player_parameters=player_parameters)
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
@@ -104,6 +105,7 @@ class Config(object):
             self.warm_up_music_directory = None
 
         self.ftp = json_content['FTP']
+        self.favourites = json_content.get('Favourites', [])
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()
@@ -127,3 +129,34 @@ class Config(object):
         self.ftp = {
             'default': 200
         }
+        self.favourites = []
+
+    def save(self):
+        to_write = {
+            'video_cache_directory': str(self.video_cache_directory),
+            'warm_up_music_directory': str(self.warm_up_music_directory),
+            'executables': [{
+                "name": name,
+                "path": str(path)
+            } for name, path in self.executables.items()],
+            'filetypes': [{
+                "ext": ext,
+                "player": player.name,
+                "options": player.default_args,
+                "parameters": player.player_parameters
+            } for ext, player in self.players.items()],
+            'FTP': self.ftp,
+            'Favourites': self.favourites
+        }
+        temp_filename = self.filename.with_suffix('.new')
+        if temp_filename.exists():
+            os.remove(temp_filename)
+        with open(temp_filename, 'w') as handle:
+            json.dump(to_write, handle, indent=4)
+
+        if self.filename.exists():
+            backup_filename = self.filename.with_suffix('.bak')
+            if backup_filename.exists():
+                os.remove(backup_filename)
+            os.rename(self.filename, backup_filename)
+        os.rename(temp_filename, self.filename)

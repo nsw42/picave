@@ -10,7 +10,7 @@ from videofeed import VideoFeed
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
 
 
 def load_icon(icons_to_try):
@@ -42,6 +42,21 @@ def downloading_icon():
                       'emblem-synchronizing'])
 
 
+def favourite_icon():
+    return load_icon(['starred-symbolic',
+                      'starred'])
+
+
+class ListStoreColumns:
+    Favourite = 0
+    VideoName = 1
+    VideoType = 2
+    VideoDate = 3
+    VideoDuration = 4
+    VideoDownloaded = 5
+    VideoId = 6
+
+
 class VideoIndexWindow(StackWindowWithButton):
     def __init__(self,
                  config: Config,
@@ -58,19 +73,15 @@ class VideoIndexWindow(StackWindowWithButton):
 
         self.downloaded_icon = downloaded_icon()
         self.downloading_icon = downloading_icon()
+        self.favourite_icon = favourite_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
     def build_list_store(self):
-        # columns in the tree model:
-        #   0: video name (str)
-        #   1: video type (str)
-        #   2: video date (str)
-        #   3: video duration (str)
-        #   4: download status (pixbuf)
-        #   5: video id (str)
-        list_store = Gtk.ListStore(str, str, str, str, GdkPixbuf.Pixbuf, str)
+        # columns in the tree model are indexed according to ListStoreColumn values
+        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str)
         for video in self.session_feed:
-            list_store.append([video.name, video.type, video.date, video.duration, None, video.id])
+            fav = self.favourite_icon if (video.id in self.config.favourites) else None
+            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id])
         return list_store
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
@@ -82,29 +93,34 @@ class VideoIndexWindow(StackWindowWithButton):
         tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
         tree.connect('size-allocate', self.set_column_widths)
+        tree.set_enable_search(False)
+
+        favourite_renderer = Gtk.CellRendererPixbuf()
+        self.fav_column = Gtk.TreeViewColumn("Favourite", favourite_renderer, pixbuf=ListStoreColumns.Favourite)
+        tree.append_column(self.fav_column)
 
         title_renderer = Gtk.CellRendererText()
-        self.title_column = Gtk.TreeViewColumn("Title", title_renderer, text=0)
+        self.title_column = Gtk.TreeViewColumn("Title", title_renderer, text=ListStoreColumns.VideoName)
         self.title_column.set_sort_column_id(0)
         tree.append_column(self.title_column)
 
         type_renderer = Gtk.CellRendererText()
-        self.type_column = Gtk.TreeViewColumn("Type", type_renderer, text=1)
+        self.type_column = Gtk.TreeViewColumn("Type", type_renderer, text=ListStoreColumns.VideoType)
         self.type_column.set_sort_column_id(1)
         tree.append_column(self.type_column)
 
         duration_renderer = Gtk.CellRendererText()
-        self.duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=3)
+        self.duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=ListStoreColumns.VideoDuration)
         self.duration_column.set_sort_column_id(3)
         tree.append_column(self.duration_column)
 
         date_renderer = Gtk.CellRendererText()
-        self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=2)
+        self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=ListStoreColumns.VideoDate)
         self.date_column.set_sort_column_id(2)
         tree.append_column(self.date_column)
 
         icon_renderer = Gtk.CellRendererPixbuf()
-        self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=4)
+        self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=ListStoreColumns.VideoDownloaded)
         tree.append_column(self.icon_column)
 
         scrollable_tree = Gtk.ScrolledWindow()
@@ -135,11 +151,34 @@ class VideoIndexWindow(StackWindowWithButton):
         window_name_to_handler[index_window_name] = self
 
         grid.connect('realize', self.on_shown)
+        tree.connect('key-press-event', self.on_key_press)
 
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
-        video_id = self.list_store[selected_row][5]
+        video_id = self.list_store[selected_row][ListStoreColumns.VideoId]
         self.session_preview.show(video_id)
+
+    def on_key_press(self, widget, event):
+        logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
+        if (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
+                                           (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
+            _, treepaths = self.tree.get_selection().get_selected_rows()  # returned model is self.list_store
+            for treepath in treepaths:
+                row = treepath.get_indices()[0]
+                video_id = self.list_store[row][ListStoreColumns.VideoId]
+                if video_id in self.config.favourites:
+                    # remove it
+                    self.config.favourites.remove(video_id)
+                    self.list_store[row][ListStoreColumns.Favourite] = None
+                    logging.debug("Favourite removed: %s [%s]", row, video_id)
+                else:
+                    # add it
+                    self.config.favourites.append(video_id)
+                    self.list_store[row][ListStoreColumns.Favourite] = self.favourite_icon
+                    logging.debug("Favourite added: %s [%s]", row, video_id)
+            self.config.save()
+            return True
+        return False
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
@@ -183,7 +222,7 @@ class VideoIndexWindow(StackWindowWithButton):
 
     def on_video_button_clicked(self, widget, selected_row, column):
         # widget is the Button (in the ListBoxRow)
-        video_id = self.list_store[selected_row][5]
+        video_id = self.list_store[selected_row][ListStoreColumns.VideoId]
         video_file = self.video_cache.cached_downloads.get(video_id)
         if video_file:
             self.session_window.play(video_file, video_id)
@@ -194,11 +233,11 @@ class VideoIndexWindow(StackWindowWithButton):
         # Update the display whether files are in the cache
         self.downloading_id = None
         for row in self.list_store:
-            video_id = row[5]
+            video_id = row[ListStoreColumns.VideoId]
             if self.video_cache.cached_downloads.get(video_id):
-                row[4] = self.downloaded_icon
+                row[ListStoreColumns.VideoDownloaded] = self.downloaded_icon
             elif self.video_cache.active_download_id == video_id:
                 self.downloading_id = video_id
-                row[4] = self.downloading_icon
+                row[ListStoreColumns.VideoDownloaded] = self.downloading_icon
             else:
-                row[4] = None
+                row[ListStoreColumns.VideoDownloaded] = None
