@@ -73,6 +73,10 @@ class PlayerInterface(object):
             self.child = subprocess.Popen(cmd)
             self.child_stdin = None
 
+    def get_volume_0_100(self):
+        # attempt to determine the current player volume in the range [0, 100]
+        raise NotImplementedError()
+
     def play(self, filepath, widget=None):
         # default implementation
         return self._play(filepath, allocate_pty=False)
@@ -103,10 +107,14 @@ class MPlayer(PlayerInterface):
         super().__init__(exe, "mplayer", default_args, player_parameters)
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
+        self.current_volume = 100
 
     def __del__(self):
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
+
+    def get_volume_0_100(self):
+        return self.current_volume
 
     def play(self, filepath, widget=None):
         # TODO: Switch to using _play() ?
@@ -127,7 +135,9 @@ class MPlayer(PlayerInterface):
 
     def volume_change(self, change):
         logging.debug("MPlayer::volume_change %u", change)
-        self.send_command('volume %u' % (10 if (change > 0) else -10))
+        delta = 10 if (change > 0) else -10
+        self.send_command('volume %u' % delta)
+        self.current_volume = clip(0, self.current_volume + delta, 100)
 
 
 class Mpg123(PlayerInterface):
@@ -180,6 +190,9 @@ class MPVPlayer(PlayerInterface):
         if os.path.exists(self.ipc_address):
             os.remove(self.ipc_address)
 
+    def get_volume_0_100(self):
+        return self.current_volume
+
     def play(self, filepath, widget=None):
         self.playing = True
         self.sock = None
@@ -216,6 +229,12 @@ class OmxPlayer(PlayerInterface):
         if default_args is None:
             default_args = []
         super().__init__(exe, "omxplayer", default_args, player_parameters)
+
+    def get_volume_0_100(self):
+        if HAVE_OMXPLAYER:
+            return self.child.volume() * 10
+        else:
+            return 50
 
     def playback_finished_handler(self, player, exit_status):
         self.child = None
@@ -303,6 +322,10 @@ class LibVlcPlayer(PlayerInterface):
         self.video_player = None
         self.playing = False
         self.video_file_width = None  # The natural size of the video
+        self.current_volume = 100
+
+    def get_volume_0_100(self):
+        return self.current_volume
 
     def is_finished(self):
         if self.video_player is None:
@@ -335,10 +358,6 @@ class LibVlcPlayer(PlayerInterface):
             self.video_player.stop()
             self.video_player = None
             self.vlcInstance = None
-
-    def window_size_changed(self, new_size):
-        assert self.video_file_width
-        self.set_video_scale(new_size)
 
     def set_video_scale(self, video_area_allocation):
         if video_area_allocation.width > self.video_file_width:
@@ -380,6 +399,15 @@ class LibVlcPlayer(PlayerInterface):
         win_id = widget.get_window().get_xid()
         self.video_player.set_xwindow(win_id)
 
+    def volume_change(self, change):
+        delta = 5 if (change > 0) else -5
+        self.volume = clip(0, self.volume + delta, 100)
+        self.video_player.set_volume(self.volume)
+
+    def window_size_changed(self, new_size):
+        assert self.video_file_width
+        self.set_video_scale(new_size)
+
 
 class VlcPlayer(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
@@ -392,6 +420,24 @@ class VlcPlayer(PlayerInterface):
                             '--http-port', str(self.vlc_port),
                             '--http-password', self.vlc_password]
         super().__init__(exe, "vlc", default_args, player_parameters)
+
+    def get_volume_0_100(self):
+        if not self.child:
+            return 50
+        addr = 'http://localhost:%u/requests/status.xml' % self.vlc_port
+        response = requests.get(addr, auth=('', self.vlc_password))
+        if not response.ok:
+            logging.warning("VLC response: %s", response)
+            return 50
+        # Avoid decoding an entire XML tree for this simple query
+        i = response.text.find('<volume>')
+        if i == -1:
+            logging.warning("Unable to find volume in VLC response")
+            return 50
+        i += len('<volume>')
+        e = response.text.find('</', i)
+        volume = response.text[i:e]
+        return clip(0, int(volume) * 100 / 256, 100)
 
     def play(self, filepath, widget=None):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]

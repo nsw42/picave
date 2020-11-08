@@ -21,6 +21,7 @@ class IntervalWindow(SessionView):
         self.start_time = None
         self.current_interval_index = None
         self.connect("draw", self.on_draw)
+        self.volume = 100
 
     def play(self, video_id):
         self.intervals = self.read_intervals(video_id)
@@ -44,6 +45,10 @@ class IntervalWindow(SessionView):
             return False  # don't call again until restarted
         self.queue_draw()
         return True
+
+    def set_volume(self, volume):
+        self.volume = volume
+        self.force_redraw()
 
     def on_draw(self, drawingarea, context: cairo.Context):
         if self.current_interval_index is None:
@@ -126,4 +131,33 @@ class IntervalWindow(SessionView):
 
         context.set_source_rgb(0, 0, 0)
         context.rectangle(0, end_y, drawingarea.get_allocated_width(), drawingarea.get_allocated_height() - end_y)
-        context.fill_preserve()
+        context.fill()
+
+        # bounding box of volume indicator
+        x = 15
+        w = drawingarea.get_allocated_width() - 30
+        h = 25
+        y = drawingarea.get_allocated_height() - 20 - h
+        context.set_source_rgb(1, 1, 1)
+        context.rectangle(x, y, w, h)
+        context.stroke()
+
+        x += 1
+        w -= 2
+        y += 1
+        h -= 2
+        context.set_source_rgb(0, 0, 0)
+        context.rectangle(x, y, w, h)
+        context.fill()
+
+        full_w = w
+
+        y += 5
+        h -= 10
+
+        # volume indicator itself
+        assert 0 <= self.volume <= 100
+        w = full_w * self.volume / 100
+        context.set_source_rgb(0.2, 0.2, 1)
+        context.rectangle(x, y, w, h)
+        context.fill()

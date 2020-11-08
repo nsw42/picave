@@ -36,7 +36,12 @@ class SessionWindow(PlayerWindowInterface):
         self.stack = stack
         session_window_name = "session_window"
         stack.add_named(self.video_layout, session_window_name)
-        window_name_to_handler[session_window_name] = self.video_layout
+        window_name_to_handler[session_window_name] = self
+
+    def handle_volume_change(self, change):
+        if self.player:
+            self.player.volume_change(change)
+            self.interval_window.set_volume(self.player.get_volume_0_100())
 
     def have_all_prerequisites_for_playing(self):
         return (self.video_file is not None) and (self.realized) and (self.size_known)
