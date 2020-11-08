@@ -9,6 +9,8 @@ import subprocess
 import sys
 import urllib.parse
 
+from utils import clip
+
 try:
     # omxplayer is only available on Raspberry Pi
     from omxplayer.player import OMXPlayer  # noqa
@@ -25,10 +27,6 @@ except ModuleNotFoundError:
 Rectangle = namedtuple('Rectangle', ['x', 'y', 'width', 'height'])
 
 VideoSize = namedtuple('VideoSize', ['width', 'height'])
-
-
-def clip(minval, val, maxval):
-    return max(minval, min(val, maxval))
 
 
 def get_video_size(filepath):
