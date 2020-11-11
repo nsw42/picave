@@ -82,8 +82,7 @@ class ProfileChooserWindow(Gtk.Window):
 
     def on_realized(self, widget):
         self.set_size_request(640, 480)
-        self.set_gravity(Gdk.Gravity.CENTER)
-        self.move(0, 0)
+        self.set_position(Gtk.WindowPosition.CENTER)
 
     def on_profile_chosen(self, listbox, row):
         self.disconnect_by_func(self.on_closed)  # ensure we don't call the completion callback twice
