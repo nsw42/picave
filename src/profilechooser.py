@@ -6,7 +6,6 @@ gi.require_versions({
     'Gdk': '3.0',
     'Gtk': '3.0',
 })
-from gi.repository import Gdk  # noqa: E402 # need to call require_version before we can call this
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
