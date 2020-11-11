@@ -20,18 +20,20 @@ class ProfileChooserWindow(Gtk.Window):
             self.mru = []
         Gtk.Window.__init__(self, title='Pi Cave profile chooser')
         layout = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        layout.set_homogeneous(False)
+        layout.set_spacing(4)
         self.listbox = Gtk.ListBox()
         for displayname, _ in self.mru:
             self.add_listbox_entry(displayname)
         self.listbox.connect('row-activated', self.on_profile_chosen)
-        layout.add(self.listbox)
+        layout.pack_start(self.listbox, expand=True, fill=True, padding=0)
         layout.set_margin_start(100)
         layout.set_margin_end(100)
         layout.set_margin_top(50)
         layout.set_margin_bottom(50)
         add = Gtk.Button.new_with_label('Add')
         add.connect('clicked', self.on_add)
-        layout.add(add)
+        layout.pack_start(add, expand=False, fill=False, padding=0)
 
         self.add(layout)
         self.connect('realize', self.on_realized)
@@ -79,6 +81,7 @@ class ProfileChooserWindow(Gtk.Window):
         self.completion_callback(None)
 
     def on_realized(self, widget):
+        self.set_size_request(640, 480)
         self.set_gravity(Gdk.Gravity.CENTER)
         self.move(0, 0)
 
