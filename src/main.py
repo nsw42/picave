@@ -10,20 +10,19 @@ from mainwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3Window
 import osmc
+from profilechooser import ProfileChooserWindow
 from sessionwindow import SessionWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
 from videoindexwindow import VideoIndexWindow
 
 import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
-
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk  # noqa: E402 # need to call require_version before we can call this
-
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
+gi.require_versions({
+    'GLib': '2.0',
+    'Gdk': '3.0',
+    'Gtk': '3.0',
+})
+from gi.repository import Gio, Gdk, GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
 class ExitDialog(Gtk.Dialog):
@@ -39,7 +38,7 @@ class ExitDialog(Gtk.Dialog):
         self.show_all()
 
 
-class ApplicationWindow(Gtk.ApplicationWindow):
+class ApplicationWindow(Gtk.Window):
     """
     Main application window.
     Creates and manages the following window hierarchy:
@@ -139,6 +138,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             }
             GLib.timeout_add(50, self.check_osmc_events)  # 50ms = 1/20s
 
+        self.show_all()
+
     def check_osmc_events(self):
         event = self.osmc.poll_for_key_event()
         if event:
@@ -225,7 +226,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def on_quit(self, *args):
         self.stop_playing()
         self.video_cache.stop_download()
-        Gtk.main_quit()
+        self.get_application().quit()
 
     def on_realized(self, *args):
         if self.hide_mouse_pointer:
@@ -269,6 +270,9 @@ def parse_args():
     parser.add_argument('--wait-for-media', action='store_true',
                         help="Wait until the video cache directory is present. "
                              "Default behaviour is to report an error and exit.")
+    parser.add_argument('--show-profile-chooser', action='store_true',
+                        help="Show the profile selection window instead of loading from the "
+                             "specified configuration file")
     parser.add_argument('--hide-mouse-pointer', action='store_true',
                         help="Hide the mouse pointer over the main window")
     parser.add_argument('--full-screen', action='store_true',
@@ -277,18 +281,14 @@ def parse_args():
                         help="Show debug information")
     default_config = config.default_config_path()
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
-    parser.set_defaults(config=default_config,
+    parser.set_defaults(show_profile_chooser=False,
+                        config=default_config,
                         debug=False,
                         session_feed_url=default_feed.resolve().as_uri(),
                         update_cache=True)
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
-    if args.config.exists():
-        args.config = config.Config(args.config)
-    else:
-        logging.warning("Configuration file not found")
-        args.config = config.Config()
     return args
 
 
@@ -302,42 +302,97 @@ def safe_check_dir(dirpath):
         return False
 
 
-def check_media(args):
+def check_media(args, config):
     if args.wait_for_media:
-        while not safe_check_dir(args.config.video_cache_directory):
-            logging.warning("%s does not exist. Waiting." % args.config.video_cache_directory)
+        while not safe_check_dir(config.video_cache_directory):
+            logging.warning("%s does not exist. Waiting." % config.video_cache_directory)
             time.sleep(1)
 
-        if args.config.warm_up_music_directory:
-            while not safe_check_dir(args.config.warm_up_music_directory):
-                logging.warning("%s does not exist. Waiting." % args.config.warm_up_music_directory)
+        if config.warm_up_music_directory:
+            while not safe_check_dir(config.warm_up_music_directory):
+                logging.warning("%s does not exist. Waiting." % config.warm_up_music_directory)
                 time.sleep(1)
     else:
-        if not safe_check_dir(args.config.video_cache_directory):
-            sys.exit("%s does not exist" % args.config.video_cache_directory)
+        if not safe_check_dir(config.video_cache_directory):
+            sys.exit("%s does not exist" % config.video_cache_directory)
 
-        if args.config.warm_up_music_directory:
-            if not safe_check_dir(args.config.warm_up_music_directory):
+        if config.warm_up_music_directory:
+            if not safe_check_dir(config.warm_up_music_directory):
                 logging.warning('Warm up music directory does not exist or is not a directory')
-                args.config.warm_up_music_directory = None
+                config.warm_up_music_directory = None
+
+
+class PiCaveApplication(Gtk.Application):
+    class State:
+        Initialising = 1
+        ChoosingProfile = 2
+        MainApplication = 3
+        ShuttingDown = 4
+
+    def __init__(self, args):
+        super().__init__(flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.args = args
+        self.window = None
+        self.state = PiCaveApplication.State.Initialising
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+
+    def do_activate(self):
+        if self.state == PiCaveApplication.State.Initialising:
+            if not self.window:
+                if self.args.show_profile_chooser:
+                    self.window = ProfileChooserWindow(self.on_profile_chosen)
+                    self.add_window(self.window)
+                else:
+                    self.on_profile_chosen(self.args.config_filename)
+            self.window.present()
+        elif self.state in (PiCaveApplication.State.ChoosingProfile, PiCaveApplication.State.MainApplication):
+            assert self.window
+            self.window.present()
+
+    def on_profile_chosen(self, config_path):
+        if not config_path:
+            print("No config file selected: exiting")
+            self.state = PiCaveApplication.State.ShuttingDown
+            self.quit()
+            return
+
+        self.state = PiCaveApplication.State.MainApplication
+
+        logging.debug("Config file %s selected", config_path)
+
+        if config_path.exists():
+            self.config = config.Config(config_path)
+        else:
+            logging.warning("Configuration file not found")
+            self.config = config.Config()
+
+        self.window.close()
+        self.window.destroy()
+
+        check_media(self.args, self.config)  # will sys.exit() if media do not exist
+
+        video_feed = VideoFeed(self.args.session_feed_url)
+        warm_up_mp3s = Mp3Index(self.config.warm_up_music_directory) if self.config.warm_up_music_directory else None
+        video_cache = VideoCache(self.config, video_feed, self.args.update_cache)
+        self.window = ApplicationWindow(self.config,
+                                        warm_up_mp3s,
+                                        video_feed,
+                                        video_cache,
+                                        self.args.hide_mouse_pointer,
+                                        self.args.full_screen)
+        self.add_window(self.window)
+        self.window.present()
 
 
 def main():
     args = parse_args()
 
-    check_media(args)  # will sys.exit() if media do not exist
+    app = PiCaveApplication(args)
+    app.run()
 
-    video_feed = VideoFeed(args.session_feed_url)
-    warm_up_mp3s = Mp3Index(args.config.warm_up_music_directory) if args.config.warm_up_music_directory else None
-    video_cache = VideoCache(args.config, video_feed, args.update_cache)
-    window = ApplicationWindow(args.config,
-                               warm_up_mp3s,
-                               video_feed,
-                               video_cache,
-                               args.hide_mouse_pointer,
-                               args.full_screen)
-    window.show_all()
-    Gtk.main()
+    return
 
 
 if __name__ == '__main__':
