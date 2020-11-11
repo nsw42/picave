@@ -345,7 +345,7 @@ class PiCaveApplication(Gtk.Application):
                     self.window = ProfileChooserWindow(self.on_profile_chosen)
                     self.add_window(self.window)
                 else:
-                    self.on_profile_chosen(self.args.config_filename)
+                    self.on_profile_chosen(self.args.config)
             self.window.present()
         elif self.state in (PiCaveApplication.State.ChoosingProfile, PiCaveApplication.State.MainApplication):
             assert self.window
@@ -368,8 +368,10 @@ class PiCaveApplication(Gtk.Application):
             logging.warning("Configuration file not found")
             self.config = config.Config()
 
-        self.window.close()
-        self.window.destroy()
+        if self.window:
+            # it was the profile chooser: we've finished with it
+            self.window.close()
+            self.window.destroy()
 
         check_media(self.args, self.config)  # will sys.exit() if media do not exist
 
