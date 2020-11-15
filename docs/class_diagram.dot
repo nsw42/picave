@@ -1,15 +1,21 @@
 digraph G {
+"ExitDialog" -> "Gtk.Dialog"
+"Gtk.Dialog" [ fillcolor="#d0d0d0", style="filled" ]
+"ApplicationWindow" -> "Gtk.Window"
+"Gtk.Window" [ fillcolor="#d0d0d0", style="filled" ]
 "IntervalWidget" -> "SessionView"
 "JsonFeedException" -> "Exception"
+"Exception" [ fillcolor="#d0d0d0", style="filled" ]
 "NotFoundError" -> "JsonFeedException"
 "InputMalformedError" -> "JsonFeedException"
-"ExitDialog" -> "Gtk.Dialog"
-"ApplicationWindow" -> "Gtk.Window"
 "PiCaveApplication" -> "Gtk.Application"
+"Gtk.Application" [ fillcolor="#d0d0d0", style="filled" ]
 "MainButtonWindow" -> "StackWindow"
 "Mp3Window" -> "PlayerWindowInterface"
 "Timeval" -> "ctypes.Structure"
+"ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "Event" -> "ctypes.Structure"
+"ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "DebouncedOsmcRemoteControl" -> "OsmcRemoteControl"
 "MPlayer" -> "PlayerInterface"
 "Mpg123" -> "PlayerInterface"
@@ -18,8 +24,10 @@ digraph G {
 "LibVlcPlayer" -> "PlayerInterface"
 "VlcPlayer" -> "PlayerInterface"
 "ProfileChooserWindow" -> "Gtk.Window"
+"Gtk.Window" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionPreview" -> "SessionView"
 "SessionView" -> "Gtk.DrawingArea"
+"Gtk.DrawingArea" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionWindow" -> "PlayerWindowInterface"
 "StackWindowWithButton" -> "StackWindow"
 "VideoIndexWindow" -> "StackWindowWithButton"
