@@ -10,26 +10,38 @@ digraph G {
 "InputMalformedError" -> "JsonFeedException"
 "PiCaveApplication" -> "Gtk.Application"
 "Gtk.Application" [ fillcolor="#d0d0d0", style="filled" ]
-"MainButtonWindow" -> "StackWindow"
+"MainButtonWindow" -> "StackWindowInterface"
+"StackWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Mp3Window" -> "PlayerWindowInterface"
+"PlayerWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Timeval" -> "ctypes.Structure"
 "ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "Event" -> "ctypes.Structure"
 "ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "DebouncedOsmcRemoteControl" -> "OsmcRemoteControl"
 "MPlayer" -> "PlayerInterface"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Mpg123" -> "PlayerInterface"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "MPVPlayer" -> "PlayerInterface"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "OmxPlayer" -> "PlayerInterface"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "LibVlcPlayer" -> "PlayerInterface"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "VlcPlayer" -> "PlayerInterface"
-"PlayerWindowInterface" -> "StackWindowWithButton"
+"PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
+"PlayerWindowInterface" -> "StackWindowWithButtonInterface"
+"StackWindowWithButtonInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "ProfileChooserWindow" -> "Gtk.Window"
 "Gtk.Window" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionPreview" -> "SessionView"
 "SessionView" -> "Gtk.DrawingArea"
 "Gtk.DrawingArea" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionWindow" -> "PlayerWindowInterface"
-"StackWindowWithButton" -> "StackWindow"
-"VideoIndexWindow" -> "StackWindowWithButton"
+"PlayerWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
+"StackWindowWithButtonInterface" -> "StackWindowInterface"
+"StackWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
+"VideoIndexWindow" -> "StackWindowWithButtonInterface"
+"StackWindowWithButtonInterface" [ fillcolor="#d0d0ff", style="filled" ]
 }
