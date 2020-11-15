@@ -4,7 +4,7 @@ cd $(dirname $0)/..
 
 awk '
 BEGIN {print "digraph G {"}
-/^class.*(.*)/ {
+/^class.*\(.*\)/ {
     classname = gensub(/\(.*/, "", "g", $2)
     baseclass = gensub(/^.*\(/, "", "g", $2)
     baseclass = gensub(/\).*/, "", "g", baseclass)
