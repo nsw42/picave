@@ -1,11 +1,11 @@
-from stackwindow import StackWindow
+from stackwindowinterface import StackWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
-class MainButtonWindow(StackWindow):
+class MainButtonWindow(StackWindowInterface):
     def __init__(self,
                  button_providers):
         super().__init__()

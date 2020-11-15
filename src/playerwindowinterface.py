@@ -1,12 +1,12 @@
 import logging
 
 from config import Config
-from stackwindowwithbutton import StackWindowWithButton
+from stackwindowwithbuttoninterface import StackWindowWithButtonInterface
 
 
-class PlayerWindowInterface(StackWindowWithButton):
+class PlayerWindowInterface(StackWindowWithButtonInterface):
     """
-    A StackWindowWithButton whose content is a player of some kind
+    Extends StackWindowWithButtonInterface for windows whose content is a player of some kind
     """
     def __init__(self,
                  config: Config,
@@ -27,6 +27,7 @@ class PlayerWindowInterface(StackWindowWithButton):
             self.player.stop()
             self.player = None
 
-    # inherited from StackWindow:
+    # inherited from StackWindowWithButtonInterface:
     #   add_windows_to_stack(self, stack, window_name_to_handler)
+    #   on_main_button_clicked
     #   play_pause(self)

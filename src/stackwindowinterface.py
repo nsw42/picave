@@ -1,4 +1,4 @@
-class StackWindow(object):
+class StackWindowInterface(object):
     def __init__(self):
         self.PADDING = 200
 

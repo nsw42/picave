@@ -4,7 +4,7 @@ import sys
 from config import Config
 from sessionpreview import SessionPreview
 from sessionwindow import SessionWindow
-from stackwindowwithbutton import StackWindowWithButton
+from stackwindowwithbuttoninterface import StackWindowWithButtonInterface
 from videocache import VideoCache
 from videofeed import VideoFeed
 
@@ -57,7 +57,7 @@ class ListStoreColumns:
     VideoId = 6
 
 
-class VideoIndexWindow(StackWindowWithButton):
+class VideoIndexWindow(StackWindowWithButtonInterface):
     def __init__(self,
                  config: Config,
                  label: str,
