@@ -1,6 +1,6 @@
 digraph G {
     node [shape=box];
-    ApplicationWindow -> MainButtonWindow -> Mp3Window;
+    ProfileChooserWindow -> ApplicationWindow -> MainButtonWindow -> Mp3Window;
     MainButtonWindow -> VideoIndexWindow -> SessionWindow;
     SessionWindow [ shape=record, label="{SessionWindow|{VideoWidget|IntervalWidget}}" ];
 }
