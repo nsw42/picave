@@ -6,7 +6,7 @@ import mutagen
 from config import Config
 from mp3index import Mp3Index
 from utils import format_mm_ss
-from windowinterface import PlayerWindowInterface
+from playerwindowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')

@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 import config
-from mainwindow import MainButtonWindow
+from mainbuttonwindow import MainButtonWindow
 from mp3index import Mp3Index
 from mp3window import Mp3Window
 import osmc

@@ -1,6 +1,6 @@
 from config import Config
 from intervalwidget import IntervalWidget
-from windowinterface import PlayerWindowInterface
+from playerwindowinterface import PlayerWindowInterface
 
 import gi
 gi.require_version('Gtk', '3.0')

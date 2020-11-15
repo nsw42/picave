@@ -7,7 +7,7 @@ import time
 from applicationwindow import ApplicationWindow
 import config
 from mp3index import Mp3Index
-from profilechooser import ProfileChooserWindow
+from profilechooserwindow import ProfileChooserWindow
 from videocache import VideoCache
 from videofeed import VideoFeed
 
