@@ -1,5 +1,5 @@
 from config import Config
-from intervalwindow import IntervalWindow
+from intervalwidget import IntervalWidget
 from windowinterface import PlayerWindowInterface
 
 import gi
@@ -20,7 +20,7 @@ class SessionWindow(PlayerWindowInterface):
         self.realized = False
         self.size_known = False
 
-        self.interval_window = IntervalWindow(config, feed_url)
+        self.interval_window = IntervalWidget(config, feed_url)
         self.interval_window.set_size_request(256, -1)
 
         self.video_layout = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
