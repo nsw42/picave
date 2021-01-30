@@ -10,7 +10,7 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
 
 
-class IntervalWindow(SessionView):
+class IntervalWidget(SessionView):
     def __init__(self, config: Config, feed_url: str):
         super().__init__(config, feed_url)
         self.fontoptions = cairo.FontOptions()
