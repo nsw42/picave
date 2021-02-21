@@ -34,6 +34,8 @@ def parse_args():
     parser.add_argument('--show-profile-chooser', action='store_true',
                         help="Show the profile selection window instead of loading from the "
                              "specified configuration file")
+    parser.add_argument('--delay-shutdown', action='store_true',
+                        help="Wait for a minute before actually shutting down")
     parser.add_argument('--hide-mouse-pointer', action='store_true',
                         help="Hide the mouse pointer over the main window")
     parser.add_argument('--full-screen', action='store_true',
@@ -46,7 +48,8 @@ def parse_args():
                         config=default_config,
                         debug=False,
                         session_feed_url=default_feed.resolve().as_uri(),
-                        update_cache=True)
+                        update_cache=True,
+                        delay_shutdown=False)
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -146,7 +149,8 @@ class PiCaveApplication(Gtk.Application):
                                         video_feed,
                                         video_cache,
                                         self.args.hide_mouse_pointer,
-                                        self.args.full_screen)
+                                        self.args.full_screen,
+                                        self.args.delay_shutdown)
         self.add_window(self.window)
         self.window.present()
 
