@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 import subprocess
 import sys
@@ -21,14 +22,18 @@ gi.require_versions({
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
 
 
+ExitChoices = Enum('ExitChoices', ['Cancel', 'ChangeProfile', 'Quit', 'Shutdown'])
+
+
 class ExitDialog(Gtk.Dialog):
     def __init__(self, parent):
         super().__init__(title="Really quit?",
                          parent=parent,
                          flags=0)
-        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-        self.add_button("Quit", Gtk.ResponseType.OK)
-        self.add_button("Shutdown", Gtk.ResponseType.CLOSE)
+        self.add_button(Gtk.STOCK_CANCEL, ExitChoices.Cancel.value)
+        self.add_button("Change profile", ExitChoices.ChangeProfile.value)
+        self.add_button("Quit", ExitChoices.Quit.value)
+        self.add_button("Shutdown", ExitChoices.Shutdown.value)
         self.set_default_size(150, 100)
 
         self.show_all()
@@ -62,15 +67,17 @@ class ApplicationWindow(Gtk.Window):
         self.main_session_feed = main_session_feed
         self.video_cache = video_cache
         self.hide_mouse_pointer = hide_mouse_pointer
+        self.show_profile_chooser = None  # set to True/False depending on how the window is closed
         Gtk.Window.__init__(self, title="Pi Cave")
         self.connect("realize", self.on_realized)
-        self.connect("destroy", self.on_quit)
-        self.connect("delete-event", self.on_quit)
+        self.connect("destroy", self.on_window_closed)
+        self.connect("delete-event", self.on_window_closed)
 
         self.key_table = []
         for (keyname, handler) in [
             ('<Primary>Q', self.on_quit),
             ('Escape', self.on_show_home),  # OSMC 'Home' button
+            ('<Shift>Escape', self.do_quit_dialog),
             ('c', self.on_show_index),  # OSMC 'index' button
             ('P', self.on_play_pause),  # TODO: Remove me
             ('X', self.on_back_button),  # TODO: Remove me
@@ -152,12 +159,14 @@ class ApplicationWindow(Gtk.Window):
 
         logging.debug("Response %u", response)
 
-        if response == Gtk.ResponseType.CANCEL:
+        if response == ExitChoices.Cancel.value:
             # No action required
             pass
-        elif response == Gtk.ResponseType.OK:
+        elif response == ExitChoices.ChangeProfile.value:
+            self.on_change_profile()
+        elif response == ExitChoices.Quit.value:
             self.on_quit()
-        elif response == Gtk.ResponseType.CLOSE:
+        elif response == ExitChoices.Shutdown.value:
             self.on_shutdown()
 
     def do_stop_or_back(self, show_quit_dialog):
@@ -219,7 +228,14 @@ class ApplicationWindow(Gtk.Window):
         self.stop_playing()
         self.video_index_window.on_main_button_clicked(None)
 
+    def on_change_profile(self, *args):
+        self.show_profile_chooser = True
+        self.stop_playing()
+        self.video_cache.stop_download()
+        self.destroy()
+
     def on_quit(self, *args):
+        self.show_profile_chooser = False
         self.stop_playing()
         self.video_cache.stop_download()
         self.get_application().quit()
@@ -251,3 +267,7 @@ class ApplicationWindow(Gtk.Window):
     def stop_playing(self):
         self.warmup_handler.stop()
         self.main_session_handler.stop()
+
+    def on_window_closed(self):
+        if self.show_profile_chooser is None:
+            self.show_profile_chooser = False
