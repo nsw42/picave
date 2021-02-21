@@ -118,8 +118,8 @@ class Config(object):
 
         for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
             player_name = default_player(ext)
-            player_class = self.player_lookup[player_name]
-            player = player_class(exe=self.executables[player_name], default_args=None)
+            player_class = PlayerLookup[player_name]
+            player = player_class(exe=self.executables[player_name], default_args=None, player_parameters={})
             self.players[ext] = player
             if player is None:
                 logging.warning("No player found for %s files" % ext)
