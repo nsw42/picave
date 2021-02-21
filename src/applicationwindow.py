@@ -62,11 +62,13 @@ class ApplicationWindow(Gtk.Window):
                  main_session_feed: VideoFeed,
                  video_cache: VideoCache,
                  hide_mouse_pointer: bool,
-                 full_screen: bool):
+                 full_screen: bool,
+                 delay_shutdown: bool):
         self.config = config
         self.main_session_feed = main_session_feed
         self.video_cache = video_cache
         self.hide_mouse_pointer = hide_mouse_pointer
+        self.delay_shutdown = delay_shutdown
         self.show_profile_chooser = None  # set to True/False depending on how the window is closed
         Gtk.Window.__init__(self, title="Pi Cave")
         self.connect("realize", self.on_realized)
@@ -246,7 +248,8 @@ class ApplicationWindow(Gtk.Window):
 
     def on_shutdown(self, *args):
         self.on_quit()
-        subprocess.run(['sudo', 'shutdown', '-h', '+1'])  # give a minute to interrupt (shutdown -c)
+        time = '+1' if self.delay_shutdown else 'now'
+        subprocess.run(['sudo', 'shutdown', '-h', time])
 
     def on_stop_button(self):
         stack_window = self.get_visible_stack_window()
