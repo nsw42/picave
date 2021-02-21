@@ -95,6 +95,7 @@ class PiCaveApplication(Gtk.Application):
         self.args = args
         self.window = None
         self.state = PiCaveApplication.State.Initialising
+        self.connect('window-removed', self.on_window_removed)
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
@@ -103,6 +104,7 @@ class PiCaveApplication(Gtk.Application):
         if self.state == PiCaveApplication.State.Initialising:
             if not self.window:
                 if self.args.show_profile_chooser:
+                    self.state = PiCaveApplication.State.ChoosingProfile
                     self.window = ProfileChooserWindow(self.on_profile_chosen)
                     self.add_window(self.window)
                 else:
@@ -119,8 +121,6 @@ class PiCaveApplication(Gtk.Application):
             self.quit()
             return
 
-        self.state = PiCaveApplication.State.MainApplication
-
         logging.debug("Config file %s selected", config_path)
 
         if config_path.exists():
@@ -136,6 +136,8 @@ class PiCaveApplication(Gtk.Application):
 
         check_media(self.args, self.config)  # will sys.exit() if media do not exist
 
+        self.state = PiCaveApplication.State.MainApplication
+
         video_feed = VideoFeed(self.args.session_feed_url)
         warm_up_mp3s = Mp3Index(self.config.warm_up_music_directory) if self.config.warm_up_music_directory else None
         video_cache = VideoCache(self.config, video_feed, self.args.update_cache)
@@ -148,14 +150,22 @@ class PiCaveApplication(Gtk.Application):
         self.add_window(self.window)
         self.window.present()
 
+    def on_window_removed(self, application, window):
+        logging.debug("on_window_removed - state %u; window %s" % (self.state, self.window))
+        if (self.state == PiCaveApplication.State.MainApplication) and \
+           (type(window) == ApplicationWindow) and \
+           (window.show_profile_chooser):
+            logging.debug("reinitialising")
+            self.window = None
+            self.state = PiCaveApplication.State.Initialising
+            self.do_activate()
+        logging.debug("-> %s" % self.window)
+
 
 def main():
     args = parse_args()
-
     app = PiCaveApplication(args)
     app.run()
-
-    return
 
 
 if __name__ == '__main__':
