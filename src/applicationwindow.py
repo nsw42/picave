@@ -268,6 +268,6 @@ class ApplicationWindow(Gtk.Window):
         self.warmup_handler.stop()
         self.main_session_handler.stop()
 
-    def on_window_closed(self):
+    def on_window_closed(self, *args):
         if self.show_profile_chooser is None:
             self.show_profile_chooser = False
