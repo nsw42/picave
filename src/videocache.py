@@ -41,12 +41,10 @@ class VideoCache(object):
                 return files[0]
             if files[0].suffix != '.part':
                 logging.warning("Unfamiliar file extension on downloaded video file: %s" % files[0])
-            # This may be a partial download; we'll need to continue
-            # record that the video is not in the cache; youtube-dl will do the rest
-            return None
-        else:
-            # TODO: youtube-dl was probably interrupted while merging the video and audio
-            return None
+        # This may be a partial download, or maybe youtube-dl was interrupted
+        # while merging the video and audio.  Either way, we'll need to continue.
+        # Record that the video is not in the cache; youtube-dl will do the rest
+        return None
 
     def _init_download_cache(self,
                              feed_item: VideoFeedItem):
