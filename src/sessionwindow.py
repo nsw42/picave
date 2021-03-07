@@ -109,4 +109,7 @@ class SessionWindow(PlayerWindowInterface):
         return still_playing
 
     def on_main_button_clicked(self, widget):
-        pass  # TODO
+        # This method only exists for interface compatibility.
+        # PlayerWindowInterface inherits from StackWindowWithButtonInterface,
+        # but SessionWindow is not a StackWindowWithButton.
+        pass
