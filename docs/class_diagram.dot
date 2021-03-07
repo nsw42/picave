@@ -19,6 +19,7 @@ digraph G {
 "Event" -> "ctypes.Structure"
 "ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "DebouncedOsmcRemoteControl" -> "OsmcRemoteControl"
+"PlayerInterface" -> "ABC"
 "MPlayer" -> "PlayerInterface"
 "PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Mpg123" -> "PlayerInterface"
@@ -40,6 +41,7 @@ digraph G {
 "Gtk.DrawingArea" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionWindow" -> "PlayerWindowInterface"
 "PlayerWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
+"StackWindowInterface" -> "ABC"
 "StackWindowWithButtonInterface" -> "StackWindowInterface"
 "StackWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "VideoIndexWindow" -> "StackWindowWithButtonInterface"
