@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from collections import namedtuple
 import ctypes
 import json
@@ -41,7 +42,7 @@ def get_video_size(filepath):
     return VideoSize(width=result['streams'][0]['width'], height=result['streams'][0]['height'])
 
 
-class PlayerInterface(object):
+class PlayerInterface(ABC):
     def __init__(self, exe, name, default_args, player_parameters):
         self.exe = exe
         self.name = name
@@ -77,6 +78,7 @@ class PlayerInterface(object):
         # default implementation
         return self._play(filepath, allocate_pty=False)
 
+    @abstractmethod
     def play_pause(self):
         raise NotImplementedError()
 

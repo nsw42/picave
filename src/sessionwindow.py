@@ -107,3 +107,6 @@ class SessionWindow(PlayerWindowInterface):
             assert self.stack
             self.stack.set_visible_child_name("main_session_index_window")
         return still_playing
+
+    def on_main_button_clicked(self, widget):
+        pass  # TODO
