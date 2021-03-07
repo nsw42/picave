@@ -53,7 +53,7 @@ class ApplicationWindow(Gtk.Window):
         "main_window_buttons": None,
         "mp3_info_box": "main_window_buttons",
         "main_session_index_window": "main_window_buttons",
-        "interval_window": "main_session_index_window"
+        "session_window": "main_session_index_window"
     }
 
     def __init__(self,
@@ -179,6 +179,7 @@ class ApplicationWindow(Gtk.Window):
             logging.debug(".. parent=%s", parent)
             if parent:
                 stack_window = self.window_name_to_handler[current_window]
+                logging.debug(".. stack_window=%s", stack_window)
                 stack_window.stop()
                 self.stack.set_visible_child_name(parent)
             else:
