@@ -56,9 +56,6 @@ class IntervalWidget(SessionView):
                            + self.intervals[self.current_interval_index].start_offset
                            + timedelta(seconds=self.intervals[self.current_interval_index].duration))):
             self.current_interval_index += 1
-            if self.current_interval_index >= len(self.intervals):
-                self.current_interval_index = None
-                return
 
         text_h = 30
         block_h = text_h * 4
