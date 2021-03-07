@@ -18,7 +18,7 @@ BEGIN {print "digraph G {"}
         base = gensub(/ *$/, "", "g", base)
         print q classname q " -> " q base q
 
-        if ((base == "Exception") || (substr(base, 1, 3) == "Gtk") || (substr(base, 1, 6) == "ctypes")) {
+        if ((base == "Exception") || (substr(base, 1, 3) == "Gtk") || (substr(base, 1, 6) == "ctypes") || (base == "ABC")) {
           fillcolour="#d0d0d0";
         } else if (substr(base, length(base)-8) == "Interface") {
           fillcolour="#d0d0ff";

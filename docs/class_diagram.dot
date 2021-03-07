@@ -20,6 +20,7 @@ digraph G {
 "ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "DebouncedOsmcRemoteControl" -> "OsmcRemoteControl"
 "PlayerInterface" -> "ABC"
+"ABC" [ fillcolor="#d0d0d0", style="filled" ]
 "MPlayer" -> "PlayerInterface"
 "PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Mpg123" -> "PlayerInterface"
@@ -42,6 +43,7 @@ digraph G {
 "SessionWindow" -> "PlayerWindowInterface"
 "PlayerWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "StackWindowInterface" -> "ABC"
+"ABC" [ fillcolor="#d0d0d0", style="filled" ]
 "StackWindowWithButtonInterface" -> "StackWindowInterface"
 "StackWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "VideoIndexWindow" -> "StackWindowWithButtonInterface"
