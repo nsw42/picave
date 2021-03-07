@@ -107,3 +107,9 @@ class SessionWindow(PlayerWindowInterface):
             assert self.stack
             self.stack.set_visible_child_name("main_session_index_window")
         return still_playing
+
+    def on_main_button_clicked(self, widget):
+        # This method only exists for interface compatibility.
+        # PlayerWindowInterface inherits from StackWindowWithButtonInterface,
+        # but SessionWindow is not a StackWindowWithButton.
+        pass

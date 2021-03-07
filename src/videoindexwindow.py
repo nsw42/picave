@@ -241,3 +241,15 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
                 row[ListStoreColumns.VideoDownloaded] = self.downloading_icon
             else:
                 row[ListStoreColumns.VideoDownloaded] = None
+
+    def handle_volume_change(self, change):
+        pass
+
+    def is_playing(self):
+        return False
+
+    def play_pause(self):
+        pass
+
+    def stop(self):
+        pass

@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from config import Config
 from stackwindowinterface import StackWindowInterface
 
@@ -22,6 +23,7 @@ class StackWindowWithButtonInterface(StackWindowInterface):
         self.button = Gtk.Button(label=label)
         self.button.connect("clicked", self.on_main_button_clicked)
 
+    @abstractmethod
     def on_main_button_clicked(self, widget):
         raise NotImplementedError()  # to be overridden by the relevant stack window class
 
