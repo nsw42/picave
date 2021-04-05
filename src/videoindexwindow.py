@@ -181,19 +181,19 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             return True
         elif (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
                                              (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
-            _, treepaths = self.tree.get_selection().get_selected_rows()  # returned model is self.list_store
+            _, treepaths = self.tree.get_selection().get_selected_rows()  # model is self.list_store_favourite_filter
             for treepath in treepaths:
                 row = treepath.get_indices()[0]
-                video_id = self.list_store[row][ListStoreColumns.VideoId]
+                video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
                 if video_id in self.config.favourites:
                     # remove it
                     self.config.favourites.remove(video_id)
-                    self.list_store[row][ListStoreColumns.Favourite] = None
+                    self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = None
                     logging.debug("Favourite removed: %s [%s]", row, video_id)
                 else:
                     # add it
                     self.config.favourites.append(video_id)
-                    self.list_store[row][ListStoreColumns.Favourite] = self.favourite_icon
+                    self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = self.favourite_icon
                     logging.debug("Favourite added: %s [%s]", row, video_id)
             self.config.save()
             return True
