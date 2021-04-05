@@ -241,7 +241,10 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def on_video_button_clicked(self, widget, selected_row, column):
         # widget is the Button (in the ListBoxRow)
-        video_id = self.list_store[selected_row][ListStoreColumns.VideoId]
+        logging.debug("Playing video %s (%s)",
+                      self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoName],
+                      self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId])
+        video_id = self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId]
         video_file = self.video_cache.cached_downloads.get(video_id)
         if video_file:
             self.session_window.play(video_file, video_id)
