@@ -55,6 +55,7 @@ class ListStoreColumns:
     VideoDuration = 4
     VideoDownloaded = 5
     VideoId = 6
+    ShowRow = 7
 
 
 class VideoIndexWindow(StackWindowWithButtonInterface):
@@ -78,17 +79,20 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def build_list_store(self):
         # columns in the tree model are indexed according to ListStoreColumn values
-        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str)
+        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
         for video in self.session_feed:
             fav = self.favourite_icon if (video.id in self.config.favourites) else None
-            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id])
+            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id, True])
         return list_store
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
 
         self.list_store = self.build_list_store()
-        tree = Gtk.TreeView(self.list_store)
+        self.list_store_favourite_filter = self.list_store.filter_new()
+        self.list_store_favourite_filter.set_visible_column(ListStoreColumns.ShowRow)
+        self.all_videos_shown = True
+        tree = Gtk.TreeView(self.list_store_favourite_filter)
         self.tree = tree
         tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
@@ -155,13 +159,28 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
-        video_id = self.list_store[selected_row][ListStoreColumns.VideoId]
+        video_id = self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId]
         self.session_preview.show(video_id)
+
+    def toggle_all_or_favourites(self):
+        logging.debug("videoindexwindow: toggle_all_or_favourites")
+        self.all_videos_shown = not self.all_videos_shown
+        for row in self.list_store:
+            if self.all_videos_shown:
+                show = True
+            else:
+                show = (row[ListStoreColumns.Favourite] is not None)
+            row[ListStoreColumns.ShowRow] = show
+        self.on_index_selection_changed(self.tree)
 
     def on_key_press(self, widget, event):
         logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
-        if (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
-                                           (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
+        if (event.state, event.keyval) == (Gdk.ModifierType(0), ord('c')):
+            # toggle between all and favourites
+            self.toggle_all_or_favourites()
+            return True
+        elif (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
+                                             (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
             _, treepaths = self.tree.get_selection().get_selected_rows()  # returned model is self.list_store
             for treepath in treepaths:
                 row = treepath.get_indices()[0]

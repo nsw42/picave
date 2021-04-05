@@ -228,8 +228,11 @@ class ApplicationWindow(Gtk.Window):
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_show_index(self):
-        self.stop_playing()
-        self.video_index_window.on_main_button_clicked(None)
+        if self.window_name_to_handler[self.stack.get_visible_child_name()] == self.video_index_window:
+            self.video_index_window.toggle_all_or_favourites()
+        else:
+            self.stop_playing()
+            self.video_index_window.on_main_button_clicked(None)
 
     def on_change_profile(self, *args):
         self.show_profile_chooser = True
