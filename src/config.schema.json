@@ -29,12 +29,16 @@
                 "^": { "type": "integer" }
             }
         },
-        "Favourites": {
+        "favourites": {
             "description": "List of ids of sessions to highlight",
             "type": "array",
             "items": {
                 "type": "string"
             }
+        },
+        "show_favourites_only": {
+            "description": "Whether to show only favourite (true) or all (false) videos",
+            "type": "boolean"
         }
     },
     "required": ["video_cache_directory"],

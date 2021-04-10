@@ -89,9 +89,9 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         self.stack = stack
 
         self.list_store = self.build_list_store()
+        self.show_favourites_or_all()
         self.list_store_favourite_filter = self.list_store.filter_new()
         self.list_store_favourite_filter.set_visible_column(ListStoreColumns.ShowRow)
-        self.all_videos_shown = True
         tree = Gtk.TreeView(self.list_store_favourite_filter)
         self.tree = tree
         tree.connect('cursor-changed', self.on_index_selection_changed)
@@ -164,14 +164,18 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def toggle_all_or_favourites(self):
         logging.debug("videoindexwindow: toggle_all_or_favourites")
-        self.all_videos_shown = not self.all_videos_shown
-        for row in self.list_store:
-            if self.all_videos_shown:
-                show = True
-            else:
-                show = (row[ListStoreColumns.Favourite] is not None)
-            row[ListStoreColumns.ShowRow] = show
+        self.config.show_favourites_only = not self.config.show_favourites_only
+        self.show_favourites_or_all()
         self.on_index_selection_changed(self.tree)
+        self.config.save()
+
+    def show_favourites_or_all(self):
+        for row in self.list_store:
+            if self.config.show_favourites_only:
+                show = (row[ListStoreColumns.Favourite] is not None)
+            else:
+                show = True
+            row[ListStoreColumns.ShowRow] = show
 
     def on_key_press(self, widget, event):
         logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
