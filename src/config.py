@@ -59,6 +59,7 @@ class Config(object):
         self.video_cache_directory = None  # pathlib.Path
         self.ftp = None  # map from video id (or 'default') to number
         self.favourites = []  # list of video ids (str)
+        self.show_favourites_only = False
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json.load(open(schema_filename))
@@ -105,7 +106,8 @@ class Config(object):
             self.warm_up_music_directory = None
 
         self.ftp = json_content['FTP']
-        self.favourites = json_content.get('Favourites', [])
+        self.favourites = json_content.get('favourites', [])
+        self.show_favourites_only = json_content.get('show_favourites_only', False)
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()
@@ -130,6 +132,7 @@ class Config(object):
             'default': 200
         }
         self.favourites = []
+        self.show_favourites_only = False
 
     def save(self):
         to_write = {
@@ -146,7 +149,8 @@ class Config(object):
                 "parameters": player.player_parameters
             } for ext, player in self.players.items()],
             'FTP': self.ftp,
-            'Favourites': self.favourites
+            'favourites': self.favourites,
+            'show_favourites_only': self.show_favourites_only,
         }
         temp_filename = self.filename.with_suffix('.new')
         if temp_filename.exists():
