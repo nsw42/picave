@@ -1,10 +1,10 @@
-import json
 import logging
 import os
 import pathlib
 import shutil
 import sys
 
+import json5
 import jsonschema
 
 from players import PlayerLookup
@@ -62,7 +62,7 @@ class Config(object):
         self.show_favourites_only = False
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
-        self.schema = json.load(open(schema_filename))
+        self.schema = json5.load(open(schema_filename))
         self.executable_names = (self.schema['definitions']['supported_players']['enum']
                                  + self.schema['definitions']['other_executables']['enum'])
 
@@ -79,7 +79,7 @@ class Config(object):
         except OSError:
             # TODO: Error handling
             raise
-        json_content = json.load(handle)
+        json_content = json5.load(handle)
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
         for binary in self.executable_names:
@@ -156,7 +156,7 @@ class Config(object):
         if temp_filename.exists():
             os.remove(temp_filename)
         with open(temp_filename, 'w') as handle:
-            json.dump(to_write, handle, indent=4)
+            json5.dump(to_write, handle, indent=4)
 
         if self.filename.exists():
             backup_filename = self.filename.with_suffix('.bak')

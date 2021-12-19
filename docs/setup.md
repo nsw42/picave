@@ -64,6 +64,7 @@ If not using NOOBS, as of 2020-06-20:
 * Set up a python environment. For now, see [development_common.md](development_common.md)
 * `cd picave`
 * `pip install jsonschema`
+* `pip install json5`
 * `pip install mutagen`
 * `pip install python-vlc`
 * `pip install requests`
