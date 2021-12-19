@@ -15,9 +15,6 @@ from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call
 
 def load_icon(icons_to_try):
     theme = Gtk.IconTheme()
-    if sys.platform == 'darwin':
-        # default search path with `brew install adwaita-icon-theme` didn't work
-        theme.append_search_path('/usr/local/Cellar/adwaita-icon-theme/3.34.3/share/icons/')  # TODO: Remove this??
 
     for icon_to_try in icons_to_try:
         try:
