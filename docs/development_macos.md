@@ -42,4 +42,6 @@ See [development_common.md](development_common.md) <!-- TODO: Add anchor to this
 
 ## macOS specific notes
 
-* On an M1 MacBook Pro, am experiencing segfaults when closing a window
+* Not sure that this is macOS specific, except that I tripped over it when setting up a MBP:
+  segfault when closing a window. A bit of googling makes it seem like this issue:
+  <https://gitlab.gnome.org/GNOME/pygobject/-/issues/489>, which is due to libffi 3.4.2.

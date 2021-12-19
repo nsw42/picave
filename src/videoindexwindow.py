@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from config import Config
 from sessionpreview import SessionPreview
