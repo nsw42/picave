@@ -130,9 +130,11 @@ The size and position of the video within the window can be adjusted by specifyi
 
 ### FTP
 
-The FTP section of the configuration allows a default FTP value to be set, as well as per-value FTP values if desired (e.g. because one video better suits your riding style, and you therefore want power targets to be based on a larger FTP).
+The FTP section of the configuration allows a default FTP value to be set, as well as video-specific FTP values if desired (e.g. because one video better suits your riding style, and you therefore want power targets to be based on a larger FTP).
 
 The FTP section takes the form of name, value pairs, where the name is the video id, and the value is the FTP to use for the corresponding video (an integer).
+
+Note that if the FTP section exists, a value for `default` is mandatory.
 
 For example:
 
