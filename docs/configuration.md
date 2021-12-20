@@ -34,27 +34,9 @@ PiCave window, but the effect is not as smooth as with `omxplayer`/`libvlc`.
 If using `omxplayer` on the Raspberry Pi and the video is misaligned, it's
 probably due to video underscan or overscan.  The `parameters` block of the
 appropriate `filetypes` section of the configuration file allows the video
-position to be adjusted:
+position to be adjusted. See the 'omxplayer parameters' section below, for
+an example.
 
-```json
-{
-    ...
-    "filetypes": [
-        ...
-        ".mp4": {
-            "player": "omxplayer",
-            "parameters": {
-                "margin_left": 48,
-                "margin_right": 48,
-                "margin_top": 48,
-                "margin_bottom": 48
-            }
-        }
-        ...
-    ]
-}
-
-```
 
 ## Configuration file syntax reference
 
@@ -127,13 +109,21 @@ The value for `parameters` is an object to tune the behaviour of PiCave when pla
 
 The size and position of the video within the window can be adjusted by specifying a margin in the parameters object. E.g.:
 
-```json5
+```json
 {
-    "parameters": {
-        "margin_left": 8,
-        "margin_top": 8,
-        "margin_right": 8,
-        "margin_bottom": 8
+    ...
+    "filetypes": {
+        ...
+        ".mp4": {
+            "player": "omxplayer",
+            "parameters": {
+                "margin_left": 48,
+                "margin_right": 48,
+                "margin_top": 48,
+                "margin_bottom": 48
+            }
+        }
+        ...
     }
 }
 ```
