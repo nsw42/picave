@@ -17,9 +17,13 @@ class LoadException(Exception):
 
 
 def config_binary(json_content, binary):
-    for config_binary in json_content.get('executables', {}):
-        if config_binary['name'] == binary:
-            return pathlib.Path(config_binary['path'])
+    executables = json_content.get('executables', {})
+    executable = executables.get(binary, {})
+    path = executable.get('path') if executable else None
+    if path:
+        path = pathlib.Path(path)
+        if path.exists():
+            return path
     return default_binary(binary)
 
 
@@ -69,8 +73,8 @@ class Config(object):
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json5.load(open(schema_filename))
-        self.executable_names = (self.schema['definitions']['supported_players']['enum']
-                                 + self.schema['definitions']['other_executables']['enum'])
+        self.executable_names = list(self.schema['properties']['executables']['properties'].keys())
+        logging.debug(f"Executables: {self.executable_names}")
 
         if filename:
             try:

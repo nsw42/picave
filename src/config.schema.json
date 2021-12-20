@@ -5,8 +5,19 @@
     "properties": {
         "executables": {
             "description": "Where to find executables",
-            "type": "array",
-            "items": { "$ref": "#/definitions/executable" }
+            "type": "object",
+            "properties": {
+                // NB. This list must be a superset of the 'supported_players' enum,
+                // with any additional binaries that are needed. Currently, that's
+                // only youtube-dl.
+                "mpg123": { "$ref": "#/definitions/executable" },
+                "mplayer": { "$ref": "#/definitions/executable" },
+                "mpv": { "$ref": "#/definitions/executable" },
+                "omxplayer": { "$ref": "#/definitions/executable" },
+		        "libvlc": { "$ref": "#/definitions/executable" },
+                "vlc": { "$ref": "#/definitions/executable" },
+                "youtube-dl": { "$ref": "#/definitions/executable" },
+            }
         },
         "filetypes": {
             "description": "Which player to use for which file extension",
@@ -50,18 +61,12 @@
         "executable": {
             "type": "object",
             "properties": {
-                "name": {
-                    "oneOf": [
-                        { "$ref": "#/definitions/supported_players" },
-                        { "$ref": "#/definitions/other_executables" }
-                    ]
-                },
                 "path": {
                     "description": "The path of the binary",
                     "type": "string"
                 }
             },
-            "required": ["name", "path"]
+            "required": ["path"]
         },
         "player": {
             "type": "object",
@@ -93,13 +98,6 @@
                 "omxplayer",
 		        "libvlc",
                 "vlc"
-            ]
-        },
-        "other_executables": {
-            "description": "Other binaries that picave needs to know about",
-            "type": "string",
-            "enum": [
-                "youtube-dl"
             ]
         }
     }
