@@ -105,7 +105,7 @@ If not using NOOBS, as of 2020-06-20:
         ".mkv": {
             "player": "omxplayer"
         }
-    ],
+    },
     "FTP": {
         "default": 250
     }
