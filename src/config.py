@@ -10,6 +10,12 @@ import jsonschema
 from players import PlayerLookup
 
 
+class LoadException(Exception):
+    """
+    An exception thrown when failing to load/validate a configuration file
+    """
+
+
 def config_binary(json_content, binary):
     for config_binary in json_content.get('executables', {}):
         if config_binary['name'] == binary:
@@ -67,7 +73,10 @@ class Config(object):
                                  + self.schema['definitions']['other_executables']['enum'])
 
         if filename:
-            self._init_from_file(filename)
+            try:
+                self._init_from_file(filename)
+            except jsonschema.exceptions.ValidationError as e:
+                raise LoadException(e.message)
             self.filename = filename
         else:
             self._init_with_defaults()

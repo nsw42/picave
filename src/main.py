@@ -127,9 +127,33 @@ class PiCaveApplication(Gtk.Application):
         logging.debug("Config file %s selected", config_path)
 
         if config_path.exists():
-            self.config = config.Config(config_path)
+            try:
+                self.config = config.Config(config_path)
+            except config.LoadException as e:
+                logging.warning(f"Validation failure when loading file {config_path}")
+                alert = Gtk.MessageDialog(parent=None,
+                                          flags=Gtk.DialogFlags.MODAL,
+                                          type=Gtk.MessageType.WARNING,
+                                          buttons=Gtk.ButtonsType.OK,
+                                          message_format=f"Validation failure when loading the file:\n{str(e)}")
+                alert.run()
+                alert.destroy()
+                # We want to leave the profile chooser window open, but the profile chooser
+                # has a 'run once' semantic.
+                if self.window:
+                    self.window.close()
+                    self.window.destroy()
+                    self.window = None
+                self.state = PiCaveApplication.State.Initialising
+                self.do_activate()
+                return
         else:
             logging.warning("Configuration file not found")
+            alert = Gtk.MessageDialog(parent=None,
+                                      flags=Gtk.DialogFlags.MODAL,
+                                      type=Gtk.MessageType.WARNING,
+                                      buttons=Gtk.ButtonsType.OK,
+                                      message_format=f"Configuration file {config_path} not found")
             self.config = config.Config()
 
         if self.window:
