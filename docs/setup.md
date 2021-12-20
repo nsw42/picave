@@ -92,18 +92,17 @@ If not using NOOBS, as of 2020-06-20:
             "path": "/usr/local/bin/youtube-dl"
         }
     ],
-    "filetypes": [
-        {
+    "filetypes": {
+        // See configuration.md for more detail about options
+        ".mp3": {
             "ext": ".mp3",
             "player": "mpg123",
             "options": ["--quiet"]
         },
-        {
-            "ext": ".mp4",
+        ".mp4": {
             "player": "omxplayer"
         },
-        {
-            "ext": ".mkv",
+        ".mkv": {
             "player": "omxplayer"
         }
     ],

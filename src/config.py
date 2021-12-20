@@ -10,10 +10,20 @@ import jsonschema
 from players import PlayerLookup
 
 
+class LoadException(Exception):
+    """
+    An exception thrown when failing to load/validate a configuration file
+    """
+
+
 def config_binary(json_content, binary):
-    for config_binary in json_content.get('executables', {}):
-        if config_binary['name'] == binary:
-            return pathlib.Path(config_binary['path'])
+    executables = json_content.get('executables', {})
+    executable = executables.get(binary, {})
+    path = executable.get('path') if executable else None
+    if path:
+        path = pathlib.Path(path)
+        if path.exists():
+            return path
     return default_binary(binary)
 
 
@@ -63,11 +73,14 @@ class Config(object):
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
         self.schema = json5.load(open(schema_filename))
-        self.executable_names = (self.schema['definitions']['supported_players']['enum']
-                                 + self.schema['definitions']['other_executables']['enum'])
+        self.executable_names = list(self.schema['properties']['executables']['properties'].keys())
+        logging.debug(f"Executables: {self.executable_names}")
 
         if filename:
-            self._init_from_file(filename)
+            try:
+                self._init_from_file(filename)
+            except jsonschema.exceptions.ValidationError as e:
+                raise LoadException(e.message)
             self.filename = filename
         else:
             self._init_with_defaults()
@@ -86,8 +99,7 @@ class Config(object):
             self.executables[binary] = config_binary(json_content, binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
-        for player_config in json_content['filetypes']:
-            ext = player_config['ext']
+        for ext, player_config in json_content['filetypes'].items():
             player = player_config['player']
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})
@@ -118,7 +130,7 @@ class Config(object):
             self.executables[binary] = default_binary(binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
-        for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
+        for ext in self.schema['properties']['filetypes']['properties']:
             player_name = default_player(ext)
             player_class = PlayerLookup[player_name]
             player = player_class(exe=self.executables[player_name], default_args=None, player_parameters={})
