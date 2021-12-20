@@ -86,8 +86,7 @@ class Config(object):
             self.executables[binary] = config_binary(json_content, binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
-        for player_config in json_content['filetypes']:
-            ext = player_config['ext']
+        for ext, player_config in json_content['filetypes'].items():
             player = player_config['player']
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})

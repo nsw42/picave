@@ -10,8 +10,12 @@
         },
         "filetypes": {
             "description": "Which player to use for which file extension",
-            "type": "array",
-            "items": { "$ref": "#/definitions/player" }
+            "type": "object",
+            "properties": {
+                ".mp3": { "$ref": "#/definitions/player" },
+                ".mp4": { "$ref": "#/definitions/player" },
+                ".mkv": { "$ref": "#/definitions/player" }
+            }
         },
         "video_cache_directory": {
             "description": "Where to store cached video files",
@@ -62,11 +66,6 @@
         "player": {
             "type": "object",
             "properties": {
-                "ext": {
-                    "description": "The extension of the file, including the leading dot",
-                    "type": "string",
-                    "enum": [".mp3", ".mp4", ".mkv"]
-                },
                 "player": {
                     "$ref": "#/definitions/supported_players"
                 },
@@ -82,7 +81,7 @@
                     "type": "object"
                 }
             },
-            "required": ["ext", "player"]
+            "required": ["player"]
         },
         "supported_players": {
             "description": "The player to use to play this type of file",
