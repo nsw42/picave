@@ -126,7 +126,7 @@ class Config(object):
             self.executables[binary] = default_binary(binary)
             logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
 
-        for ext in self.schema['definitions']['player']['properties']['ext']['enum']:
+        for ext in self.schema['properties']['filetypes']['properties']:
             player_name = default_player(ext)
             player_class = PlayerLookup[player_name]
             player = player_class(exe=self.executables[player_name], default_args=None, player_parameters={})
