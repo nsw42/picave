@@ -9,6 +9,7 @@ from videofeed import VideoFeed
 
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
 
 
@@ -73,14 +74,6 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         self.favourite_icon = favourite_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
 
-    def build_list_store(self):
-        # columns in the tree model are indexed according to ListStoreColumn values
-        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
-        for video in self.session_feed:
-            fav = self.favourite_icon if (video.id in self.config.favourites) else None
-            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id, True])
-        return list_store
-
     def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
 
@@ -93,6 +86,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         tree.connect('cursor-changed', self.on_index_selection_changed)
         tree.connect('row-activated', self.on_video_button_clicked)
         tree.connect('size-allocate', self.set_column_widths)
+        tree.connect('button-press-event', self.on_button_press)
         tree.set_enable_search(False)
 
         favourite_renderer = Gtk.CellRendererPixbuf()
@@ -153,6 +147,40 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         grid.connect('realize', self.on_shown)
         tree.connect('key-press-event', self.on_key_press)
 
+    def build_list_store(self):
+        # columns in the tree model are indexed according to ListStoreColumn values
+        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
+        for video in self.session_feed:
+            fav = self.favourite_icon if (video.id in self.config.favourites) else None
+            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id, True])
+        return list_store
+
+    def create_right_click_menu(self, row):
+        row_video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
+        menu = Gtk.Menu()
+        # Menu item 1: Toggle favourite
+        fav_menu_item = Gtk.MenuItem(label="Un-favourite" if row_video_id in self.config.favourites else "Favourite")
+        fav_menu_item.connect('activate', self.on_favourite_menu_item_clicked)
+        menu.append(fav_menu_item)
+        # TODO: Menu item 2: Edit target power
+        # menu.append(Gtk.MenuItem(label="Edit target power"))
+        menu.show_all()
+        return menu
+
+    def on_button_press(self, widget, event):
+        if event.type != Gdk.EventType.BUTTON_PRESS or event.button != 3:
+            # not a right-click
+            return
+        pos = self.tree.get_path_at_pos(event.x, event.y)
+        if not pos:
+            # not on a row
+            return
+
+        path, column, x, y = pos
+        row = path.get_indices()[0]
+        self.menu_item_row = row
+        self.create_right_click_menu(row).popup_at_pointer(event)
+
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
         video_id = self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId]
@@ -184,20 +212,26 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             _, treepaths = self.tree.get_selection().get_selected_rows()  # model is self.list_store_favourite_filter
             for treepath in treepaths:
                 row = treepath.get_indices()[0]
-                video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
-                if video_id in self.config.favourites:
-                    # remove it
-                    self.config.favourites.remove(video_id)
-                    self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = None
-                    logging.debug("Favourite removed: %s [%s]", row, video_id)
-                else:
-                    # add it
-                    self.config.favourites.append(video_id)
-                    self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = self.favourite_icon
-                    logging.debug("Favourite added: %s [%s]", row, video_id)
-            self.config.save()
+                self.toggle_favourite(row)
             return True
         return False
+
+    def on_favourite_menu_item_clicked(self, menu_item):
+        self.toggle_favourite(self.menu_item_row)
+
+    def toggle_favourite(self, row):
+        video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
+        if video_id in self.config.favourites:
+            # remove it
+            self.config.favourites.remove(video_id)
+            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = None
+            logging.debug("Favourite removed: %s [%s]", row, video_id)
+        else:
+            # add it
+            self.config.favourites.append(video_id)
+            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = self.favourite_icon
+            logging.debug("Favourite added: %s [%s]", row, video_id)
+        self.config.save()
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
