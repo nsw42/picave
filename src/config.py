@@ -89,10 +89,13 @@ class Config(object):
     def _init_from_file(self, filename):
         try:
             handle = open(filename)
-        except OSError:
+        except OSError as e:
             # TODO: Error handling
-            raise
-        json_content = json5.load(handle)
+            raise LoadException(e)
+        try:
+            json_content = json5.load(handle)
+        except ValueError as e:
+            raise LoadException(e)
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
         for binary in self.executable_names:
@@ -150,16 +153,12 @@ class Config(object):
         to_write = {
             'video_cache_directory': str(self.video_cache_directory),
             'warm_up_music_directory': str(self.warm_up_music_directory),
-            'executables': [{
-                "name": name,
-                "path": str(path)
-            } for name, path in self.executables.items()],
-            'filetypes': [{
-                "ext": ext,
+            'executables': dict([name, {"path": str(path)}] for name, path in self.executables.items() if path),
+            'filetypes': dict([ext, {
                 "player": player.name,
                 "options": player.default_args,
                 "parameters": player.player_parameters
-            } for ext, player in self.players.items()],
+            }] for ext, player in self.players.items()),
             'FTP': self.ftp,
             'favourites': self.favourites,
             'show_favourites_only': self.show_favourites_only,
