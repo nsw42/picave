@@ -1,9 +1,11 @@
 import logging
+import sys
 
 from config import Config
 from sessionpreview import SessionPreview
 from sessionwindow import SessionWindow
 from stackwindowwithbuttoninterface import StackWindowWithButtonInterface
+from targetpowerdialog import TargetPowerDialog
 from videocache import VideoCache
 from videofeed import VideoFeed
 
@@ -56,13 +58,16 @@ class ListStoreColumns:
 
 
 class VideoIndexWindow(StackWindowWithButtonInterface):
+    # Initialisation methods: constructor, window creation, menu creation, ...
     def __init__(self,
+                 main_window: Gtk.Window,
                  config: Config,
                  label: str,
                  session_feed: VideoFeed,
                  video_cache: VideoCache,
                  session_window: SessionWindow):
         super().__init__(config, label)
+        self.main_window = main_window
         self.session_feed = session_feed
         self.video_cache = video_cache
         self.session_window = session_window
@@ -162,10 +167,15 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         fav_menu_item = Gtk.MenuItem(label="Un-favourite" if row_video_id in self.config.favourites else "Favourite")
         fav_menu_item.connect('activate', self.on_favourite_menu_item_clicked)
         menu.append(fav_menu_item)
-        # TODO: Menu item 2: Edit target power
-        # menu.append(Gtk.MenuItem(label="Edit target power"))
+        # Menu item 2: Edit target power
+        power_menu_item = Gtk.MenuItem(label="Target power...")
+        power_menu_item.connect('activate', self.on_target_power_menu_item_clicked)
+        menu.append(power_menu_item)
+        # Tidy up
         menu.show_all()
         return menu
+
+    # Event handlers
 
     def on_button_press(self, widget, event):
         if event.type != Gdk.EventType.BUTTON_PRESS or event.button != 3:
@@ -175,7 +185,6 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         if not pos:
             # not on a row
             return
-
         path, column, x, y = pos
         row = path.get_indices()[0]
         self.menu_item_row = row
@@ -186,52 +195,54 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         video_id = self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId]
         self.session_preview.show(video_id)
 
-    def toggle_all_or_favourites(self):
-        logging.debug("videoindexwindow: toggle_all_or_favourites")
-        self.config.show_favourites_only = not self.config.show_favourites_only
-        self.show_favourites_or_all()
-        self.on_index_selection_changed(self.tree)
-        self.config.save()
-
-    def show_favourites_or_all(self):
-        for row in self.list_store:
-            if self.config.show_favourites_only:
-                show = (row[ListStoreColumns.Favourite] is not None)
-            else:
-                show = True
-            row[ListStoreColumns.ShowRow] = show
-
     def on_key_press(self, widget, event):
+        """
+        Handle the following key-press events:
+        'c': toggle whether all videos are shown or just favourites
+        '*': toggle whether the currently selected row (ie. video) is a favourite
+        Ctrl-P: show the target power dialog for the currently selected row (i.e. video)
+        (or Command-P on a Mac)
+        """
         logging.debug("videoindexwindow: key state=%s, keyval=%s", event.state, event.keyval)
-        if (event.state, event.keyval) == (Gdk.ModifierType(0), ord('c')):
+        # keyval, mods
+        # TODO: C&P from applicationwindow.py
+        event_mods = event.state
+        if sys.platform == 'darwin':
+            # Command-Q is shown as GDK_MOD2_MASK | GDK_META_MASK
+            # yet accelerator_parse('<Primary>Q') returns
+            # just GDK_META_MASK. As we don't currently use
+            # GDK_MOD2_MASK for anything else, this is a quick
+            # hack.
+            # But (flags &~ Gdk.ModifierType.MOD2_MASK) returns
+            # an int, rather than a Gdk.ModifierType - hence
+            # this convoluted expression.
+            event_mods = (event_mods | Gdk.ModifierType.MOD2_MASK) ^ Gdk.ModifierType.MOD2_MASK
+
+        if (event.keyval, event_mods) == Gtk.accelerator_parse('c'):
             # toggle between all and favourites
             self.toggle_all_or_favourites()
             return True
-        elif (event.state, event.keyval) in ((Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_asterisk),
-                                             (Gdk.ModifierType(0), Gdk.KEY_KP_Multiply)):
-            _, treepaths = self.tree.get_selection().get_selected_rows()  # model is self.list_store_favourite_filter
-            for treepath in treepaths:
-                row = treepath.get_indices()[0]
+        elif (event.keyval, event_mods) in (Gtk.accelerator_parse('<Shift>asterisk'),
+                                            Gtk.accelerator_parse('KP_Multiply')):
+            row = self.get_selected_row()
+            if row:
                 self.toggle_favourite(row)
             return True
+        elif (event.keyval, event_mods) == Gtk.accelerator_parse('<Primary>p'):
+            row = self.get_selected_row()
+            if row:
+                self.show_target_power_dialog(row)
         return False
 
-    def on_favourite_menu_item_clicked(self, menu_item):
-        self.toggle_favourite(self.menu_item_row)
-
-    def toggle_favourite(self, row):
-        video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
-        if video_id in self.config.favourites:
-            # remove it
-            self.config.favourites.remove(video_id)
-            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = None
-            logging.debug("Favourite removed: %s [%s]", row, video_id)
-        else:
-            # add it
-            self.config.favourites.append(video_id)
-            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = self.favourite_icon
-            logging.debug("Favourite added: %s [%s]", row, video_id)
-        self.config.save()
+    def get_selected_row(self):
+        """
+        A simplified wrapper around the Gtk get_selected_rows(), taking advantage of the
+        fact that we have no nesting, and don't allow multiple selection.
+        """
+        _, treepaths = self.tree.get_selection().get_selected_rows()  # model is self.list_store_favourite_filter
+        for treepath in treepaths:
+            return treepath.get_indices()[0]
+        return None
 
     def on_main_button_clicked(self, widget):
         self.update_download_icons()
@@ -240,24 +251,6 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         # and show the index of videos
         assert self.stack
         self.stack.set_visible_child_name("main_session_index_window")
-
-    def set_column_widths(self, widget, allocation):
-        new_icon_width = 100
-        extra_space = self.icon_column.get_width() - new_icon_width
-
-        for column, sizing in [(self.title_column, Gtk.TreeViewColumnSizing.AUTOSIZE),
-                               (self.type_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
-                               (self.date_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
-                               (self.duration_column, Gtk.TreeViewColumnSizing.GROW_ONLY)]:
-            column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-            column.set_resizable(True)
-            if extra_space > 0:
-                column.set_min_width(column.get_width() + extra_space / 4)
-
-        self.icon_column.set_fixed_width(new_icon_width)
-        self.icon_column.set_max_width(new_icon_width)
-        self.icon_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        self.icon_column.set_resizable(False)
 
     def on_back_button_clicked(self, widget):
         self.stack.set_visible_child_name("main_window_buttons")
@@ -285,6 +278,80 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             self.stack.set_visible_child_name("session_window")
         # TODO: Report that video file not known
 
+    def on_favourite_menu_item_clicked(self, menu_item):
+        self.toggle_favourite(self.menu_item_row)
+
+    def on_target_power_menu_item_clicked(self, menu_item):
+        self.show_target_power_dialog(self.menu_item_row)
+
+    # Action methods, typically called from the event handlers
+
+    def show_target_power_dialog(self, row):
+        video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
+        video_name = self.list_store_favourite_filter[row][ListStoreColumns.VideoName]
+        default_ftp = self.config.ftp.get('default')
+        video_ftp = self.config.ftp.get(video_id)
+        dialog = TargetPowerDialog(parent=self.main_window, video_name=video_name,
+                                   default_ftp=default_ftp, video_ftp=video_ftp)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            new_video_ftp = dialog.get_target_power()
+            logging.debug(f"Target power dialog result: {new_video_ftp}")
+            if new_video_ftp:
+                self.config.ftp[video_id] = new_video_ftp
+            else:
+                if video_id in self.config.ftp:
+                    del self.config.ftp[video_id]
+            self.config.save()
+        dialog.destroy()
+
+    def toggle_all_or_favourites(self):
+        logging.debug("videoindexwindow: toggle_all_or_favourites")
+        self.config.show_favourites_only = not self.config.show_favourites_only
+        self.show_favourites_or_all()
+        self.on_index_selection_changed(self.tree)
+        self.config.save()
+
+    def show_favourites_or_all(self):
+        for row in self.list_store:
+            if self.config.show_favourites_only:
+                show = (row[ListStoreColumns.Favourite] is not None)
+            else:
+                show = True
+            row[ListStoreColumns.ShowRow] = show
+
+    def toggle_favourite(self, row):
+        video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
+        if video_id in self.config.favourites:
+            # remove it
+            self.config.favourites.remove(video_id)
+            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = None
+            logging.debug("Favourite removed: %s [%s]", row, video_id)
+        else:
+            # add it
+            self.config.favourites.append(video_id)
+            self.list_store_favourite_filter[row][ListStoreColumns.Favourite] = self.favourite_icon
+            logging.debug("Favourite added: %s [%s]", row, video_id)
+        self.config.save()
+
+    def set_column_widths(self, widget, allocation):
+        new_icon_width = 100
+        extra_space = self.icon_column.get_width() - new_icon_width
+
+        for column, sizing in [(self.title_column, Gtk.TreeViewColumnSizing.AUTOSIZE),
+                               (self.type_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
+                               (self.date_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
+                               (self.duration_column, Gtk.TreeViewColumnSizing.GROW_ONLY)]:
+            column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+            column.set_resizable(True)
+            if extra_space > 0:
+                column.set_min_width(column.get_width() + extra_space / 4)
+
+        self.icon_column.set_fixed_width(new_icon_width)
+        self.icon_column.set_max_width(new_icon_width)
+        self.icon_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        self.icon_column.set_resizable(False)
+
     def update_download_icons(self):
         # Update the display whether files are in the cache
         self.downloading_id = None
@@ -297,6 +364,8 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
                 row[ListStoreColumns.VideoDownloaded] = self.downloading_icon
             else:
                 row[ListStoreColumns.VideoDownloaded] = None
+
+    # StackWindowWithButtonInterface compatibility
 
     def handle_volume_change(self, change):
         pass

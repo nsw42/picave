@@ -98,7 +98,8 @@ class ApplicationWindow(Gtk.Window):
 
         self.warmup_handler = Mp3Window(self.config, "Warm up", mp3index)
         self.main_session_handler = SessionWindow(self.config, "", main_session_feed.url)
-        self.video_index_window = VideoIndexWindow(self.config,
+        self.video_index_window = VideoIndexWindow(self,
+                                                   self.config,
                                                    "Main session",
                                                    main_session_feed,
                                                    self.video_cache,
