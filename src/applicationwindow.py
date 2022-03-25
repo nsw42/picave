@@ -104,8 +104,8 @@ class ApplicationWindow(Gtk.Window):
                                                    main_session_feed,
                                                    self.video_cache,
                                                    self.main_session_handler)
-        self.main_buttons = MainButtonWindow([self.warmup_handler,
-                                              self.video_index_window])
+        self.main_buttons = MainButtonWindow(self,
+                                             [self.warmup_handler, self.video_index_window])
 
         if full_screen:
             self.fullscreen()
