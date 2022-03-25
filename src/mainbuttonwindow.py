@@ -36,20 +36,23 @@ class MainButtonWindow(StackWindowInterface):
         while True:
             response = dialog.run()
             if response != Gtk.ResponseType.OK:
+                # User hit cancel. We're done.
                 break
+
             error_msg = dialog.validate_input()
-            if error_msg:
-                error_dialog = Gtk.MessageDialog(parent=None, modal=True, message_type=Gtk.MessageType.ERROR,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=error_msg)
-                error_dialog.set_position(Gtk.WindowPosition.CENTER)
-                error_dialog.run()
-                error_dialog.destroy()
-                continue
-            # clicked ok, and input was good
-            dialog.write_values_to_config(self.config)
-            self.config.save()
-            break
+            if not error_msg:
+                # User hit ok, and all the input was good
+                dialog.write_values_to_config(self.config)
+                self.config.save()
+                break
+
+            error_dialog = Gtk.MessageDialog(parent=None, modal=True, message_type=Gtk.MessageType.ERROR,
+                                             buttons=Gtk.ButtonsType.OK,
+                                             text=error_msg)
+            error_dialog.set_position(Gtk.WindowPosition.CENTER)
+            error_dialog.run()
+            error_dialog.destroy()
+            continue  # not needed, but helps code clarity, IMO
         dialog.destroy()
 
     def handle_volume_change(self, change):
