@@ -98,10 +98,40 @@ class EditConfigDialog(Gtk.Dialog):
 
         return grid
 
+    def _init_filetypes_grid(self, config: Config):
+        grid = EditConfigDialog.create_grid()
+        self.filetype_comboboxes = {}
+        valid_players_list = list(PlayerLookup.keys())
+        logging.debug(valid_players_list)
+        for y, (filetype, player) in enumerate(config.players.items()):
+            logging.debug(f"filetype: {filetype}: player={player.name if player else None}")
+            # x0: label
+            grid.attach(Gtk.Label(label=filetype), left=0, top=y, width=1, height=1)
+            # x1: combobox
+            combobox = Gtk.ComboBoxText()
+            combobox.set_entry_text_column(0)
+            for valid_player in valid_players_list:
+                combobox.append_text(valid_player)
+            if player:
+                combobox.set_active(valid_players_list.index(player.name))
+            combobox.set_hexpand(True)
+            grid.attach(combobox, left=1, top=y, width=1, height=1)
+            self.filetype_comboboxes[filetype] = combobox
+            # x2: options list
+            button = Gtk.Button.new_with_label(label="Options...")
+            grid.attach(button, left=2, top=y, width=1, height=1)
+
+        return grid
+
     def validate_input(self):
         # General tab validation:
-        for entry in (self.warm_up_entry, self.video_cache_entry):
-            directory = pathlib.Path(entry.get_text())
+        for label, entry in (("Warm up music", self.warm_up_entry),
+                             ("Video cache", self.video_cache_entry)):
+            pathstr = entry.get_text()
+            if pathstr.strip() == '':
+                self.stack.set_visible_child_name("general")
+                return f"{label} directory must be specified"
+            directory = pathlib.Path(pathstr)
             if not directory.is_dir():
                 self.stack.set_visible_child_name("general")
                 return f"{str(directory)} does not exist"
