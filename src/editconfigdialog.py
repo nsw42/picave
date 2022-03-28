@@ -1,5 +1,8 @@
+import logging
 import pathlib
+
 from config import Config
+from players import PlayerLookup
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -17,6 +20,9 @@ class EditConfigDialog(Gtk.Dialog):
 
         executables_grid = self._init_executables_grid(config)
         self.stack.add_titled(executables_grid, "executables", "Executables")
+
+        filetypes_grid = self._init_filetypes_grid(config)
+        self.stack.add_titled(filetypes_grid, "filetypes", "Filetypes")
 
         switcher = Gtk.StackSwitcher()
         switcher.set_stack(self.stack)
@@ -39,7 +45,8 @@ class EditConfigDialog(Gtk.Dialog):
 
         self.show_all()
 
-    def _init_general_grid(self, config: Config):
+    @staticmethod
+    def create_grid():
         grid = Gtk.Grid()
         grid.set_column_spacing(4)
         grid.set_row_spacing(4)
@@ -49,6 +56,10 @@ class EditConfigDialog(Gtk.Dialog):
         grid.set_margin_bottom(8)
         grid.set_hexpand(True)
         grid.set_vexpand(False)
+        return grid
+
+    def _init_general_grid(self, config: Config):
+        grid = EditConfigDialog.create_grid()
 
         y = 0
         grid.attach(Gtk.Label(label="Warm up music"), left=0, top=y, width=1, height=1)
@@ -76,16 +87,7 @@ class EditConfigDialog(Gtk.Dialog):
         return grid
 
     def _init_executables_grid(self, config: Config):
-        grid = Gtk.Grid()
-        grid.set_column_spacing(4)
-        grid.set_row_spacing(4)
-        grid.set_margin_start(8)
-        grid.set_margin_end(8)
-        grid.set_margin_top(8)
-        grid.set_margin_bottom(8)
-        grid.set_hexpand(True)
-        grid.set_vexpand(False)
-
+        grid = EditConfigDialog.create_grid()
         self.executable_entries = {}
         for y, (binary, path) in enumerate(config.executables.items()):
             grid.attach(Gtk.Label(label=binary), left=0, top=y, width=1, height=1)
@@ -101,6 +103,7 @@ class EditConfigDialog(Gtk.Dialog):
     def _init_filetypes_grid(self, config: Config):
         grid = EditConfigDialog.create_grid()
         self.filetype_comboboxes = {}
+        self.filetype_args_entries = {}
         valid_players_list = list(PlayerLookup.keys())
         logging.debug(valid_players_list)
         for y, (filetype, player) in enumerate(config.players.items()):
@@ -114,12 +117,15 @@ class EditConfigDialog(Gtk.Dialog):
                 combobox.append_text(valid_player)
             if player:
                 combobox.set_active(valid_players_list.index(player.name))
-            combobox.set_hexpand(True)
+            combobox.set_hexpand(False)
             grid.attach(combobox, left=1, top=y, width=1, height=1)
             self.filetype_comboboxes[filetype] = combobox
-            # x2: options list
-            button = Gtk.Button.new_with_label(label="Options...")
-            grid.attach(button, left=2, top=y, width=1, height=1)
+            # x2: options
+            entry = Gtk.Entry()
+            entry.set_text(' '.join(player.default_args))
+            entry.set_hexpand(True)
+            grid.attach(entry, left=2, top=y, width=1, height=1)
+            self.filetype_args_entries[filetype] = entry
 
         return grid
 
@@ -146,6 +152,9 @@ class EditConfigDialog(Gtk.Dialog):
             if not path.is_file():
                 self.stack.set_visible_child_name("executables")
                 return f"{str(path)} does not exist"
+        # Filetypes tab validation:
+        # combobox enforces sensible options
+        # no sensible validation of default args possible
         return None
 
     def write_values_to_config(self, config: Config):
@@ -159,3 +168,12 @@ class EditConfigDialog(Gtk.Dialog):
             pathstr = entry.get_text()
             path = pathlib.Path(pathstr) if pathstr else None
             config.executables[binary] = path
+
+        # Filetypes tab
+        for filetype in config.players.keys():
+            combobox = self.filetype_comboboxes[filetype]
+            entry = self.filetype_args_entries[filetype]
+            config.set_filetype_player(filetype,
+                                       combobox.get_active_text(),
+                                       entry.get_text().split(' '),
+                                       {})  # TODO: player_parameters
