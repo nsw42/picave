@@ -58,8 +58,7 @@ class EditConfigDialog(Gtk.Dialog):
         switcher = Gtk.StackSwitcher()
         switcher.set_stack(self.stack)
 
-        # TODO: Other things for the config:
-        #    maybe non-default ftp
+        # TODO: Maybe add view/edit of the non-default FTPs
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         vbox.pack_start(switcher, expand=True, fill=True, padding=0)
