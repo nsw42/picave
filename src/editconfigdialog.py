@@ -143,19 +143,19 @@ class EditConfigDialog(Gtk.Dialog):
             grid.attach(combobox, left=1, top=y, width=1, height=1)
             self.filetype_comboboxes[filetype] = combobox
             self.filetype_from_combobox[combobox] = filetype
-            # x2: options
+            # x2: options and parameters
+            # (parameters only relevant to omxplayer)
+            opts_params_box = Gtk.Box(Gtk.Orientation.HORIZONTAL, 6)
             entry = Gtk.Entry()
+            self.filetype_args_entries[filetype] = entry
             entry.set_text(' '.join(player.default_args))
             entry.set_hexpand(True)
-            grid.attach(entry, left=2, top=y, width=1, height=1)
-            self.filetype_args_entries[filetype] = entry
-            if player.name == 'omxplayer':
-                self.to_hide.append(entry)
-            # x2: parameters (alternative to options)
-            # TODO: Need to check: are default_args and parameters both needed?
+            opts_params_box.add(entry)
+
             button = Gtk.Button(label="Parameters")
-            grid.attach(button, left=2, top=y, width=1, height=1)
             button.connect('clicked', self.on_filetype_player_params_button_clicked)
+            opts_params_box.add(button)
+            grid.attach(opts_params_box, left=2, top=y, width=1, height=1)
             self.filetype_params_buttons[filetype] = button
             self.filetype_from_params_button[button] = filetype
             if player.name == 'omxplayer':
@@ -171,7 +171,6 @@ class EditConfigDialog(Gtk.Dialog):
         new_player = combobox.get_active_text()
         show_params_button = (new_player == 'omxplayer')
         self.filetype_params_buttons[filetype].set_visible(show_params_button)
-        self.filetype_args_entries[filetype].set_visible(not show_params_button)
 
     def on_filetype_player_params_button_clicked(self, button):
         filetype = self.filetype_from_params_button[button]
