@@ -25,11 +25,16 @@ class MainButtonWindow(StackWindowInterface):
         config_button.connect('clicked', self.on_edit_config)
         main_window_buttons.pack_start(config_button, expand=False, fill=False, padding=0)
 
+        focus_chain = []
         for provider in self.button_providers:
             main_window_buttons.pack_start(provider.button, expand=True, fill=True, padding=100)
+            focus_chain.append(provider.button)
         window_name = "main_window_buttons"
         stack.add_named(main_window_buttons, window_name)
         window_name_to_handler[window_name] = self
+
+        focus_chain.append(config_button)
+        main_window_buttons.set_focus_chain(focus_chain)
 
     def on_edit_config(self, _):
         dialog = EditConfigDialog(parent=self.application_window, config=self.config)
