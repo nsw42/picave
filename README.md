@@ -19,10 +19,10 @@ See [docs/development.md](docs/development.md) for info about getting set up to 
     * Add a configuration editor dialog
     * Add a quit/shutdown dialog
     * Add command-line arguments to control whether to:
-        a) show the profile chooser
-        a) include a 1m delay when shutting down (useful for development, but often annoying in normal use)
-        a) hide the mouse pointer
-        a) go to full screen when running
+        1. show the profile chooser
+        1. include a 1m delay when shutting down (useful for development, but often annoying in normal use)
+        1. hide the mouse pointer
+        1. go to full screen when running
     * Simplify configuration file format
         * *NB* This change is backwards incompatible: config files must be updated before running the new version
     * Improve support for the OSMC remote control
