@@ -24,7 +24,7 @@ See [docs/development.md](docs/development.md) for info about getting set up to 
         a) hide the mouse pointer
         a) go to full screen when running
     * Simplify configuration file format
-        * *NB* This is change is backwards incompatible: config files must be updated before running the new version
+        * *NB* This change is backwards incompatible: config files must be updated before running the new version
     * Improve support for the OSMC remote control
     * Improve video playback:
         * Better omxplayer support, using the omxplayer.player Python library
