@@ -424,6 +424,8 @@ PlayerLookup = {
     'mplayer': MPlayer,
     'mpv': MPVPlayer,
     'omxplayer': OmxPlayer,
-    'libvlc': LibVlcPlayer,
     'vlc': VlcPlayer
 }
+
+if HAVE_LIBVLC:
+    PlayerLookup['libvlc'] = LibVlcPlayer

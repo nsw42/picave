@@ -106,10 +106,7 @@ class Config(object):
             player = player_config['player']
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})
-            player_class = PlayerLookup[player]
-            self.players[ext] = player_class(exe=self.executables[player],
-                                             default_args=cmd_args,
-                                             player_parameters=player_parameters)
+            self.set_filetype_player(ext, player, cmd_args, player_parameters)
             logging.debug("player %s=%s" % (ext, self.players[ext]))
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
@@ -123,6 +120,14 @@ class Config(object):
         self.ftp = json_content['FTP']
         self.favourites = json_content.get('favourites', [])
         self.show_favourites_only = json_content.get('show_favourites_only', False)
+
+    def set_filetype_player(self, ext, player, cmd_args, player_parameters):
+        player_class = PlayerLookup.get(player)
+        if player_class is None:
+            raise LoadException(f"{player} is not a recognised player")
+        self.players[ext] = player_class(exe=self.executables[player],
+                                         default_args=cmd_args,
+                                         player_parameters=player_parameters)
 
     def _init_with_defaults(self):
         self.video_cache_directory = pathlib.Path('~/.picave_cache').expanduser()

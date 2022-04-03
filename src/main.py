@@ -145,9 +145,11 @@ class PiCaveApplication(Gtk.Application):
                     self.window.close()
                     self.window.destroy()
                     self.window = None
-                self.state = PiCaveApplication.State.Initialising
-                self.do_activate()
-                return
+                if self.args.show_profile_chooser:
+                    self.state = PiCaveApplication.State.Initialising
+                    self.do_activate()
+                    return
+                self.config = config.Config()
         else:
             logging.warning("Configuration file not found")
             alert = Gtk.MessageDialog(parent=None,
