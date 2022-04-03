@@ -1,4 +1,5 @@
 import logging
+import os
 import pathlib
 
 from config import Config
@@ -6,7 +7,7 @@ from players import PlayerLookup
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk, Gdk  # noqa: E402 # need to call require_version before we can call this
 
 
 margin_labels_and_names = [
@@ -111,6 +112,7 @@ class EditConfigDialog(Gtk.Dialog):
             entry = Gtk.Entry()
             entry.set_text(str(path) if path else '')
             entry.set_hexpand(True)
+            entry.connect('changed', self.on_executable_changed)
             grid.attach(entry, left=1, top=y, width=1, height=1)
             self.executable_entries[binary] = entry
             # TODO: Button to open a file dialog?
@@ -166,6 +168,12 @@ class EditConfigDialog(Gtk.Dialog):
 
         return grid
 
+    def on_executable_changed(self, entry):
+        validation_error = self.validate_executable_entry_value(entry)
+        ok = not bool(validation_error)
+        fg = None if ok else Gdk.Color(50000, 0, 0)
+        entry.modify_fg(Gtk.StateFlags.NORMAL, fg)
+
     def on_filetype_player_combobox_changed(self, combobox):
         filetype = self.filetype_from_combobox[combobox]
         new_player = combobox.get_active_text()
@@ -179,6 +187,18 @@ class EditConfigDialog(Gtk.Dialog):
             for _, margin_name in margin_labels_and_names:
                 self.omxplayer_params[filetype][margin_name] = params_dialog.get_margin(margin_name)
         params_dialog.destroy()
+
+    def validate_executable_entry_value(self, entry):
+        pathstr = entry.get_text()
+        if pathstr.strip() == '':
+            # An empty string is permitted
+            return None
+        path = pathlib.Path(pathstr)
+        if not path.is_file():
+            return f"{str(path)} is not a file" if path.exists() else f"{str(path)} does not exist"
+        if not os.access(path, os.X_OK):
+            return f"{str(path)} is not executable"
+        return None
 
     def validate_input(self):
         # General tab validation:
@@ -195,14 +215,11 @@ class EditConfigDialog(Gtk.Dialog):
         # The spinner ensure input is numeric; nothing to validate
         # Executable tab validation:
         for entry in self.executable_entries.values():
-            pathstr = entry.get_text()
-            if pathstr.strip() == '':
-                # An empty string is permitted
-                continue
-            path = pathlib.Path(pathstr)
-            if not path.is_file():
+            msg = self.validate_executable_entry_value(entry)
+            if msg:
                 self.stack.set_visible_child_name("executables")
-                return f"{str(path)} does not exist"
+                return msg
+
         # Filetypes tab validation:
         # combobox enforces sensible options
         # no sensible validation of default args possible
