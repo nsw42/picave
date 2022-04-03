@@ -81,19 +81,27 @@ class EditConfigDialog(Gtk.Dialog):
     def _init_general_grid(self, config: Config):
         grid = create_grid()
 
+        self.label_for_entry = {}
+
         y = 0
-        grid.attach(Gtk.Label(label="Warm up music"), left=0, top=y, width=1, height=1)
+        warm_up_label = "Warm up music"
+        grid.attach(Gtk.Label(label=warm_up_label), left=0, top=y, width=1, height=1)
         self.warm_up_entry = Gtk.Entry()
         self.warm_up_entry.set_text(str(config.warm_up_music_directory))
         self.warm_up_entry.set_hexpand(True)
+        self.warm_up_entry.connect('changed', self.on_directory_entry_changed)
+        self.label_for_entry[self.warm_up_entry] = warm_up_label
         grid.attach(self.warm_up_entry, left=1, top=y, width=1, height=1)
         # TODO: Button to open a file dialog?
 
         y += 1
-        grid.attach(Gtk.Label(label="Video cache"), left=0, top=y, width=1, height=1)
+        video_cache_label = "Video cache"
+        grid.attach(Gtk.Label(label=video_cache_label), left=0, top=y, width=1, height=1)
         self.video_cache_entry = Gtk.Entry()
         self.video_cache_entry.set_text(str(config.video_cache_directory))
         self.video_cache_entry.set_hexpand(True)
+        self.video_cache_entry.connect('changed', self.on_directory_entry_changed)
+        self.label_for_entry[self.video_cache_entry] = video_cache_label
         grid.attach(self.video_cache_entry, left=1, top=y, width=1, height=1)
         # TODO: Button to open a file dialog?
 
@@ -168,8 +176,15 @@ class EditConfigDialog(Gtk.Dialog):
 
         return grid
 
+    def on_directory_entry_changed(self, entry):
+        validation_error = self.validate_directory_value(entry)
+        self.show_entry_validation_status(entry, validation_error)
+
     def on_executable_changed(self, entry):
         validation_error = self.validate_executable_entry_value(entry)
+        self.show_entry_validation_status(entry, validation_error)
+
+    def show_entry_validation_status(self, entry, validation_error):
         ok = not bool(validation_error)
         fg = None if ok else Gdk.Color(50000, 0, 0)
         entry.modify_fg(Gtk.StateFlags.NORMAL, fg)
@@ -188,6 +203,16 @@ class EditConfigDialog(Gtk.Dialog):
                 self.omxplayer_params[filetype][margin_name] = params_dialog.get_margin(margin_name)
         params_dialog.destroy()
 
+    def validate_directory_value(self, entry):
+        label = self.label_for_entry[entry]
+        pathstr = entry.get_text()
+        if pathstr.strip() == '':
+            return f"{label} directory must be specified"
+        directory = pathlib.Path(pathstr)
+        if not directory.is_dir():
+            return f"{str(directory)} does not exist"
+        return None
+
     def validate_executable_entry_value(self, entry):
         pathstr = entry.get_text()
         if pathstr.strip() == '':
@@ -202,16 +227,11 @@ class EditConfigDialog(Gtk.Dialog):
 
     def validate_input(self):
         # General tab validation:
-        for label, entry in (("Warm up music", self.warm_up_entry),
-                             ("Video cache", self.video_cache_entry)):
-            pathstr = entry.get_text()
-            if pathstr.strip() == '':
+        for entry in [self.warm_up_entry, self.video_cache_entry]:
+            msg = self.validate_directory_value(entry)
+            if msg:
                 self.stack.set_visible_child_name("general")
-                return f"{label} directory must be specified"
-            directory = pathlib.Path(pathstr)
-            if not directory.is_dir():
-                self.stack.set_visible_child_name("general")
-                return f"{str(directory)} does not exist"
+                return msg
         # The spinner ensure input is numeric; nothing to validate
         # Executable tab validation:
         for entry in self.executable_entries.values():
