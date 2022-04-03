@@ -122,7 +122,9 @@ class Config(object):
         self.show_favourites_only = json_content.get('show_favourites_only', False)
 
     def set_filetype_player(self, ext, player, cmd_args, player_parameters):
-        player_class = PlayerLookup[player]
+        player_class = PlayerLookup.get(player)
+        if player_class is None:
+            raise LoadException(f"{player} is not a recognised player")
         self.players[ext] = player_class(exe=self.executables[player],
                                          default_args=cmd_args,
                                          player_parameters=player_parameters)
