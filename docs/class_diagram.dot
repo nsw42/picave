@@ -3,6 +3,12 @@ digraph G {
 "Gtk.Dialog" [ fillcolor="#d0d0d0", style="filled" ]
 "ApplicationWindow" -> "Gtk.Window"
 "Gtk.Window" [ fillcolor="#d0d0d0", style="filled" ]
+"LoadException" -> "Exception"
+"Exception" [ fillcolor="#d0d0d0", style="filled" ]
+"EditConfigDialog" -> "Gtk.Dialog"
+"Gtk.Dialog" [ fillcolor="#d0d0d0", style="filled" ]
+"OmxplayerParamsDialog" -> "Gtk.Dialog"
+"Gtk.Dialog" [ fillcolor="#d0d0d0", style="filled" ]
 "IntervalWidget" -> "SessionView"
 "JsonFeedException" -> "Exception"
 "Exception" [ fillcolor="#d0d0d0", style="filled" ]
@@ -19,8 +25,6 @@ digraph G {
 "Event" -> "ctypes.Structure"
 "ctypes.Structure" [ fillcolor="#d0d0d0", style="filled" ]
 "DebouncedOsmcRemoteControl" -> "OsmcRemoteControl"
-"PlayerInterface" -> "ABC"
-"ABC" [ fillcolor="#d0d0d0", style="filled" ]
 "MPlayer" -> "PlayerInterface"
 "PlayerInterface" [ fillcolor="#d0d0ff", style="filled" ]
 "Mpg123" -> "PlayerInterface"
@@ -42,10 +46,10 @@ digraph G {
 "Gtk.DrawingArea" [ fillcolor="#d0d0d0", style="filled" ]
 "SessionWindow" -> "PlayerWindowInterface"
 "PlayerWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
-"StackWindowInterface" -> "ABC"
-"ABC" [ fillcolor="#d0d0d0", style="filled" ]
 "StackWindowWithButtonInterface" -> "StackWindowInterface"
 "StackWindowInterface" [ fillcolor="#d0d0ff", style="filled" ]
+"TargetPowerDialog" -> "Gtk.Dialog"
+"Gtk.Dialog" [ fillcolor="#d0d0d0", style="filled" ]
 "VideoIndexWindow" -> "StackWindowWithButtonInterface"
 "StackWindowWithButtonInterface" [ fillcolor="#d0d0ff", style="filled" ]
 }

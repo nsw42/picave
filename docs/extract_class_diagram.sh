@@ -2,13 +2,16 @@
 
 cd $(dirname $0)/..
 
-awk '
+which gawk > /dev/null && awk=gawk
+[ "$awk" = "" ] && awk=awk
+
+$awk '
 BEGIN {print "digraph G {"}
 /^class.*\(.*\)/ {
     classname = gensub(/\(.*/, "", "g", $2)
     baseclass = gensub(/^.*\(/, "", "g", $0)
     baseclass = gensub(/\).*/, "", "g", baseclass)
-    if (baseclass != "object") {
+    if ((baseclass != "object") && (baseclass != "ABC")) {
       q = "\""
 
       split(baseclass, bases, ",")
@@ -18,7 +21,7 @@ BEGIN {print "digraph G {"}
         base = gensub(/ *$/, "", "g", base)
         print q classname q " -> " q base q
 
-        if ((base == "Exception") || (substr(base, 1, 3) == "Gtk") || (substr(base, 1, 6) == "ctypes") || (base == "ABC")) {
+        if ((base == "Exception") || (substr(base, 1, 3) == "Gtk") || (substr(base, 1, 6) == "ctypes")) {
           fillcolour="#d0d0d0";
         } else if (substr(base, length(base)-8) == "Interface") {
           fillcolour="#d0d0ff";
