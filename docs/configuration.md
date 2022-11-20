@@ -42,7 +42,7 @@ an example.
 
 The file is a JSON object, and has the following top-level elements
 
-```json5
+```json
 {
     "warm_up_music_directory": "/your/path/here",  // See Directories for detail about this element
     "video_cache_directory": "/your/path/here",  // See #irectories for detail about this element
@@ -64,7 +64,7 @@ This sub-section of the configuration specifies the location of various binaries
 
 This object is configured as follows:
 
-```json5
+```json
 {
     "binary_name": {
         "path": { "/your/path/here" }
@@ -81,7 +81,7 @@ This sub-section of the configuration specifies which player, and which argument
 
 This object is configured as follows:
 
-```json5
+```json
 {
     ".extension": {
         "player": "chosen_player",
@@ -109,11 +109,11 @@ The value for `parameters` is an object to tune the behaviour of PiCave when pla
 
 The size and position of the video within the window can be adjusted by specifying a margin in the parameters object. E.g.:
 
+
 ```json
 {
     ...
     "filetypes": {
-        ...
         ".mp4": {
             "player": "omxplayer",
             "parameters": {
