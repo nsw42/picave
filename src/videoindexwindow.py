@@ -46,15 +46,20 @@ def favourite_icon():
                       'starred'])
 
 
+def format_ftp(ftp):
+    return str(ftp) if ftp else 'Dflt'
+
+
 class ListStoreColumns:
     Favourite = 0
     VideoName = 1
     VideoType = 2
     VideoDate = 3
-    VideoDuration = 4
-    VideoDownloaded = 5
-    VideoId = 6
-    ShowRow = 7
+    EffectiveFTP = 4
+    VideoDuration = 5
+    VideoDownloaded = 6
+    VideoId = 7
+    ShowRow = 8
 
 
 class VideoIndexWindow(StackWindowWithButtonInterface):
@@ -118,6 +123,11 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         self.date_column.set_sort_column_id(2)
         tree.append_column(self.date_column)
 
+        ftp_renderer = Gtk.CellRendererText()
+        self.ftp_column = Gtk.TreeViewColumn("FTP", ftp_renderer, text=ListStoreColumns.EffectiveFTP)
+        self.ftp_column.set_sort_column_id(4)  # ???
+        tree.append_column(self.ftp_column)
+
         icon_renderer = Gtk.CellRendererPixbuf()
         self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=ListStoreColumns.VideoDownloaded)
         tree.append_column(self.icon_column)
@@ -154,10 +164,12 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def build_list_store(self):
         # columns in the tree model are indexed according to ListStoreColumn values
-        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
+        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
         for video in self.session_feed:
             fav = self.favourite_icon if (video.id in self.config.favourites) else None
-            list_store.append([fav, video.name, video.type, video.date, video.duration, None, video.id, True])
+            effective_ftp = format_ftp(self.config.ftp.get(video.id))
+            list_store.append([fav, video.name, video.type, video.date, effective_ftp, video.duration,
+                               None, video.id, True])
         return list_store
 
     def create_right_click_menu(self, row):
@@ -302,6 +314,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             else:
                 if video_id in self.config.ftp:
                     del self.config.ftp[video_id]
+            self.list_store[row][ListStoreColumns.EffectiveFTP] = format_ftp(new_video_ftp)
             self.config.save()
         dialog.destroy()
 
