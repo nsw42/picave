@@ -72,10 +72,14 @@ class EditConfigDialog(Gtk.Dialog):
 
         # self.set_default_size(350, 100)
 
+        self.ftp_spinner.connect('key-press-event', self.on_key_press)
+
         self.show_all()
         # selectively undo the effects of show_all
         for to_hide in self.to_hide:
             to_hide.hide()
+
+        self.set_default_response(Gtk.ResponseType.OK)
 
     def _init_general_grid(self, config: Config):
         grid = create_grid()
@@ -107,6 +111,7 @@ class EditConfigDialog(Gtk.Dialog):
         y += 1
         grid.attach(Gtk.Label(label="Default FTP"), left=0, top=y, width=1, height=1)
         self.ftp_spinner = create_integer_spinner(0, 1000, config.ftp['default'])
+        self.ftp_spinner.set_activates_default(True)  # TODO: Move into create_integer_spinner?
         grid.attach(self.ftp_spinner, left=1, top=y, width=1, height=1)
 
         return grid
@@ -201,6 +206,29 @@ class EditConfigDialog(Gtk.Dialog):
             for _, margin_name in margin_labels_and_names:
                 self.omxplayer_params[filetype][margin_name] = params_dialog.get_margin(margin_name)
         params_dialog.destroy()
+
+    def on_key_press(self, widget, event):
+        stop_propagation = True
+        allow_propagation = False
+        if (event.keyval, event.state) == Gtk.accelerator_parse('Up'):
+            logging.debug("Up: setting focus to video cache entry box")
+            self.set_focus(self.video_cache_entry)
+            return stop_propagation
+        elif (event.keyval, event.state) == Gtk.accelerator_parse('Down'):
+            logging.debug("Down: setting focus to OK button")
+            ok_button = self.get_widget_for_response(Gtk.ResponseType.OK)
+            self.set_focus(ok_button)
+            return stop_propagation
+        elif (event.keyval, event.state) == Gtk.accelerator_parse('Left'):
+            logging.debug("Left: Decrement value")
+            self.ftp_spinner.spin(Gtk.SpinType.STEP_BACKWARD, 1)
+            return stop_propagation
+        elif (event.keyval, event.state) == Gtk.accelerator_parse('Right'):
+            logging.debug("Right: Increment value")
+            self.ftp_spinner.spin(Gtk.SpinType.STEP_FORWARD, 1)
+            return stop_propagation
+        logging.debug("Another key event: %s + %s", event.state, event.keyval)
+        return allow_propagation
 
     def validate_directory_value(self, entry):
         label = self.label_for_entry[entry]
