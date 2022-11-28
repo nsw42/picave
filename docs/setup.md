@@ -80,7 +80,8 @@ If not using NOOBS, as of 2020-06-20:
 
 ## Set your preferences
 
-* `vi ~/.picaverc` to create a config file that looks like this:
+* With recent versions of the software, there's an 'edit config screen, so you can skip this step.
+* If you prefer to do it manually, `vi ~/.picaverc` to create a config file that looks like this:
 
 ```json
 {
