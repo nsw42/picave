@@ -1,3 +1,5 @@
+import logging
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
@@ -37,6 +39,7 @@ class TargetPowerDialog(Gtk.Dialog):
         adjustment = Gtk.Adjustment(value=init_val, lower=0.0, upper=1000.0, step_increment=1.0,
                                     page_increment=5.0, page_size=0.0)
         self.specified_power_value = Gtk.SpinButton.new(adjustment, 1.0, 0)
+        self.specified_power_value.set_activates_default(True)
         specified_power_box.add(self.specified_power_value)
 
         # Add the radio buttons
@@ -47,7 +50,45 @@ class TargetPowerDialog(Gtk.Dialog):
         self.specified_power_radio.set_active(video_ftp is not None)
         self.on_radio_button_toggled(self.specified_power_radio)
 
+        self.set_default_response(Gtk.ResponseType.OK)
+
+        self.connect('key-press-event', self.on_key_press)
+
         self.show_all()
+
+        if video_ftp is not None:
+            self.set_focus(self.specified_power_value)
+
+    def on_key_press(self, widget, event):
+        stop_propagation = True
+        allow_propagation = False
+        is_down = (event.keyval, event.state) == Gtk.accelerator_parse('Down')
+        is_up = (event.keyval, event.state) == Gtk.accelerator_parse('Up')
+        is_left = (event.keyval, event.state) == Gtk.accelerator_parse('Left')
+        is_right = (event.keyval, event.state) == Gtk.accelerator_parse('Right')
+        logging.debug("Is Down: %s; Is Up: %s; Is Left: %s; Is Right: %s", is_down, is_up, is_left, is_right)
+        if (self.get_focus() == self.default_power_radio) and is_down:
+            logging.debug("Default, down -> specified value")
+            self.specified_power_radio.set_active(True)
+            self.set_focus(self.specified_power_value)
+            return stop_propagation
+        elif (self.get_focus() == self.specified_power_value):
+            logging.debug("Specified value")
+            if is_left:
+                self.specified_power_value.spin(Gtk.SpinType.STEP_BACKWARD, 1)
+                return stop_propagation
+            elif is_right:
+                self.specified_power_value.spin(Gtk.SpinType.STEP_FORWARD, 1)
+                return stop_propagation
+            elif is_up:
+                self.default_power_radio.set_active(True)
+                self.set_focus(self.default_power_radio)
+                return stop_propagation
+            elif is_down:
+                ok_button = self.get_widget_for_response(Gtk.ResponseType.OK)
+                self.set_focus(ok_button)
+                return stop_propagation
+        return allow_propagation
 
     def on_radio_button_toggled(self, button):
         self.specified_power_value.set_sensitive(self.specified_power_radio.get_active())

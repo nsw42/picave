@@ -240,7 +240,8 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             if row:
                 self.toggle_favourite(row)
             return True
-        elif (event.keyval, event_mods) == Gtk.accelerator_parse('<Primary>p'):
+        elif (event.keyval, event_mods) == Gtk.accelerator_parse('<Primary>p') or \
+             (event.keyval, event_mods) == Gtk.accelerator_parse('Right'):
             row = self.get_selected_row()
             if row:
                 self.show_target_power_dialog(row)
