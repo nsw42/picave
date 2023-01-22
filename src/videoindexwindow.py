@@ -167,7 +167,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
         for video in self.session_feed:
             fav = self.favourite_icon if (video.id in self.config.favourites) else None
-            effective_ftp = format_ftp(self.config.ftp.get(video.id))
+            effective_ftp = format_ftp(self.config.get_power(video.id, 'FTP', expand_default=False))
             list_store.append([fav, video.name, video.type, video.date, effective_ftp, video.duration,
                                None, video.id, True])
         return list_store
@@ -302,20 +302,16 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
     def show_target_power_dialog(self, row):
         video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
         video_name = self.list_store_favourite_filter[row][ListStoreColumns.VideoName]
-        default_ftp = self.config.ftp.get('default')
-        video_ftp = self.config.ftp.get(video_id)
+        default_ftp = self.config.get_power('default', 'FTP', expand_default=False)
+        video_ftp = self.config.get_power(video_id, 'FTP', expand_default=False)
         dialog = TargetPowerDialog(parent=self.main_window, video_name=video_name,
                                    default_ftp=default_ftp, video_ftp=video_ftp)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             new_video_ftp = dialog.get_target_power()
             logging.debug(f"Target power dialog result: {new_video_ftp}")
-            if new_video_ftp:
-                self.config.ftp[video_id] = new_video_ftp
-            else:
-                if video_id in self.config.ftp:
-                    del self.config.ftp[video_id]
-            self.list_store[row][ListStoreColumns.EffectiveFTP] = format_ftp(new_video_ftp)
+            self.config.set_power(video_id, 'FTP', new_video_ftp)
+            self.list_store_favourite_filter[row][ListStoreColumns.EffectiveFTP] = format_ftp(new_video_ftp)
             self.config.save()
         dialog.destroy()
 
