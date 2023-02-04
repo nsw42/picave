@@ -137,13 +137,31 @@ class TargetPowerDialog(Gtk.Dialog):
         is_up = (event.keyval, event.state) == Gtk.accelerator_parse('Up')
         is_left = (event.keyval, event.state) == Gtk.accelerator_parse('Left')
         is_right = (event.keyval, event.state) == Gtk.accelerator_parse('Right')
-        logging.debug("Keypress: Is Down: %s; Is Up: %s; Is Left: %s; Is Right: %s", is_down, is_up, is_left, is_right)
+        is_enter = (event.keyval, event.state) == Gtk.accelerator_parse('Return')
+        logging.debug(f"Keypress: down: {is_down}; up: {is_up}; left: {is_left}; right: {is_right}; enter: {is_enter}")
         focussed_ctrl = self.get_focus()
         logging.debug(f"  Control: {focussed_ctrl}")
+        if (focussed_ctrl == self.notebook) and is_down:
+            page = self.ftp_controls if (self.notebook.get_current_page() == 0) else self.max_controls
+            self.set_focus(page.radio_buttons[0])
+            return stop_propagation
         for page in (self.ftp_controls, self.max_controls):
             current_radio = None
             if focussed_ctrl in page.radio_buttons:
                 current_radio = focussed_ctrl
+                if is_enter:
+                    if current_radio.get_active():
+                        # A second 'return'/'OK' triggers the dialog OK
+                        return allow_propagation
+                    else:
+                        # First 'return'/'OK' activates the radio button
+                        focussed_ctrl.set_active(True)
+                        spinner = page.radio_to_spinner.get(focussed_ctrl)
+                        if spinner:
+                            self.set_focus(spinner)
+                        return stop_propagation
+                # not enter - fall through to up/down handling
+                pass
             elif focussed_ctrl in page.spinner_to_radio:
                 if is_left:
                     focussed_ctrl.spin(Gtk.SpinType.STEP_BACKWARD, 1)
@@ -164,9 +182,7 @@ class TargetPowerDialog(Gtk.Dialog):
                 next_index = current_index + radio_delta
                 if 0 <= next_index < len(page.radio_buttons):
                     next_radio = page.radio_buttons[next_index]
-                    next_radio.set_active(True)
-                    spinner = page.radio_to_spinner.get(next_radio)
-                    to_focus = spinner if spinner else next_radio
+                    to_focus = next_radio
                 else:
                     to_focus = to_focus_if_not_radio_button
                 self.set_focus(to_focus)
