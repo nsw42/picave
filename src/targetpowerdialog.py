@@ -150,16 +150,16 @@ class TargetPowerDialog(Gtk.Dialog):
             if focussed_ctrl in page.radio_buttons:
                 current_radio = focussed_ctrl
                 if is_enter:
-                    if current_radio.get_active():
-                        # A second 'return'/'OK' triggers the dialog OK
-                        return allow_propagation
-                    else:
+                    if not current_radio.get_active():
                         # First 'return'/'OK' activates the radio button
                         focussed_ctrl.set_active(True)
                         spinner = page.radio_to_spinner.get(focussed_ctrl)
                         if spinner:
                             self.set_focus(spinner)
                         return stop_propagation
+                    else:
+                        # A second 'return'/'OK' triggers the dialog OK
+                        return allow_propagation
                 # not enter - fall through to up/down handling
                 pass
             elif focussed_ctrl in page.spinner_to_radio:
