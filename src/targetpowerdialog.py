@@ -56,51 +56,51 @@ class TargetPowerDialog(Gtk.Dialog):
         logging.debug(f"_build_page_content: default {default_ftp}, specified {video_ftp}")
         # Radio button group:
         # 1st radio button: o Default (123)
-        default_ftp_box, default_ftp_radio = self._build_default_power_box(default_ftp)
+        default_box, default_radio = self._build_default_power_box(default_ftp)
         # 2nd radio button: o Power [____]
-        init_absolute = video_ftp or default_ftp
-        absolute_active = video_ftp is not None
-        absolute_ftp_box, absolute_ftp_radio, absolute_ftp_spinbutton = self._build_absolute_power_box(default_ftp_radio, init_absolute, absolute_active)
+        init_abs = video_ftp or default_ftp
+        abs_active = video_ftp is not None
+        abs_box, abs_radio, abs_spinbutton = self._build_absolute_power_box(default_radio, init_abs, abs_active)
 
         # Assemble the page of settings
         box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
-        box.add(default_ftp_box)
-        box.add(absolute_ftp_box)
+        box.add(default_box)
+        box.add(abs_box)
         return PageControls(box,
-                            radio_buttons=[default_ftp_radio, absolute_ftp_radio],
-                            radio_to_spinner={absolute_ftp_radio: absolute_ftp_spinbutton},
-                            spinner_to_radio={absolute_ftp_spinbutton: absolute_ftp_radio})
+                            radio_buttons=[default_radio, abs_radio],
+                            radio_to_spinner={abs_radio: abs_spinbutton},
+                            spinner_to_radio={abs_spinbutton: abs_radio})
 
     def _build_max_page(self, default_ftp, default_max, video_max):
         logging.debug(f"_build_max_page: default {default_max}, video {video_max}")
         # Radio button group:
         # 1st radio button: o Default (123)
-        default_max_box, default_max_radio = self._build_default_power_box(default_max)
+        default_box, default_radio = self._build_default_power_box(default_max)
         # 2nd radio button: o Power [____]
-        absolute_active = video_max and not video_max.endswith('%')
-        if absolute_active:
-            init_absolute = int(video_max)
+        abs_active = video_max and not video_max.endswith('%')
+        if abs_active:
+            init_abs = int(video_max)
         else:
-            init_absolute = int(default_max) if default_max and not default_max.endswith('%') else default_ftp
-        absolute_max_box, absolute_max_radio, absolute_max_spinbutton = self._build_absolute_power_box(default_max_radio, init_absolute, absolute_active)
+            init_abs = int(default_max) if default_max and not default_max.endswith('%') else default_ftp
+        abs_box, abs_radio, abs_spinbutton = self._build_absolute_power_box(default_radio, init_abs, abs_active)
         # 3rd radio button: o %FTP [____]
-        relative_active = video_max and video_max.endswith('%')
-        if relative_active:
-            init_relative = int(video_max[:-1])
+        rel_active = video_max and video_max.endswith('%')
+        if rel_active:
+            init_rel = int(video_max[:-1])
         else:
-            init_relative = int(default_max[:-1]) if (default_max and default_max.endswith('%')) else 200
-        relative_max_box, relative_max_radio, relative_max_spinbutton = self._build_relative_power_box(default_max_radio, init_relative, relative_active)
+            init_rel = int(default_max[:-1]) if (default_max and default_max.endswith('%')) else 200
+        rel_box, rel_radio, rel_spinbutton = self._build_relative_power_box(default_radio, init_rel, rel_active)
 
         box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
-        box.add(default_max_box)
-        box.add(absolute_max_box)
-        box.add(relative_max_box)
+        box.add(default_box)
+        box.add(abs_box)
+        box.add(rel_box)
         return PageControls(box,
-                            radio_buttons=[default_max_radio, absolute_max_radio, relative_max_radio],
-                            radio_to_spinner={absolute_max_radio: absolute_max_spinbutton,
-                                              relative_max_radio: relative_max_spinbutton},
-                            spinner_to_radio={absolute_max_spinbutton: absolute_max_radio,
-                                              relative_max_spinbutton: relative_max_radio})
+                            radio_buttons=[default_radio, abs_radio, rel_radio],
+                            radio_to_spinner={abs_radio: abs_spinbutton,
+                                              rel_radio: rel_spinbutton},
+                            spinner_to_radio={abs_spinbutton: abs_radio,
+                                              rel_spinbutton: rel_radio})
 
     def __init__(self, parent, video_name, default_ftp, video_ftp, default_max, video_max):
         super().__init__(title="Power Customisations", transient_for=parent, flags=0)
