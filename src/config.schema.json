@@ -36,14 +36,6 @@
             "description": "Where to find MP3s of music for warm-up",
             "type": "string"
         },
-        "FTP": {
-            "description": "Functional Threshold Power of the current user, stored as a mapping from video id (or the literal 'default') to value",
-            "type": "object",
-            "required": ["default"],
-            "patternProperties": {
-                "^": { "type": "integer" }
-            }
-        },
         "favourites": {
             "description": "List of ids of sessions to highlight",
             "type": "array",
@@ -54,6 +46,31 @@
         "show_favourites_only": {
             "description": "Whether to show only favourite (true) or all (false) videos",
             "type": "boolean"
+        },
+        "power_levels": {
+            "description": "Configured power levels (one or both of FTP and MAX) for the current user, stored as a mapping from video id (or the literal 'default') to an object that maps 'FTP' or 'MAX' to an absolute value, or a string that is a percentage of FTP. (Obvs, default FTP cannot be a percentage of FTP)",
+            "type": "object",
+            "required": ["default"],
+            "properties": {
+                "default": {
+                    "type": "object",
+                    "required": ["FTP"]
+                },
+            },
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "FTP": { "type": "integer" },
+                        "MAX": {
+                            "oneOf": [
+                                { "type": "integer" },
+                                { "type": "string", "pattern": "^[0-9.]*%?$" },
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "required": ["video_cache_directory"],

@@ -110,7 +110,7 @@ class EditConfigDialog(Gtk.Dialog):
 
         y += 1
         grid.attach(Gtk.Label(label="Default FTP"), left=0, top=y, width=1, height=1)
-        self.ftp_spinner = create_integer_spinner(0, 1000, config.ftp['default'])
+        self.ftp_spinner = create_integer_spinner(0, 1000, config.get_power('default', 'FTP'))
         self.ftp_spinner.set_activates_default(True)  # TODO: Move into create_integer_spinner?
         grid.attach(self.ftp_spinner, left=1, top=y, width=1, height=1)
 
@@ -276,7 +276,7 @@ class EditConfigDialog(Gtk.Dialog):
         # General tab
         config.warm_up_music_directory = pathlib.Path(self.warm_up_entry.get_text())
         config.video_cache_directory = pathlib.Path(self.video_cache_entry.get_text())
-        config.ftp['default'] = int(self.ftp_spinner.get_value())
+        config.set_power('default', 'FTP', int(self.ftp_spinner.get_value()))
 
         # Executables tab
         for binary, entry in self.executable_entries.items():

@@ -1,8 +1,10 @@
+from collections import defaultdict
 import logging
 import os
 import pathlib
 import shutil
 import sys
+from typing import Union
 
 import json5
 import jsonschema
@@ -67,7 +69,8 @@ class Config(object):
         self.players = {}  # map from '.ext' to Player instance
         self.warm_up_music_directory = None  # pathlib.Path
         self.video_cache_directory = None  # pathlib.Path
-        self.ftp = None  # map from video id (or 'default') to number
+        self.power_levels = defaultdict(dict)  # map from video id (or 'default') to dict ...
+        # the inner dict maps 'FTP'/'MAX' to number or string (percent of FTP)
         self.favourites = []  # list of video ids (str)
         self.show_favourites_only = False
 
@@ -117,7 +120,7 @@ class Config(object):
         else:
             self.warm_up_music_directory = None
 
-        self.ftp = json_content['FTP']
+        self.power_levels.update(json_content.get('power_levels', {}))
         self.favourites = json_content.get('favourites', [])
         self.show_favourites_only = json_content.get('show_favourites_only', False)
 
@@ -125,7 +128,10 @@ class Config(object):
         player_class = PlayerLookup.get(player)
         if player_class is None:
             raise LoadException(f"{player} is not a recognised player")
-        self.players[ext] = player_class(exe=self.executables[player],
+        exe = self.executables[player]
+        if not exe:
+            exe = default_binary(player)
+        self.players[ext] = player_class(exe=exe,
                                          default_args=cmd_args,
                                          player_parameters=player_parameters)
 
@@ -148,9 +154,7 @@ class Config(object):
             else:
                 logging.debug("player %s=%s" % (ext, self.players[ext]))
 
-        self.ftp = {
-            'default': 200
-        }
+        self.set_power('default', 'FTP', 200)
         self.favourites = []
         self.show_favourites_only = False
 
@@ -164,9 +168,9 @@ class Config(object):
                 "options": player.default_args,
                 "parameters": player.player_parameters
             }] for ext, player in self.players.items()),
-            'FTP': self.ftp,
             'favourites': self.favourites,
             'show_favourites_only': self.show_favourites_only,
+            'power_levels': self.power_levels,
         }
         temp_filename = self.filename.with_suffix('.new')
         if temp_filename.exists():
@@ -180,3 +184,18 @@ class Config(object):
                 os.remove(backup_filename)
             os.rename(self.filename, backup_filename)
         os.rename(temp_filename, self.filename)
+
+    def get_power(self, video_id: str, ftp_or_max: str, expand_default: bool) -> Union[None, int, str]:
+        assert ftp_or_max in ['FTP', 'MAX']
+        power = self.power_levels[video_id].get(ftp_or_max)
+        if expand_default and (video_id != 'default') and (power is None):
+            power = self.power_levels['default'].get(ftp_or_max)
+        return power
+
+    def set_power(self, video_id: str, ftp_or_max: str, power: Union[None, int, str]):
+        assert ftp_or_max in ['FTP', 'MAX']
+        if power is None:
+            if (video_id in self.power_levels) and (ftp_or_max in self.power_levels[video_id]):
+                del self.power_levels[video_id][ftp_or_max]
+        else:
+            self.power_levels[video_id][ftp_or_max] = power

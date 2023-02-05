@@ -50,16 +50,21 @@ def format_ftp(ftp):
     return str(ftp) if ftp else 'Dflt'
 
 
+def format_max(maxval):
+    return str(maxval) if maxval else 'Dflt'
+
+
 class ListStoreColumns:
-    Favourite = 0
-    VideoName = 1
-    VideoType = 2
-    VideoDate = 3
-    EffectiveFTP = 4
-    VideoDuration = 5
-    VideoDownloaded = 6
-    VideoId = 7
-    ShowRow = 8
+    Favourite = 0  # Pixbuf
+    VideoName = 1  # str
+    VideoType = 2  # str
+    VideoDate = 3  # str
+    EffectiveFTP = 4  # str
+    EffectiveMax = 5  # str
+    VideoDuration = 6  # str
+    VideoDownloaded = 7  # Pixbuf
+    VideoId = 8  # str
+    ShowRow = 9  # bool
 
 
 class VideoIndexWindow(StackWindowWithButtonInterface):
@@ -105,28 +110,33 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
         title_renderer = Gtk.CellRendererText()
         self.title_column = Gtk.TreeViewColumn("Title", title_renderer, text=ListStoreColumns.VideoName)
-        self.title_column.set_sort_column_id(0)
+        self.title_column.set_sort_column_id(ListStoreColumns.VideoName)
         tree.append_column(self.title_column)
 
         type_renderer = Gtk.CellRendererText()
         self.type_column = Gtk.TreeViewColumn("Type", type_renderer, text=ListStoreColumns.VideoType)
-        self.type_column.set_sort_column_id(1)
+        self.type_column.set_sort_column_id(ListStoreColumns.VideoType)
         tree.append_column(self.type_column)
 
         duration_renderer = Gtk.CellRendererText()
         self.duration_column = Gtk.TreeViewColumn("Duration", duration_renderer, text=ListStoreColumns.VideoDuration)
-        self.duration_column.set_sort_column_id(3)
+        self.duration_column.set_sort_column_id(ListStoreColumns.VideoDuration)
         tree.append_column(self.duration_column)
 
         date_renderer = Gtk.CellRendererText()
         self.date_column = Gtk.TreeViewColumn("Date", date_renderer, text=ListStoreColumns.VideoDate)
-        self.date_column.set_sort_column_id(2)
+        self.date_column.set_sort_column_id(ListStoreColumns.VideoDate)
         tree.append_column(self.date_column)
 
         ftp_renderer = Gtk.CellRendererText()
         self.ftp_column = Gtk.TreeViewColumn("FTP", ftp_renderer, text=ListStoreColumns.EffectiveFTP)
-        self.ftp_column.set_sort_column_id(4)  # ???
+        self.ftp_column.set_sort_column_id(ListStoreColumns.EffectiveFTP)
         tree.append_column(self.ftp_column)
+
+        max_renderer = Gtk.CellRendererText()
+        self.max_column = Gtk.TreeViewColumn("Max", max_renderer, text=ListStoreColumns.EffectiveMax)
+        self.max_column.set_sort_column_id(ListStoreColumns.EffectiveMax)
+        tree.append_column(self.max_column)
 
         icon_renderer = Gtk.CellRendererPixbuf()
         self.icon_column = Gtk.TreeViewColumn("Downloaded", icon_renderer, pixbuf=ListStoreColumns.VideoDownloaded)
@@ -164,11 +174,21 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     def build_list_store(self):
         # columns in the tree model are indexed according to ListStoreColumn values
-        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf, str, str, str, str, str, GdkPixbuf.Pixbuf, str, bool)
+        list_store = Gtk.ListStore(GdkPixbuf.Pixbuf,  # fav
+                                   str,  # name
+                                   str,  # type
+                                   str,  # date
+                                   str,  # ftp
+                                   str,  # max
+                                   str,  # duration
+                                   GdkPixbuf.Pixbuf,  # downloaded
+                                   str,  # video id
+                                   bool)  # show row
         for video in self.session_feed:
             fav = self.favourite_icon if (video.id in self.config.favourites) else None
-            effective_ftp = format_ftp(self.config.ftp.get(video.id))
-            list_store.append([fav, video.name, video.type, video.date, effective_ftp, video.duration,
+            effective_ftp = format_ftp(self.config.get_power(video.id, 'FTP', expand_default=False))
+            effective_max = format_max(self.config.get_power(video.id, 'MAX', expand_default=False))
+            list_store.append([fav, video.name, video.type, video.date, effective_ftp, effective_max, video.duration,
                                None, video.id, True])
         return list_store
 
@@ -180,7 +200,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         fav_menu_item.connect('activate', self.on_favourite_menu_item_clicked)
         menu.append(fav_menu_item)
         # Menu item 2: Edit target power
-        power_menu_item = Gtk.MenuItem(label="Target power...")
+        power_menu_item = Gtk.MenuItem(label="Customise power targets...")
         power_menu_item.connect('activate', self.on_target_power_menu_item_clicked)
         menu.append(power_menu_item)
         # Tidy up
@@ -244,7 +264,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
              (event.keyval, event_mods) == Gtk.accelerator_parse('Right'):
             row = self.get_selected_row()
             if row:
-                self.show_target_power_dialog(row)
+                self.show_power_customisation_dialog(row)
         return False
 
     def get_selected_row(self):
@@ -295,27 +315,29 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         self.toggle_favourite(self.menu_item_row)
 
     def on_target_power_menu_item_clicked(self, menu_item):
-        self.show_target_power_dialog(self.menu_item_row)
+        self.show_power_customisation_dialog(self.menu_item_row)
 
     # Action methods, typically called from the event handlers
 
-    def show_target_power_dialog(self, row):
+    def show_power_customisation_dialog(self, row):
         video_id = self.list_store_favourite_filter[row][ListStoreColumns.VideoId]
         video_name = self.list_store_favourite_filter[row][ListStoreColumns.VideoName]
-        default_ftp = self.config.ftp.get('default')
-        video_ftp = self.config.ftp.get(video_id)
+        default_ftp = self.config.get_power('default', 'FTP', expand_default=False)
+        video_ftp = self.config.get_power(video_id, 'FTP', expand_default=False)
+        default_max = self.config.get_power('default', 'MAX', expand_default=False)
+        video_max = self.config.get_power(video_id, 'MAX', expand_default=False)
         dialog = TargetPowerDialog(parent=self.main_window, video_name=video_name,
-                                   default_ftp=default_ftp, video_ftp=video_ftp)
+                                   default_ftp=default_ftp, video_ftp=video_ftp,
+                                   default_max=default_max, video_max=video_max)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
-            new_video_ftp = dialog.get_target_power()
-            logging.debug(f"Target power dialog result: {new_video_ftp}")
-            if new_video_ftp:
-                self.config.ftp[video_id] = new_video_ftp
-            else:
-                if video_id in self.config.ftp:
-                    del self.config.ftp[video_id]
-            self.list_store[row][ListStoreColumns.EffectiveFTP] = format_ftp(new_video_ftp)
+            new_video_ftp = dialog.get_target_ftp()
+            new_video_max = dialog.get_target_max()
+            logging.debug(f"Target power dialog result: FTP: {new_video_ftp} Max: {new_video_max}")
+            self.config.set_power(video_id, 'FTP', new_video_ftp)
+            self.config.set_power(video_id, 'MAX', new_video_max)
+            self.list_store_favourite_filter[row][ListStoreColumns.EffectiveFTP] = format_ftp(new_video_ftp)
+            self.list_store_favourite_filter[row][ListStoreColumns.EffectiveMax] = format_max(new_video_max)
             self.config.save()
         dialog.destroy()
 
