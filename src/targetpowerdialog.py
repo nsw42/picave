@@ -149,9 +149,9 @@ class TargetPowerDialog(Gtk.Dialog):
             current_radio = None
             if focussed_ctrl in page.radio_buttons:
                 current_radio = focussed_ctrl
-                if is_enter:
+                if is_enter or is_left or is_right:
                     if not current_radio.get_active():
-                        # First 'return'/'OK' activates the radio button
+                        # First 'return'/'OK' (or a left or right) activates the radio button
                         focussed_ctrl.set_active(True)
                         spinner = page.radio_to_spinner.get(focussed_ctrl)
                         if spinner:
@@ -159,9 +159,12 @@ class TargetPowerDialog(Gtk.Dialog):
                         return stop_propagation
                     else:
                         # A second 'return'/'OK' triggers the dialog OK
-                        return allow_propagation
-                # not enter - fall through to up/down handling
-                pass
+                        if is_enter:
+                            return allow_propagation
+                        # left or right on an active radio button doesn't do anything
+                        # (focus should already be on the spinner, if there is one)
+                        return stop_propagation
+                # fall through to up/down handling
             elif focussed_ctrl in page.spinner_to_radio:
                 if is_left:
                     focussed_ctrl.spin(Gtk.SpinType.STEP_BACKWARD, 1)
