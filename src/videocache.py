@@ -36,11 +36,11 @@ class VideoCache(object):
         files = list(self.config.video_cache_directory.glob(feed_id + '.*'))
         if not files:
             return None
-        if len(files) == 1:
-            if files[0].suffix in ('.mp4', '.mkv'):
-                return files[0]
-            if files[0].suffix != '.part':
-                logging.warning("Unfamiliar file extension on downloaded video file: %s" % files[0])
+        for file in files:
+            if file.suffix in ('.mp4', '.mkv'):
+                return file
+            if file.suffix not in ('.part', '.vtt'):
+                logging.warning("Unfamiliar file extension on downloaded video file: %s" % file)
         # This may be a partial download, or maybe youtube-dl was interrupted
         # while merging the video and audio.  Either way, we'll need to continue.
         # Record that the video is not in the cache; youtube-dl will do the rest
