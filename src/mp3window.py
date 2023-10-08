@@ -1,5 +1,5 @@
-import datetime
 import logging
+import time
 
 import mutagen
 
@@ -130,10 +130,10 @@ class Mp3Window(PlayerWindowInterface):
             if self.paused_elapsed:
                 delta = self.paused_elapsed
             elif self.play_started_at:
-                delta = datetime.datetime.now() - self.play_started_at
+                delta = time.monotonic() - self.play_started_at
             else:
-                delta = datetime.timedelta(seconds=0)  # Should never happen
-            time_str = format_mm_ss(delta.seconds) + ' '
+                delta = 0  # Should never happen
+            time_str = format_mm_ss(delta) + ' '
             self.time_label.set_label(time_str)
 
             if self.player.is_finished():
@@ -174,7 +174,7 @@ class Mp3Window(PlayerWindowInterface):
         if duration_ss:
             self.time_label.set_label(format_mm_ss(0) + ' ')
             self.duration_label.set_label(f'/ {format_mm_ss(duration_ss)}')
-            self.play_started_at = datetime.datetime.now()
+            self.play_started_at = time.monotonic()
         else:
             self.time_label.set_label('')
             self.duration_label.set_label('')
@@ -189,8 +189,8 @@ class Mp3Window(PlayerWindowInterface):
             self.player.play_pause()
             if self.paused_elapsed:
                 # We were paused; now restarting
-                self.play_started_at = datetime.datetime.now() - self.paused_elapsed
+                self.play_started_at = time.monotonic() - self.paused_elapsed
                 self.paused_elapsed = None
             else:
-                self.paused_elapsed = datetime.datetime.now() - self.play_started_at
+                self.paused_elapsed = time.monotonic() - self.play_started_at
             self.on_timer_tick()

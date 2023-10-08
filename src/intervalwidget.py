@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import time
 
 # pylint: disable=wrong-import-position
 import cairo
@@ -28,13 +28,13 @@ class IntervalWidget(SessionView):
 
     def play(self, video_id):
         self.intervals = self.read_intervals(video_id)
-        self.start_time = datetime.now()
+        self.start_time = time.monotonic()
         self.current_interval_index = 0
         self.playing = True
-        GLib.timeout_add_seconds(1, self.force_redraw)
+        GLib.timeout_add(200, self.force_redraw)
 
     def play_pause(self):
-        now = datetime.now()
+        now = time.monotonic()
         if self.playing:
             self.pause_time = now
             self.elapsed = now - self.start_time
@@ -53,12 +53,12 @@ class IntervalWidget(SessionView):
         if self.current_interval_index is None:
             return
 
-        now = datetime.now() if self.playing else self.pause_time
+        now = time.monotonic() if self.playing else self.pause_time
 
         while (self.current_interval_index < len(self.intervals)
                and now >= (self.start_time
                            + self.intervals[self.current_interval_index].start_offset
-                           + timedelta(seconds=self.intervals[self.current_interval_index].duration))):
+                           + self.intervals[self.current_interval_index].duration)):
             self.current_interval_index += 1
 
         text_h = 30
@@ -79,15 +79,15 @@ class IntervalWidget(SessionView):
                 y = y0
             else:
                 start_delta = interval_start_time - now
-                y = y0 + (start_delta.seconds / 60) * one_minute_h
+                y = y0 + start_delta / 60 * one_minute_h
             if y > drawingarea.get_allocated_height():
                 break
 
             if draw_interval_index == self.current_interval_index:
                 draw_interval_end = (self.start_time
                                      + draw_interval.start_offset
-                                     + timedelta(seconds=draw_interval.duration))
-                draw_interval_remaining = (draw_interval_end - now).seconds
+                                     + draw_interval.duration)
+                draw_interval_remaining = draw_interval_end - now
             else:
                 draw_interval_remaining = draw_interval.duration
             h = draw_interval_remaining / 60.0 * one_minute_h
@@ -96,9 +96,7 @@ class IntervalWidget(SessionView):
                               y,
                               drawingarea.get_allocated_width(),
                               h)
-            context.set_source_rgb(draw_interval.color[0] / 255.0,
-                                   draw_interval.color[1] / 255.0,
-                                   draw_interval.color[2] / 255.0)
+            context.set_source_rgb(*draw_interval.color)
             context.fill_preserve()
             context.set_source_rgb(0.0, 0.0, 0.0)
             context.stroke()
@@ -118,7 +116,7 @@ class IntervalWidget(SessionView):
             text_y += text_h
 
             context.move_to(text_x, text_y)
-            context.show_text(format_mm_ss(draw_interval_remaining))
+            context.show_text(format_mm_ss(round(draw_interval_remaining)))
             text_y += text_h
 
             end_y = y + h
