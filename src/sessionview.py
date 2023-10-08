@@ -1,5 +1,4 @@
 from collections import namedtuple
-from datetime import timedelta
 import logging
 import os.path
 from typing import Tuple, Union
@@ -46,9 +45,9 @@ class SessionView(Gtk.DrawingArea):
         session = [interval._replace(duration=parse_duration(interval.duration)) for interval in session]
         start_offset = 0
         for index, interval in enumerate(session):
-            interval = interval._replace(start_offset=timedelta(seconds=start_offset))
             if isinstance(interval.color, str):
                 interval = interval._replace(color=self.colour_names[interval.color])
+            interval = interval._replace(start_offset=float(start_offset))
             start_offset += interval.duration
             # Calculate effort (string) and effort_val (numeric watts)
             if interval.type == r'%FTP':
