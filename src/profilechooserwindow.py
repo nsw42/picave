@@ -2,12 +2,14 @@ import json
 import os.path
 import pathlib
 
+# pylint: disable=wrong-import-position
 import gi
 gi.require_versions({
     'Gdk': '3.0',
     'Gtk': '3.0',
 })
 from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+# pylint: enable=wrong-import-position
 
 
 class ProfileChooserWindow(Gtk.Window):
@@ -45,7 +47,7 @@ class ProfileChooserWindow(Gtk.Window):
         row.add(Gtk.Label(label=displayname))
         self.listbox.add(row)
 
-    def on_add(self, widget):
+    def on_add(self, _widget):
         add_dialog = Gtk.Dialog()
         vbox = add_dialog.get_content_area()
         grid = Gtk.Grid()
@@ -95,16 +97,16 @@ class ProfileChooserWindow(Gtk.Window):
         add_dialog.destroy()
 
     def save_mru(self):
-        with open(self.mru_filename, 'w') as handle:
+        with open(self.mru_filename, 'w', encoding='utf-8') as handle:
             json.dump(self.mru, handle)
 
-    def on_closed(self, widget):
+    def on_closed(self, _widget):
         self.completion_callback(None)
 
-    def on_realized(self, widget):
+    def on_realized(self, _widget):
         self.set_size_request(640, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
 
-    def on_profile_chosen(self, listbox, row):
+    def on_profile_chosen(self, _listbox, row):
         self.disconnect_by_func(self.on_closed)  # ensure we don't call the completion callback twice
         self.completion_callback(pathlib.Path(self.mru[row.get_index()][1]))

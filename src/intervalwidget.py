@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
 
-from config import Config
-from sessionview import SessionView
-from utils import format_mm_ss
-
+# pylint: disable=wrong-import-position
 import cairo
 import gi
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import GLib  # noqa: E402
+
+from config import Config  # noqa: E402
+from sessionview import SessionView  # noqa: E402
+from utils import format_mm_ss  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 class IntervalWidget(SessionView):
@@ -20,6 +22,8 @@ class IntervalWidget(SessionView):
         self.playing = False
         self.start_time = None
         self.current_interval_index = None
+        self.pause_time = None
+        self.elapsed = None
         self.connect("draw", self.on_draw)
 
     def play(self, video_id):
@@ -110,7 +114,7 @@ class IntervalWidget(SessionView):
             text_y += text_h
 
             context.move_to(text_x, text_y)
-            context.show_text('RPM: %u' % draw_interval.cadence)
+            context.show_text(f'RPM: {draw_interval.cadence}')
             text_y += text_h
 
             context.move_to(text_x, text_y)

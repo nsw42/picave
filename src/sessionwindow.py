@@ -1,10 +1,12 @@
-from config import Config
-from intervalwidget import IntervalWidget
-from playerwindowinterface import PlayerWindowInterface
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import GLib, Gtk  # noqa: E402
+
+from config import Config  # noqa: E402
+from intervalwidget import IntervalWidget  # noqa: E402
+from playerwindowinterface import PlayerWindowInterface  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 class SessionWindow(PlayerWindowInterface):
@@ -41,16 +43,16 @@ class SessionWindow(PlayerWindowInterface):
     def have_all_prerequisites_for_playing(self):
         return (self.video_file is not None) and (self.realized) and (self.size_known)
 
-    def on_draw(self, widget, context, data=None):
+    def on_draw(self, _widget, context, _data=None):
         context.set_source_rgb(0, 0, 0)
         context.paint()
 
-    def on_realized(self, widget, data=None):
+    def on_realized(self, _widget, _data=None):
         self.realized = True
         if self.have_all_prerequisites_for_playing():
             self.start_playing()
 
-    def on_size_changed(self, widget, allocation):
+    def on_size_changed(self, _widget, allocation):
         # This might be the final event allowing us to actually start playback,
         # or it might be a size change when we're already playing
         self.size_known = True

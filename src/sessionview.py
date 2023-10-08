@@ -5,14 +5,16 @@ import os.path
 from typing import Tuple, Union
 import urllib.parse
 
-from config import Config
-from colournames import ColourNames
-import jsonfeed
-from utils import parse_duration
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk  # noqa: E402
+# pylint: enable=wrong-import-position
+
+from config import Config  # noqa: E402
+from colournames import colour_names  # noqa: E402
+import jsonfeed  # noqa: E402
+from utils import parse_duration  # noqa: E402
 
 
 Interval = namedtuple('Interval',
@@ -24,12 +26,12 @@ class SessionView(Gtk.DrawingArea):
         super().__init__()
         self.config = config
         self.feed_url = feed_url
-        self.colour_names = ColourNames(os.path.join(os.path.dirname(__file__), 'rgb.txt'))
+        self.colour_names = colour_names(os.path.join(os.path.dirname(__file__), 'rgb.txt'))
 
     def read_intervals(self, video_id):
         # Read the JSON of the main session
         urlparts = urllib.parse.urlparse(self.feed_url)
-        new_leaf = '%s.json' % video_id
+        new_leaf = f'{video_id}.json'
         slash = urlparts.path.rfind('/')
         new_path = urlparts.path[:slash + 1] + new_leaf
         urlparts = urlparts._replace(path=new_path)
@@ -37,14 +39,13 @@ class SessionView(Gtk.DrawingArea):
         try:
             session = jsonfeed.read_from_uri(uri, 'session.schema.json')
         except jsonfeed.NotFoundError as e:
-            logging.error("%s could not be read: %s" % (uri, e.message))
+            logging.error(f"{uri} could not be read: {e.message}")
             return []
         # Convert into an appropriately tailored list of Interval objects
         session = [Interval(start_offset=0, effort_val=0, **interval) for interval in session]
         session = [interval._replace(duration=parse_duration(interval.duration)) for interval in session]
         start_offset = 0
-        for index in range(len(session)):
-            interval = session[index]
+        for index, interval in enumerate(session):
             interval = interval._replace(start_offset=timedelta(seconds=start_offset))
             if isinstance(interval.color, str):
                 interval = interval._replace(color=self.colour_names[interval.color])

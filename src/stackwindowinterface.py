@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class StackWindowInterface(ABC):
-    def __init__(self):
-        self.PADDING = 200
+    PADDING = 200
 
     @abstractmethod
     def add_windows_to_stack(self, stack, window_name_to_handler):

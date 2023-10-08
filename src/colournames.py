@@ -1,7 +1,7 @@
 
-def ColourNames(filename) -> dict:
+def colour_names(filename) -> dict:
     rtn = {}
-    with open(filename) as handle:
+    with open(filename, encoding='utf-8') as handle:
         for line in handle:
             line = line.strip()
             r, g, b, name = line.split(maxsplit=3)

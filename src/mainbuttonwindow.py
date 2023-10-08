@@ -1,9 +1,11 @@
-from editconfigdialog import EditConfigDialog
-from stackwindowinterface import StackWindowInterface
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk  # noqa: E402
+
+from editconfigdialog import EditConfigDialog  # noqa: E402
+from stackwindowinterface import StackWindowInterface  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 class MainButtonWindow(StackWindowInterface):

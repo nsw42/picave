@@ -29,7 +29,7 @@ class VideoCache(object):
             if self.youtube_dl:
                 self.start_filling_cache()
             else:
-                logging.warn("youtube-dl not found. Unable to auto-populate video cache")
+                logging.warning("youtube-dl not found. Unable to auto-populate video cache")
 
     def _find_youtube_cache(self,
                             feed_id: str):
@@ -40,7 +40,7 @@ class VideoCache(object):
             if file.suffix in ('.mp4', '.mkv'):
                 return file
             if file.suffix not in ('.part', '.vtt'):
-                logging.warning("Unfamiliar file extension on downloaded video file: %s" % file)
+                logging.warning(f"Unfamiliar file extension on downloaded video file: {file}")
         # This may be a partial download, or maybe youtube-dl was interrupted
         # while merging the video and audio.  Either way, we'll need to continue.
         # Record that the video is not in the cache; youtube-dl will do the rest
@@ -70,7 +70,7 @@ class VideoCache(object):
                         videos_to_download: list):
         # Need to run the child with Popen so that we can kill it if the main thread dies
         for feed_item in videos_to_download:
-            logging.info("Downloading %s" % feed_item.name)
+            logging.info(f"Downloading {feed_item.name}")
             leafname_pattern = feed_item.id + '.%(ext)s'
             cmd = [self.youtube_dl,
                    '--quiet',

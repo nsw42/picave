@@ -4,18 +4,20 @@ import pathlib
 import sys
 import time
 
-from applicationwindow import ApplicationWindow
-import config
-from mp3index import Mp3Index
-from profilechooserwindow import ProfileChooserWindow
-from videocache import VideoCache
-from videofeed import VideoFeed
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_versions({
     'Gtk': '3.0',
 })
-from gi.repository import Gio, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gio, Gtk  # noqa: E402
+
+from applicationwindow import ApplicationWindow  # noqa: E402
+from config import Config, default_config_path, LoadException  # noqa: E402
+from mp3index import Mp3Index  # noqa: E402
+from profilechooserwindow import ProfileChooserWindow  # noqa: E402
+from videocache import VideoCache  # noqa: E402
+from videofeed import VideoFeed  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 def parse_args():
@@ -42,7 +44,7 @@ def parse_args():
                         help="Go full screen when starting")
     parser.add_argument('--debug', action='store_true',
                         help="Show debug information")
-    default_config = config.default_config_path()
+    default_config = default_config_path()
     default_feed = pathlib.Path(__file__).parent / '..' / 'feed' / 'index.json'
     parser.set_defaults(show_profile_chooser=False,
                         config=default_config,
@@ -62,23 +64,23 @@ def safe_check_dir(dirpath):
             return True
         return False
     except PermissionError:
-        logging.warning("%s PermissionError" % dirpath)
+        logging.warning(f"{dirpath} PermissionError")
         return False
 
 
 def check_media(args, config):
     if args.wait_for_media:
         while not safe_check_dir(config.video_cache_directory):
-            logging.warning("%s does not exist. Waiting." % config.video_cache_directory)
+            logging.warning(f"{config.video_cache_directory} does not exist. Waiting.")
             time.sleep(1)
 
         if config.warm_up_music_directory:
             while not safe_check_dir(config.warm_up_music_directory):
-                logging.warning("%s does not exist. Waiting." % config.warm_up_music_directory)
+                logging.warning(f"{config.warm_up_music_directory} does not exist. Waiting.")
                 time.sleep(1)
     else:
         if not safe_check_dir(config.video_cache_directory):
-            sys.exit("%s does not exist" % config.video_cache_directory)
+            sys.exit(f"{config.video_cache_directory} does not exist")
 
         if config.warm_up_music_directory:
             if not safe_check_dir(config.warm_up_music_directory):
@@ -96,14 +98,15 @@ class PiCaveApplication(Gtk.Application):
     def __init__(self, args):
         super().__init__(flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.args = args
+        self.config = None
         self.window = None
         self.state = PiCaveApplication.State.Initialising
         self.connect('window-removed', self.on_window_removed)
 
-    def do_startup(self):
-        Gtk.Application.do_startup(self)
+    def do_startup(self, *args, **kwargs):
+        Gtk.Application.do_startup(self, *args, **kwargs)
 
-    def do_activate(self):
+    def do_activate(self, *args, **kwargs):
         if self.state == PiCaveApplication.State.Initialising:
             if not self.window:
                 if self.args.show_profile_chooser:
@@ -128,8 +131,8 @@ class PiCaveApplication(Gtk.Application):
 
         if config_path.exists():
             try:
-                self.config = config.Config(config_path)
-            except config.LoadException as e:
+                self.config = Config(config_path)
+            except LoadException as e:
                 logging.warning(f"Validation failure when loading file {config_path}")
                 alert = Gtk.MessageDialog(parent=None,
                                           modal=True,
@@ -149,7 +152,7 @@ class PiCaveApplication(Gtk.Application):
                     self.state = PiCaveApplication.State.Initialising
                     self.do_activate()
                     return
-                self.config = config.Config()
+                self.config = Config()
         else:
             logging.warning("Configuration file not found")
             alert = Gtk.MessageDialog(parent=None,
@@ -160,7 +163,7 @@ class PiCaveApplication(Gtk.Application):
             alert.set_position(Gtk.WindowPosition.CENTER)
             alert.run()
             alert.destroy()
-            self.config = config.Config()
+            self.config = Config()
 
         if self.window:
             # it was the profile chooser: we've finished with it
@@ -184,16 +187,16 @@ class PiCaveApplication(Gtk.Application):
         self.add_window(self.window)
         self.window.present()
 
-    def on_window_removed(self, application, window):
-        logging.debug("on_window_removed - state %u; window %s" % (self.state, self.window))
+    def on_window_removed(self, _application, window):
+        logging.debug(f"on_window_removed - state {self.state}; window {self.window}")
         if (self.state == PiCaveApplication.State.MainApplication) and \
-           (type(window) == ApplicationWindow) and \
+           (isinstance(window, ApplicationWindow)) and \
            (window.show_profile_chooser):
             logging.debug("reinitialising")
             self.window = None
             self.state = PiCaveApplication.State.Initialising
             self.do_activate()
-        logging.debug("-> %s" % self.window)
+        logging.debug(f"-> {self.window}")
 
 
 def main():

@@ -2,12 +2,14 @@ import logging
 import os
 import pathlib
 
-from config import Config
-from players import PlayerLookup
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk, Gdk  # noqa: E402
+
+from config import Config  # noqa: E402
+from players import PlayerLookup  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 margin_labels_and_names = [
@@ -207,7 +209,7 @@ class EditConfigDialog(Gtk.Dialog):
                 self.omxplayer_params[filetype][margin_name] = params_dialog.get_margin(margin_name)
         params_dialog.destroy()
 
-    def on_key_press(self, widget, event):
+    def on_key_press(self, _widget, event):
         stop_propagation = True
         allow_propagation = False
         if (event.keyval, event.state) == Gtk.accelerator_parse('Up'):
