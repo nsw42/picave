@@ -1,7 +1,7 @@
+import cairo
+
 from config import Config
 from sessionview import SessionView
-
-import cairo
 
 
 class SessionPreview(SessionView):
@@ -11,7 +11,7 @@ class SessionPreview(SessionView):
         self.max_duration = 1
         self.connect("draw", self.on_draw)
 
-    def show(self, video_id):
+    def show_session(self, video_id):
         self.intervals = self.read_intervals(video_id)
         if self.intervals:
             self.max_duration = self.intervals[-1].start_offset.seconds + self.intervals[-1].duration

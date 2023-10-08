@@ -18,6 +18,8 @@ def format_mm_ss(ss):
     '00:01'
     >>> format_mm_ss(10)
     '00:10'
+    >>> format_mm_ss(59)
+    '00:59'
     >>> format_mm_ss(60)
     '01:00'
     >>> format_mm_ss(61)
@@ -28,10 +30,12 @@ def format_mm_ss(ss):
     '01:59'
     >>> format_mm_ss(181)
     '03:01'
+    >>> format_mm_ss(61.5)
+    '01:01'
     '''
-    mm = ss / 60.
-    ss = ss - int(mm) * 60
-    return '%02u:%02u' % (mm, ss)
+    mm = int(ss / 60.)
+    ss = int(ss - mm * 60)
+    return f'{mm:02}:{ss:02}'
 
 
 def parse_duration(duration_str: str):
@@ -70,5 +74,5 @@ def parse_duration(duration_str: str):
         elif unit == 's':
             duration += nr
         else:
-            raise ValueError("Invalid duration %s" % orig_duration_str)
+            raise ValueError(f"Invalid duration {orig_duration_str}")
     return duration

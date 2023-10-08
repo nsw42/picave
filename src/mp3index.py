@@ -1,16 +1,13 @@
-import os
-import pathlib
+from pathlib import Path
 import random
 
 
-class Mp3Index(object):
+class Mp3Index:
     """
     An index of MP3 files in a given directory, capable of yielding a file path at random
     """
-    def __init__(self, parentdir):
-        self.files = []
-        for root, dirs, files in os.walk(parentdir):
-            self.files.extend([pathlib.Path(root) / file for file in files if file.endswith('.mp3')])
+    def __init__(self, parentdir: Path):
+        self.files = list(parentdir.rglob('*.mp3'))
         # TODO: Error if not self.files?
         self.generator_indices = None  # initialised if/when random_file() is called
 

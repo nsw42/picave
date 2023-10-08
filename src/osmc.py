@@ -44,7 +44,7 @@ class KeyboardEvent(object):
         self.pressed = event_struct.value
 
     def __str__(self):
-        return '(%s K:%u)' % (('pressed' if self.pressed else 'released'), self.key)
+        return f'({"pressed" if self.pressed else "released"} K:{self.key})'
 
 
 class OsmcRemoteControl(object):
@@ -116,7 +116,7 @@ def poll(debounce):
     osmc = look_for_osmc(debounce)
     if not osmc:
         sys.exit("No OSMC input found")
-    print("Polling for events with %s:" % osmc)
+    print(f"Polling for events with {osmc}:")
     start = time.time()
     while time.time() < start + 60:
         event = osmc.poll_for_key_event()
@@ -151,7 +151,7 @@ def selftest():
 
 
 def selftest_one(vardecl, sizeof_expr, expected_size):
-    with open('/tmp/osmc_sizeof.c', 'w') as handle:
+    with open('/tmp/osmc_sizeof.c', 'w', encoding='utf-8') as handle:
         print('''
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,7 +183,7 @@ def main():
             debounce = (sys.argv[2] == 'no-debounce')
         poll(debounce)
     else:
-        print("Usage: %s COMMAND" % sys.argv[0])
+        print(f"Usage: {sys.argv[0]} COMMAND")
         print("Command is one of:")
         print("  selftest - to check the size of structures")
         print("  poll - to poll for events and print them as they happen")

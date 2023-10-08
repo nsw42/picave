@@ -3,24 +3,25 @@ import logging
 import subprocess
 import sys
 
-import config
-from mainbuttonwindow import MainButtonWindow
-from mp3index import Mp3Index
-from mp3window import Mp3Window
-import osmc
-from sessionwindow import SessionWindow
-from videocache import VideoCache
-from videofeed import VideoFeed
-from videoindexwindow import VideoIndexWindow
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_versions({
     'GLib': '2.0',
     'Gdk': '3.0',
     'Gtk': '3.0',
 })
-from gi.repository import Gdk, GLib, Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
+from config import Config  # noqa: E402
+from mainbuttonwindow import MainButtonWindow  # noqa: E402
+from mp3index import Mp3Index  # noqa: E402
+from mp3window import Mp3Window  # noqa: E402
+import osmc  # noqa: E402
+from sessionwindow import SessionWindow  # noqa: E402
+from videocache import VideoCache  # noqa: E402
+from videofeed import VideoFeed  # noqa: E402
+from videoindexwindow import VideoIndexWindow  # noqa: E402
+# pylint: enable=wrong-import-position
 
 ExitChoices = Enum('ExitChoices', ['Cancel', 'ChangeProfile', 'Quit', 'Shutdown'])
 
@@ -57,7 +58,7 @@ class ApplicationWindow(Gtk.Window):
     }
 
     def __init__(self,
-                 config: config.Config,
+                 config: Config,
                  mp3index: Mp3Index,
                  main_session_feed: VideoFeed,
                  video_cache: VideoCache,
@@ -191,8 +192,8 @@ class ApplicationWindow(Gtk.Window):
             logging.debug("Internal error: No parent window found for %s", current_window)
             self.on_show_home()
 
-    def on_key_press(self, widget, event):
-        logging.debug('Key: hw: %s / state: %s / keyval: %s' % (event.hardware_keycode, event.state, event.keyval))
+    def on_key_press(self, _widget, event):
+        logging.debug(f'Key: hw: {event.hardware_keycode} / state: {event.state} / keyval: {event.keyval}')
         event_mods = event.state
         if sys.platform == 'darwin':
             # Command-Q is shown as GDK_MOD2_MASK | GDK_META_MASK
@@ -235,26 +236,26 @@ class ApplicationWindow(Gtk.Window):
             self.stop_playing()
             self.video_index_window.on_main_button_clicked(None)
 
-    def on_change_profile(self, *args):
+    def on_change_profile(self, *_args):
         self.show_profile_chooser = True
         self.stop_playing()
         self.video_cache.stop_download()
         self.destroy()
 
-    def on_quit(self, *args):
+    def on_quit(self, *_args):
         self.show_profile_chooser = False
         self.stop_playing()
         self.video_cache.stop_download()
         self.get_application().quit()
 
-    def on_realized(self, *args):
+    def on_realized(self, *_args):
         if self.hide_mouse_pointer:
             self.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.BLANK_CURSOR))
 
-    def on_shutdown(self, *args):
+    def on_shutdown(self, *_args):
         self.on_quit()
         time = '+1' if self.delay_shutdown else 'now'
-        subprocess.run(['sudo', 'shutdown', '-h', time])
+        subprocess.run(['sudo', 'shutdown', '-h', time], check=False)  # an exception would only make things worse
 
     def on_stop_button(self):
         stack_window = self.get_visible_stack_window()
@@ -276,6 +277,6 @@ class ApplicationWindow(Gtk.Window):
         self.warmup_handler.stop()
         self.main_session_handler.stop()
 
-    def on_window_closed(self, *args):
+    def on_window_closed(self, *_args):
         if self.show_profile_chooser is None:
             self.show_profile_chooser = False

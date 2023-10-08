@@ -1,10 +1,13 @@
 from abc import abstractmethod
-from config import Config
-from stackwindowinterface import StackWindowInterface
 
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk  # noqa: E402
+
+from config import Config  # noqa: E402
+from stackwindowinterface import StackWindowInterface  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 class StackWindowWithButtonInterface(StackWindowInterface):

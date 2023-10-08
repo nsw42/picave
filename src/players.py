@@ -4,23 +4,24 @@ import ctypes
 import json
 import logging
 import os
-import requests
 import socket
 import subprocess
 import sys
 import urllib.parse
 
+import requests
+
 from utils import clip
 
 try:
     # omxplayer is only available on Raspberry Pi
-    from omxplayer.player import OMXPlayer  # noqa
+    from omxplayer.player import OMXPlayer  # type: ignore
     HAVE_OMXPLAYER = True
 except ModuleNotFoundError:
     HAVE_OMXPLAYER = False
 
 try:
-    import vlc
+    import vlc  # type: ignore
     HAVE_LIBVLC = True
 except ModuleNotFoundError:
     HAVE_LIBVLC = False
@@ -37,7 +38,7 @@ def get_video_size(filepath):
                              '-select_streams', 'v:0',
                              '-show_entries', 'stream=width,height',
                              str(filepath)],
-                            capture_output=True, text=True)
+                            check=True, capture_output=True, text=True)
     result = json.loads(result.stdout)
     return VideoSize(width=result['streams'][0]['width'], height=result['streams'][0]['height'])
 
@@ -46,10 +47,10 @@ class PlayerInterface(ABC):
     def __init__(self, exe, name, default_args, player_parameters):
         self.exe = exe
         self.name = name
-        assert name in PlayerLookup.keys()
+        assert name in PlayerLookup
         self.default_args = default_args
         self.player_parameters = player_parameters
-        self.child = None
+        self.child = self.child_stdin = None
 
     def is_finished(self):
         if self.child:
@@ -74,7 +75,7 @@ class PlayerInterface(ABC):
             self.child = subprocess.Popen(cmd)
             self.child_stdin = None
 
-    def play(self, filepath, widget=None):
+    def play(self, filepath, _widget=None):
         # default implementation
         return self._play(filepath, allocate_pty=False)
 
@@ -101,7 +102,7 @@ class MPlayer(PlayerInterface):
         if default_args is None:
             default_args = ['-geometry', '0:0',
                             '-slave',
-                            '-input', 'file=%s' % self.fifo_name]
+                            '-input', f'file={self.fifo_name}']
         super().__init__(exe, "mplayer", default_args, player_parameters)
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
@@ -110,8 +111,7 @@ class MPlayer(PlayerInterface):
         if os.path.exists(self.fifo_name):
             os.remove(self.fifo_name)
 
-    def play(self, filepath, widget=None):
-        # TODO: Switch to using _play() ?
+    def play(self, filepath, _widget=None):
         if not os.path.exists(self.fifo_name):
             os.mkfifo(self.fifo_name)
         cmd = [self.exe] + self.default_args + [filepath]
@@ -124,12 +124,12 @@ class MPlayer(PlayerInterface):
         self.send_command('pause')
 
     def send_command(self, command):
-        with open(self.fifo_name, 'w') as handle:
+        with open(self.fifo_name, 'w', encoding='utf-8') as handle:
             handle.write(command + '\n')
 
     def volume_change(self, change):
         logging.debug("MPlayer::volume_change %u", change)
-        self.send_command('volume %u' % (10 if (change > 0) else -10))
+        self.send_command(f'volume {10 if (change > 0) else -10}')
 
 
 class Mpg123(PlayerInterface):
@@ -138,7 +138,7 @@ class Mpg123(PlayerInterface):
             default_args = ['--quiet', '--control']
         super().__init__(exe, "mpg123", default_args, player_parameters)
 
-    def play(self, filepath, widget=None):
+    def play(self, filepath, _widget=None):
         return self._play(filepath, allocate_pty=True)
 
     def play_pause(self):
@@ -150,7 +150,7 @@ class Mpg123(PlayerInterface):
 
     def volume_change(self, change):
         if self.child:
-            logging.debug("Mpg123::volume_change %u", change)
+            logging.debug(f"Mpg123::volume_change {change}")
             change = b'+' if (change > 0) else b'-'
             change = 3 * change
             os.write(self.child_stdin, change)
@@ -167,13 +167,14 @@ class MPVPlayer(PlayerInterface):
     def __init__(self, exe, default_args, player_parameters):
         self.ipc_address = '/tmp/picave.mpv-socket'
         if default_args is None:
-            default_args = ['--geometry=0:0', '--ontop', '--input-ipc-server=%s' % self.ipc_address]
+            default_args = ['--geometry=0:0', '--ontop', f'--input-ipc-server={self.ipc_address}']
         super().__init__(exe, "mpv", default_args, player_parameters)
 
         self.pause = MPVPlayer.encode_command(['set_property_string', 'pause', 'yes'])
         self.resume = MPVPlayer.encode_command(['set_property_string', 'pause', 'no'])
         self.current_volume = 100
         self.sock = None
+        self.playing = False
 
         if os.path.exists(self.ipc_address):
             os.remove(self.ipc_address)
@@ -182,7 +183,7 @@ class MPVPlayer(PlayerInterface):
         if os.path.exists(self.ipc_address):
             os.remove(self.ipc_address)
 
-    def play(self, filepath, widget=None):
+    def play(self, filepath, _widget=None):
         self.playing = True
         self.sock = None
         return self._play(filepath, allocate_pty=False)
@@ -219,7 +220,7 @@ class OmxPlayer(PlayerInterface):
             default_args = []
         super().__init__(exe, "omxplayer", default_args, player_parameters)
 
-    def playback_finished_handler(self, player, exit_status):
+    def playback_finished_handler(self, _player, _exit_status):
         self.child = None
 
     def play(self, filepath, widget=None):
@@ -250,7 +251,7 @@ class OmxPlayer(PlayerInterface):
             draw_y1 = physical_window.y + (physical_window.height - draw_h) / 2
             draw_x2 = draw_x1 + draw_w
             draw_y2 = draw_y1 + draw_h
-            args.extend(['--win', '%u,%u,%u,%u' % (draw_x1, draw_y1, draw_x2, draw_y2), '--aspect-mode', 'letterbox'])
+            args.extend(['--win', f'{draw_x1},{draw_y1},{draw_x2},{draw_y2}', '--aspect-mode', 'letterbox'])
 
         if HAVE_OMXPLAYER:
             # Use the wrapper, which allows full control
@@ -287,7 +288,7 @@ class OmxPlayer(PlayerInterface):
             # omxplayer.bin
             # Killing omxplayer does not kill the actual video player, leaving
             # a full-screen application that cannot be terminated...
-            subprocess.run(['pkill', 'omxplayer.bin'])
+            subprocess.run(['pkill', 'omxplayer.bin'], check=False)
 
     def volume_change(self, change):
         if HAVE_OMXPLAYER and self.child:
@@ -305,6 +306,7 @@ class LibVlcPlayer(PlayerInterface):
         self.video_player = None
         self.playing = False
         self.video_file_width = None  # The natural size of the video
+        self.vlc_instance = None
 
     def is_finished(self):
         if self.video_player is None:
@@ -315,8 +317,8 @@ class LibVlcPlayer(PlayerInterface):
     def play(self, filepath, widget=None):
         self.playing = True
         self.video_file_width = get_video_size(filepath).width
-        self.vlcInstance = vlc.Instance("--no-xlib")
-        self.video_player = self.vlcInstance.media_player_new()
+        self.vlc_instance = vlc.Instance("--no-xlib")
+        self.video_player = self.vlc_instance.media_player_new()
         self.video_player.set_mrl(filepath.as_uri())
         self.video_player.play()
         if widget:
@@ -336,7 +338,7 @@ class LibVlcPlayer(PlayerInterface):
         if self.video_player:
             self.video_player.stop()
             self.video_player = None
-            self.vlcInstance = None
+            self.vlc_instance = None
 
     def window_size_changed(self, new_size):
         assert self.video_file_width
@@ -395,7 +397,7 @@ class VlcPlayer(PlayerInterface):
                             '--http-password', self.vlc_password]
         super().__init__(exe, "vlc", default_args, player_parameters)
 
-    def play(self, filepath, widget=None):
+    def play(self, filepath, _widget=None):
         cmd = [self.exe] + self.default_args + [filepath.resolve().as_uri()]
         logging.debug("VlcPlayer::play %s", cmd)
         self.child = subprocess.Popen(cmd)
@@ -408,14 +410,17 @@ class VlcPlayer(PlayerInterface):
         if not self.child:
             return
         params = urllib.parse.urlencode(kwargs)
-        addr = 'http://localhost:%u/requests/status.xml?%s' % (self.vlc_port, params)
+        addr = f'http://localhost:{self.vlc_port}/requests/status.xml?{params}'
         logging.debug("VlcPlayer::send_command %s", addr)
-        response = requests.get(addr, auth=('', self.vlc_password))
-        if not response.ok:
-            logging.warning("VLC response: %s", response)
+        try:
+            response = requests.get(addr, auth=('', self.vlc_password), timeout=5)
+            if not response.ok:
+                logging.warning("VLC response: %s", response)
+        except (requests.ConnectionError, requests.ConnectTimeout) as e:
+            logging.warning(f"Failed to send command to VLC: {e}")
 
     def volume_change(self, change):
-        change = '%+u' % (change * 8)
+        change = f'{change * 8:+}'
         self.send_command(command='volume', val=change)
 
 

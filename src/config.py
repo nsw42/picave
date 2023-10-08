@@ -75,7 +75,7 @@ class Config(object):
         self.show_favourites_only = False
 
         schema_filename = pathlib.Path(__file__).parent / 'config.schema.json'
-        self.schema = json5.load(open(schema_filename))
+        self.schema = json5.load(open(schema_filename, encoding='utf-8'))
         self.executable_names = list(self.schema['properties']['executables']['properties'].keys())
         logging.debug(f"Executables: {self.executable_names}")
 
@@ -83,7 +83,7 @@ class Config(object):
             try:
                 self._init_from_file(filename)
             except jsonschema.exceptions.ValidationError as e:
-                raise LoadException(e.message)
+                raise LoadException(e.message) from e
             self.filename = filename
         else:
             self._init_with_defaults()
@@ -91,26 +91,26 @@ class Config(object):
 
     def _init_from_file(self, filename):
         try:
-            handle = open(filename)
+            handle = open(filename, encoding='utf-8')
         except OSError as e:
             # TODO: Error handling
-            raise LoadException(e)
+            raise LoadException(e) from e
         try:
             json_content = json5.load(handle)
         except ValueError as e:
-            raise LoadException(e)
+            raise LoadException(e) from e
         jsonschema.validate(instance=json_content, schema=self.schema)  # throws on validation error
 
         for binary in self.executable_names:
             self.executables[binary] = config_binary(json_content, binary)
-            logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
+            logging.debug(f"Exe {binary}={self.executables[binary]}")
 
         for ext, player_config in json_content['filetypes'].items():
             player = player_config['player']
             cmd_args = player_config.get('options', None)
             player_parameters = player_config.get('parameters', {})
             self.set_filetype_player(ext, player, cmd_args, player_parameters)
-            logging.debug("player %s=%s" % (ext, self.players[ext]))
+            logging.debug(f"player {ext}={self.players[ext]}")
 
         self.video_cache_directory = pathlib.Path(json_content['video_cache_directory']).expanduser().resolve()
 
@@ -142,7 +142,7 @@ class Config(object):
 
         for binary in self.executable_names:
             self.executables[binary] = default_binary(binary)
-            logging.debug("Exe %s=%s" % (binary, self.executables[binary]))
+            logging.debug(f"Exe {binary}={self.executables[binary]}")
 
         for ext in self.schema['properties']['filetypes']['properties']:
             player_name = default_player(ext)
@@ -150,9 +150,9 @@ class Config(object):
             player = player_class(exe=self.executables[player_name], default_args=None, player_parameters={})
             self.players[ext] = player
             if player is None:
-                logging.warning("No player found for %s files" % ext)
+                logging.warning(f"No player found for {ext} files")
             else:
-                logging.debug("player %s=%s" % (ext, self.players[ext]))
+                logging.debug(f"player {ext}={self.players[ext]}")
 
         self.set_power('default', 'FTP', 200)
         self.favourites = []
@@ -175,7 +175,7 @@ class Config(object):
         temp_filename = self.filename.with_suffix('.new')
         if temp_filename.exists():
             os.remove(temp_filename)
-        with open(temp_filename, 'w') as handle:
+        with open(temp_filename, 'w', encoding='utf-8') as handle:
             json5.dump(to_write, handle, indent=4)
 
         if self.filename.exists():

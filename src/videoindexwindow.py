@@ -1,18 +1,20 @@
 import logging
 import sys
 
-from config import Config
-from sessionpreview import SessionPreview
-from sessionwindow import SessionWindow
-from stackwindowwithbuttoninterface import StackWindowWithButtonInterface
-from targetpowerdialog import TargetPowerDialog
-from videocache import VideoCache
-from videofeed import VideoFeed
-
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gdk, GLib, Gtk, GdkPixbuf  # noqa: E402
+
+from config import Config  # noqa: E402
+from sessionpreview import SessionPreview  # noqa: E402
+from sessionwindow import SessionWindow  # noqa: E402
+from stackwindowwithbuttoninterface import StackWindowWithButtonInterface  # noqa: E402
+from targetpowerdialog import TargetPowerDialog  # noqa: E402
+from videocache import VideoCache  # noqa: E402
+from videofeed import VideoFeed  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 def load_icon(icons_to_try):
@@ -88,6 +90,11 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         self.downloading_icon = downloading_icon()
         self.favourite_icon = favourite_icon()
         self.downloading_id = None  # the id of the video that we are showing is being downloaded
+
+        self.list_store_favourite_filter = self.tree = None
+        self.fav_column = self.title_column = self.type_column = self.duration_column = self.date_column = None
+        self.ftp_column = self.max_column = self.icon_column = None
+        self.session_preview = self.menu_item_row = None
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
@@ -209,7 +216,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
 
     # Event handlers
 
-    def on_button_press(self, widget, event):
+    def on_button_press(self, _widget, event):
         if event.type != Gdk.EventType.BUTTON_PRESS or event.button != 3:
             # not a right-click
             return
@@ -217,7 +224,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         if not pos:
             # not on a row
             return
-        path, column, x, y = pos
+        path = pos[0]
         row = path.get_indices()[0]
         self.menu_item_row = row
         self.create_right_click_menu(row).popup_at_pointer(event)
@@ -225,9 +232,9 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
     def on_index_selection_changed(self, widget):
         selected_row, _ = widget.get_cursor()
         video_id = self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoId]
-        self.session_preview.show(video_id)
+        self.session_preview.show_session(video_id)
 
-    def on_key_press(self, widget, event):
+    def on_key_press(self, _widget, event):
         """
         Handle the following key-press events:
         'c': toggle whether all videos are shown or just favourites
@@ -265,6 +272,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             row = self.get_selected_row()
             if row:
                 self.show_power_customisation_dialog(row)
+            return True
         return False
 
     def get_selected_row(self):
@@ -277,7 +285,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             return treepath.get_indices()[0]
         return None
 
-    def on_main_button_clicked(self, widget):
+    def on_main_button_clicked(self, _widget):
         self.update_download_icons()
         if self.downloading_id:
             GLib.timeout_add_seconds(2, self.on_check_download_complete)
@@ -285,7 +293,7 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
         assert self.stack
         self.stack.set_visible_child_name("main_session_index_window")
 
-    def on_back_button_clicked(self, widget):
+    def on_back_button_clicked(self, _widget):
         self.stack.set_visible_child_name("main_window_buttons")
 
     def on_check_download_complete(self):
@@ -295,11 +303,11 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             self.update_download_icons()
         return self.downloading_id is not None
 
-    def on_shown(self, widget):
+    def on_shown(self, _widget):
         self.tree.grab_focus()
         self.tree.set_cursor(0, None, False)
 
-    def on_video_button_clicked(self, widget, selected_row, column):
+    def on_video_button_clicked(self, _widget, selected_row, _column):
         # widget is the Button (in the ListBoxRow)
         logging.debug("Playing video %s (%s)",
                       self.list_store_favourite_filter[selected_row][ListStoreColumns.VideoName],
@@ -311,10 +319,10 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             self.stack.set_visible_child_name("session_window")
         # TODO: Report that video file not known
 
-    def on_favourite_menu_item_clicked(self, menu_item):
+    def on_favourite_menu_item_clicked(self, _menu_item):
         self.toggle_favourite(self.menu_item_row)
 
-    def on_target_power_menu_item_clicked(self, menu_item):
+    def on_target_power_menu_item_clicked(self, _menu_item):
         self.show_power_customisation_dialog(self.menu_item_row)
 
     # Action methods, typically called from the event handlers
@@ -370,14 +378,11 @@ class VideoIndexWindow(StackWindowWithButtonInterface):
             logging.debug("Favourite added: %s [%s]", row, video_id)
         self.config.save()
 
-    def set_column_widths(self, widget, allocation):
+    def set_column_widths(self, _widget, _allocation):
         new_icon_width = 100
         extra_space = self.icon_column.get_width() - new_icon_width
 
-        for column, sizing in [(self.title_column, Gtk.TreeViewColumnSizing.AUTOSIZE),
-                               (self.type_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
-                               (self.date_column, Gtk.TreeViewColumnSizing.GROW_ONLY),
-                               (self.duration_column, Gtk.TreeViewColumnSizing.GROW_ONLY)]:
+        for column in [self.title_column, self.type_column, self.date_column, self.duration_column]:
             column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
             column.set_resizable(True)
             if extra_space > 0:

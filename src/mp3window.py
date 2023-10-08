@@ -3,18 +3,22 @@ import logging
 
 import mutagen
 
-from config import Config
-from mp3index import Mp3Index
-from utils import format_mm_ss
-from playerwindowinterface import PlayerWindowInterface
-
+# pylint: disable=wrong-import-position
 import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib  # noqa: E402 # need to call require_version before we can call this
-gi.require_version('Pango', '1.0')
-from gi.repository import Pango  # noqa: E402 # need to call require_version before we can call this
+gi.require_versions({
+    'Gtk': '3.0',
+    'GLib': '2.0',
+    'Pango': '1.0'
+})
+from gi.repository import Gtk  # noqa: E402
+from gi.repository import GLib  # noqa: E402
+from gi.repository import Pango  # noqa: E402
+
+from config import Config  # noqa: E402
+from mp3index import Mp3Index  # noqa: E402
+from utils import format_mm_ss  # noqa: E402
+from playerwindowinterface import PlayerWindowInterface  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 class Mp3Window(PlayerWindowInterface):
@@ -26,6 +30,9 @@ class Mp3Window(PlayerWindowInterface):
         self.mp3index = mp3index
         self.button.set_sensitive(self.mp3index is not None)
         self.paused_elapsed = None
+        self.artist_label = self.title_label = self.time_label = self.duration_label = None
+        self.pad = self.next_button = self.back_button = None
+        self.play_started_at = None
 
     def add_windows_to_stack(self, stack, window_name_to_handler):
         self.stack = stack
@@ -98,24 +105,24 @@ class Mp3Window(PlayerWindowInterface):
 
         grid.connect('realize', self.on_shown)
 
-    def on_back_button_clicked(self, widget):
+    def on_back_button_clicked(self, _widget):
         self.stop()
         self.stack.set_visible_child_name("main_window_buttons")
 
-    def on_main_button_clicked(self, widget):
+    def on_main_button_clicked(self, _widget):
         self.play_random_file()
         assert self.stack
         self.stack.set_visible_child_name("mp3_info_box")
         GLib.timeout_add_seconds(1, self.on_timer_tick)
 
-    def on_next_button_clicked(self, widget):
+    def on_next_button_clicked(self, _widget):
         self.stop()
         self.play_random_file()
 
-    def on_size_allocate(self, widget, allocation):
+    def on_size_allocate(self, _widget, _allocation):
         self.pad.set_size_request(self.next_button.get_preferred_width().natural_width, 32)
 
-    def on_shown(self, widget):
+    def on_shown(self, _widget):
         self.next_button.grab_focus()
 
     def on_timer_tick(self):
@@ -139,14 +146,13 @@ class Mp3Window(PlayerWindowInterface):
         if max_width is None:
             max_width = self.stack.get_allocation().width - 2 * self.PADDING
             max_width -= 2 * self.next_button.get_preferred_width().natural_width
-        logging.debug("Max width is %u" % max_width)
+        logging.debug(f"Max width is {max_width}")
         layout = label.create_pango_layout()
-        for line_number in range(len(text_lines)):
-            text = text_lines[line_number]
+        for line_number, text in enumerate(text_lines):
             while text != ' ...':
                 layout.set_text(text, len(text))
-                ink, logical = layout.get_pixel_extents()
-                logging.debug("%s is %u pixels wide" % (text, logical.width))
+                _ink, logical = layout.get_pixel_extents()
+                logging.debug(f"{text} is {logical.width} pixels wide")
                 if logical.width < max_width:
                     break  # this text is short enough
                 text = text[:-5] + ' ...'  # makes the text one character shorter
@@ -167,12 +173,12 @@ class Mp3Window(PlayerWindowInterface):
         duration_ss = reader.info.length
         if duration_ss:
             self.time_label.set_label(format_mm_ss(0) + ' ')
-            self.duration_label.set_label('/ %s' % format_mm_ss(duration_ss))
+            self.duration_label.set_label(f'/ {format_mm_ss(duration_ss)}')
             self.play_started_at = datetime.datetime.now()
         else:
             self.time_label.set_label('')
             self.duration_label.set_label('')
-            self.play_random_file = None  # don't attempt to show time in file
+            self.play_started_at = None  # don't attempt to show time in file
         self.player = self.config.players['.mp3']
         self.player.play(mp3filename)
         self.on_size_allocate(None, None)  # do this here rather than wait for 'allocated' signal to avoid screen jiggle

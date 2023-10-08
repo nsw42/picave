@@ -1,9 +1,11 @@
 from collections import namedtuple
 import logging
 
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk  # noqa: E402 # need to call require_version before we can call this
+from gi.repository import Gtk  # noqa: E402
+# pylint: enable=wrong-import-position
 
 PageControls = namedtuple('PageControls', 'box, radio_buttons, radio_to_spinner, spinner_to_radio')
 
@@ -130,7 +132,7 @@ class TargetPowerDialog(Gtk.Dialog):
 
         self.show_all()
 
-    def on_key_press(self, widget, event):
+    def on_key_press(self, _widget, event):
         stop_propagation = True
         allow_propagation = False
         is_down = (event.keyval, event.state) == Gtk.accelerator_parse('Down')
