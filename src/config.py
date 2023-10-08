@@ -121,6 +121,9 @@ class Config(object):
             self.warm_up_music_directory = None
 
         self.power_levels.update(json_content.get('power_levels', {}))
+        if self.get_power('default', 'FTP', expand_default=True) is None:
+            logging.warning("Using default values for FTP due to incomplete config")
+            self.set_power('default', 'FTP', 200)
         self.favourites = json_content.get('favourites', [])
         self.show_favourites_only = json_content.get('show_favourites_only', False)
 
@@ -187,6 +190,7 @@ class Config(object):
 
     def get_power(self, video_id: str, ftp_or_max: str, expand_default: bool) -> Union[None, int, str]:
         assert ftp_or_max in ['FTP', 'MAX']
+        logging.debug(f'get_power: {video_id}, {self.power_levels}')
         power = self.power_levels[video_id].get(ftp_or_max)
         if expand_default and (video_id != 'default') and (power is None):
             power = self.power_levels['default'].get(ftp_or_max)
