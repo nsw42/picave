@@ -26,9 +26,7 @@ class SessionPreview(SessionView):
             x = interval.start_offset * drawingarea.get_allocated_width() / self.max_duration
             w = interval.duration * drawingarea.get_allocated_width() / self.max_duration
             context.rectangle(x, 0, w, drawingarea.get_allocated_height())
-            context.set_source_rgb(interval.color[0] / 255.0,
-                                   interval.color[1] / 255.0,
-                                   interval.color[2] / 255.0)
+            context.set_source_rgb(*interval.color)
             context.fill_preserve()
             context.stroke()
 

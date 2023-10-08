@@ -18,6 +18,15 @@ from utils import parse_duration  # noqa: E402
 
 Interval = namedtuple('Interval',
                       'name, type, cadence, effort, effort_val, duration, color, start_offset')
+# Types after conversions in read_intervals:
+# name: str
+# typ: str
+# cadence: int
+# effort: str
+# effort_val: numeric
+# duration: numeric (int or float)
+# color: 3-tuple (0-1.0)
+# start_offset: float
 
 
 class SessionView(Gtk.DrawingArea):
@@ -47,6 +56,7 @@ class SessionView(Gtk.DrawingArea):
         for index, interval in enumerate(session):
             if isinstance(interval.color, str):
                 interval = interval._replace(color=self.colour_names[interval.color])
+            interval = interval._replace(color=tuple(c / 255.0 for c in interval.color))
             interval = interval._replace(start_offset=float(start_offset))
             start_offset += interval.duration
             # Calculate effort (string) and effort_val (numeric watts)

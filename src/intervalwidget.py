@@ -31,7 +31,7 @@ class IntervalWidget(SessionView):
         self.start_time = time.monotonic()
         self.current_interval_index = 0
         self.playing = True
-        GLib.timeout_add_seconds(1, self.force_redraw)
+        GLib.timeout_add(200, self.force_redraw)
 
     def play_pause(self):
         now = time.monotonic()
@@ -96,9 +96,7 @@ class IntervalWidget(SessionView):
                               y,
                               drawingarea.get_allocated_width(),
                               h)
-            context.set_source_rgb(draw_interval.color[0] / 255.0,
-                                   draw_interval.color[1] / 255.0,
-                                   draw_interval.color[2] / 255.0)
+            context.set_source_rgb(*draw_interval.color)
             context.fill_preserve()
             context.set_source_rgb(0.0, 0.0, 0.0)
             context.stroke()
@@ -118,7 +116,7 @@ class IntervalWidget(SessionView):
             text_y += text_h
 
             context.move_to(text_x, text_y)
-            context.show_text(format_mm_ss(draw_interval_remaining))
+            context.show_text(format_mm_ss(round(draw_interval_remaining)))
             text_y += text_h
 
             end_y = y + h
