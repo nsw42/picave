@@ -116,7 +116,7 @@ class IntervalWidget(SessionView):
             text_y += text_h
 
             context.move_to(text_x, text_y)
-            context.show_text(format_mm_ss(round(draw_interval_remaining)))
+            context.show_text(format_mm_ss(draw_interval_remaining))
             text_y += text_h
 
             end_y = y + h
