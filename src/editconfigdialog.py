@@ -112,7 +112,7 @@ class EditConfigDialog(Gtk.Dialog):
 
         y += 1
         grid.attach(Gtk.Label(label="Default FTP"), left=0, top=y, width=1, height=1)
-        self.ftp_spinner = create_integer_spinner(0, 1000, config.get_power('default', 'FTP'))
+        self.ftp_spinner = create_integer_spinner(0, 1000, config.get_power('default', 'FTP', expand_default=True))
         self.ftp_spinner.set_activates_default(True)  # TODO: Move into create_integer_spinner?
         grid.attach(self.ftp_spinner, left=1, top=y, width=1, height=1)
 
