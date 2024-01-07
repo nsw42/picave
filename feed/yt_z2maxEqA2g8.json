@@ -1,21 +1,21 @@
 [
-  { "name": "Warm up",    "type": "%FTP",  "cadence": 90,  "effort": "50%",  "duration": "3m 14s",  "color": "forest green" },
+  { "name": "Warm up",      "type": "%FTP",  "cadence": 90,  "effort": "50%",  "duration": "3m 14s",  "color": "forest green" },
 
-  { "name": "Tempo",      "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Flat out",   "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Tempo",      "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Flat out",   "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Tempo",      "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Flat out",   "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Tempo",      "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
-  { "name": "Sweet spot", "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
-  { "name": "Flat out",   "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
+  { "name": "Tempo 1/4",    "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Flat out 1/4", "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Tempo 2/4",    "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Flat out 2/4", "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Tempo 3/4",    "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Flat out 3/4", "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Tempo 4/4",    "type": "%FTP",  "cadence": 90,  "effort": "80%",  "duration": "3m",      "color": "dark orange" },
+  { "name": "Sweet spot",   "type": "%FTP",  "cadence": 90,  "effort": "90%",  "duration": "3m",      "color": "orange red"  },
+  { "name": "Flat out 4/4", "type": "MAX",   "cadence": 70,  "effort": "MAX",  "duration": "30s",     "color": "red"         },
 
-  { "name": "Cool down",  "type": "%FTP",  "cadence": 90,  "effort": "30%",  "duration": "3m",      "color": "forest green" }
+  { "name": "Cool down",    "type": "%FTP",  "cadence": 90,  "effort": "30%",  "duration": "3m",      "color": "forest green" }
 ]
