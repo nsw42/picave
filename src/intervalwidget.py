@@ -75,13 +75,6 @@ class IntervalWidget(SessionView):
         while draw_interval_index < len(self.intervals):
             draw_interval = self.intervals[draw_interval_index]
             interval_start_time = self.start_time + draw_interval.start_offset
-            if interval_start_time < now:
-                y = y0
-            else:
-                start_delta = interval_start_time - now
-                y = y0 + start_delta / 60 * one_minute_h
-            if y > drawingarea.get_allocated_height():
-                break
 
             if draw_interval_index == self.current_interval_index:
                 draw_interval_end = (self.start_time
@@ -92,8 +85,18 @@ class IntervalWidget(SessionView):
                 draw_interval_remaining = draw_interval.duration
             h = draw_interval_remaining / 60.0 * one_minute_h
 
+            if interval_start_time < now:
+                rect_y = y0
+                text_y = min(y0, y0 + h - block_h - 8) + text_h
+            else:
+                start_delta = interval_start_time - now
+                rect_y = y0 + start_delta / 60 * one_minute_h
+                text_y = rect_y + text_h
+            if rect_y > drawingarea.get_allocated_height():
+                break
+
             context.rectangle(0,
-                              y,
+                              rect_y,
                               drawingarea.get_allocated_width(),
                               h)
             context.set_source_rgb(*draw_interval.color)
@@ -102,7 +105,7 @@ class IntervalWidget(SessionView):
             context.stroke()
 
             text_x = 20  # offset the text slightly into the rectangle
-            text_y = y + text_h
+            # text_y initialised above
             context.move_to(text_x, text_y)
             context.show_text(draw_interval.name)
             text_y += text_h
@@ -119,7 +122,7 @@ class IntervalWidget(SessionView):
             context.show_text(format_mm_ss(draw_interval_remaining))
             text_y += text_h
 
-            end_y = y + h
+            end_y = rect_y + h
 
             draw_interval_index += 1
 
