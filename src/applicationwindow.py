@@ -1,4 +1,3 @@
-from enum import Enum
 import logging
 import subprocess
 import sys
@@ -12,7 +11,10 @@ gi.require_versions({
 })
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
+import autoupdate  # noqa: E402
+
 from config import Config  # noqa: E402
+from exitdialog import ExitChoices, ExitDialog  # noqa: E402
 from mainbuttonwindow import MainButtonWindow  # noqa: E402
 from mp3index import Mp3Index  # noqa: E402
 from mp3window import Mp3Window  # noqa: E402
@@ -22,22 +24,6 @@ from videocache import VideoCache  # noqa: E402
 from videofeed import VideoFeed  # noqa: E402
 from videoindexwindow import VideoIndexWindow  # noqa: E402
 # pylint: enable=wrong-import-position
-
-ExitChoices = Enum('ExitChoices', ['Cancel', 'ChangeProfile', 'Quit', 'Shutdown'])
-
-
-class ExitDialog(Gtk.Dialog):
-    def __init__(self, parent):
-        super().__init__(title="Really quit?",
-                         parent=parent,
-                         flags=0)
-        self.add_button(Gtk.STOCK_CANCEL, ExitChoices.Cancel.value)
-        self.add_button("Change profile", ExitChoices.ChangeProfile.value)
-        self.add_button("Quit", ExitChoices.Quit.value)
-        self.add_button("Shutdown", ExitChoices.Shutdown.value)
-        self.set_default_size(150, 100)
-
-        self.show_all()
 
 
 class ApplicationWindow(Gtk.Window):
@@ -157,6 +143,7 @@ class ApplicationWindow(Gtk.Window):
         return True  # keep looking for OSMC events
 
     def do_quit_dialog(self):
+
         dialog = ExitDialog(self)
         response = dialog.run()
         dialog.destroy()
@@ -165,8 +152,17 @@ class ApplicationWindow(Gtk.Window):
 
         if response == ExitChoices.Cancel.value:
             # No action required
-            pass
-        elif response == ExitChoices.ChangeProfile.value:
+            return
+
+        # do any necessary "check for updates"
+        if dialog.do_auto_update():
+            logging.debug("Checking for updates")
+            try:
+                autoupdate.git_pull()
+            except autoupdate.GitPullException as exc:
+                logging.debug(f"Auto-update failed: {exc}")
+
+        if response == ExitChoices.ChangeProfile.value:
             self.on_change_profile()
         elif response == ExitChoices.Quit.value:
             self.on_quit()
