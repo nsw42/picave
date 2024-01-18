@@ -158,7 +158,8 @@ class ApplicationWindow(Gtk.Window):
         if dialog.do_auto_update():
             logging.debug("Checking for updates")
             try:
-                autoupdate.git_pull()
+                autoupdate.check_archive('https://www.picave.org/latest',
+                                         app_dir='..')
             except autoupdate.GitPullException as exc:
                 logging.debug(f"Auto-update failed: {exc}")
 
