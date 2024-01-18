@@ -12,6 +12,16 @@ See [docs/development.md](docs/development.md) for info about getting set up to 
 
 ## Version history
 
+* v1.2.0: Minor improvements:
+    * It's now possible to set a custom power level for max efforts in a session (as well as the existing behaviour of a custom FTP for a session)
+        * *NB* This is another backwards incompatible change: config files must be updated before running the new version
+    * Add an (optional) automatic update check when exiting the application
+    * Minor improvements to the feed contents
+    * Minor bug-fixes to avoid exceptions on unusual (=invalid) config file contents
+    * Bug-fixes to avoid odd behaviour if the clock changes during a session (e.g. because the Pi connects to wifi and updates the local time)
+    * Bug-fix to ignore subtitles (`.vtt` files) in the video cache
+    * Minor layout improvements in the video index window
+    * Now requires Python >= v3.6
 * v1.1.0: Major functionality enhancements:
     * Add support for per-video target power, as a substitute for properly personalised training
     * Store and show favourite videos, including the ability to show *only* favourites
