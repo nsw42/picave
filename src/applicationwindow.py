@@ -160,7 +160,7 @@ class ApplicationWindow(Gtk.Window):
             try:
                 autoupdate.check_archive('https://www.picave.org/latest',
                                          app_dir='..')
-            except autoupdate.GitPullException as exc:
+            except autoupdate.AutoupdateException as exc:
                 logging.debug(f"Auto-update failed: {exc}")
 
         if response == ExitChoices.ChangeProfile.value:
