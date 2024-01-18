@@ -1,9 +1,7 @@
 from enum import Enum
 
 import gi
-gi.require_versions({
-    'Gtk': '3.0',
-})
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402
 
 

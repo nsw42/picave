@@ -6,9 +6,7 @@ import time
 
 # pylint: disable=wrong-import-position
 import gi
-gi.require_versions({
-    'Gtk': '3.0',
-})
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, Gtk  # noqa: E402
 
 from applicationwindow import ApplicationWindow  # noqa: E402
