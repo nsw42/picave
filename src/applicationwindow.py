@@ -68,10 +68,10 @@ class ApplicationWindow(Gtk.Window):
             ('Escape', self.on_show_home),  # OSMC 'Home' button
             ('<Shift>Escape', self.do_quit_dialog),
             ('c', self.on_show_index),  # OSMC 'index' button
-            ('P', self.on_play_pause),  # TODO: Remove me
-            ('X', self.on_back_button),  # TODO: Remove me
-            ('Z', self.on_stop_button),  # TODO: Remove me
-            ('<Shift>plus', self.on_volume_up),  # TODO: Remove me
+            ('P', self.on_play_pause),  # OSMC is handled in osmc_handlers, this is for normal keyboards (and testing)
+            ('X', self.on_back_button),  # OSMC is handled in osmc_handlers
+            ('Z', self.on_stop_button),  # OSMC is handled in osmc_handlers
+            ('<Shift>plus', self.on_volume_up),  # OSMC is handled in osmc_handlers
             ('equal', self.on_volume_up),  # OSMC 'Vol +'
             ('minus', self.on_volume_down),  # OSMC 'Vol -'
         ]:
