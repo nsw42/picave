@@ -14,7 +14,7 @@ class ExitDialog(Gtk.Dialog):
                          parent=parent,
                          flags=0)
         self.do_auto_update_checkbox = Gtk.CheckButton.new_with_label("Check for updates")
-        self.do_auto_update_checkbox.set_active(True)
+        self.do_auto_update_checkbox.set_active(False)
         content_box = self.get_content_area()
         content_box.pack_end(self.do_auto_update_checkbox, expand=True, fill=False, padding=4)
 
