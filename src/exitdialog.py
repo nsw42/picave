@@ -1,8 +1,10 @@
 from enum import Enum
 
+# pylint: disable=wrong-import-position
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 ExitChoices = Enum('ExitChoices', ['Cancel', 'ChangeProfile', 'Quit', 'Shutdown'])
