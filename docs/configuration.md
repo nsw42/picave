@@ -15,8 +15,9 @@ PiCave has support for different media players according to what works well on
 your platform.
 
 `omxplayer` is probably the best choice for a Raspberry Pi, but
-[mplayer](www.mplayerhq.hu), [mpg123](www.mpg123.de), [mpv](mpv.io) and
-[VLC](www.videolan.org) are supported to varying degrees.
+[mplayer](https://www.mplayerhq.hu), [mpg123](https://www.mpg123.de),
+[mpv](https://mpv.io) and [VLC](https://www.videolan.org) are supported to
+varying degrees.
 
 VLC can be used either as a standalone sub-process, by setting the player to
 `vlc`; or to play video embedded in the PiCave window (which looks tidier, but
