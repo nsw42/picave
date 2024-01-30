@@ -45,7 +45,7 @@ The file is a JSON object, and has the following top-level elements
 ```json
 {
     "warm_up_music_directory": "/your/path/here",  // See Directories for detail about this element
-    "video_cache_directory": "/your/path/here",  // See #irectories for detail about this element
+    "video_cache_directory": "/your/path/here",  // See Directories for detail about this element
     "executables": {},  // See Executables for detail about the content of this object
     "filetypes": { ... },  // See Filetypes for detail about the content of this object
     "FTP": { ... },  // See FTP for detail about the content of this object
