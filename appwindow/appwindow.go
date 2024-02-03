@@ -1,11 +1,14 @@
 package appwindow
 
 import (
+	"nsw42/picave/profile"
+
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 type AppWindow struct {
+	Profile     *profile.Profile
 	GtkWindow   *gtk.ApplicationWindow
 	Stack       *gtk.Stack
 	MainPanel   *MainPanel
@@ -13,9 +16,10 @@ type AppWindow struct {
 }
 
 func NewAppWindow(app *gtk.Application,
+	profile *profile.Profile,
 	fullScreen bool,
 ) *AppWindow {
-	rtn := &AppWindow{}
+	rtn := &AppWindow{Profile: profile}
 	rtn.GtkWindow = gtk.NewApplicationWindow(app)
 	rtn.GtkWindow.SetTitle("PiCave")
 

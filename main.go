@@ -57,10 +57,10 @@ func main() {
 
 	app := gtk.NewApplication("com.github.nsw42.picave", gio.ApplicationFlagsNone)
 	app.ConnectActivate(func() { activate(app) })
-	app.Run(make([]string, 0))
+	app.Run([]string{})
 }
 
 func activate(app *gtk.Application) {
-	appWindow = appwindow.NewAppWindow(app, args.Fullscreen)
+	appWindow = appwindow.NewAppWindow(app, args.Profile, args.Fullscreen)
 	appWindow.GtkWindow.Show()
 }
