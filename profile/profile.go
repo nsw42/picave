@@ -16,13 +16,34 @@ import (
 //go:embed profile.schema.json
 var schemaString string
 
+type Profile struct {
+	VideoCacheDirectory   string
+	WarmUpMusic           musicdir.MusicDirectory
+	Executables           map[string]string // map from player
+	FiletypePlayers       map[string]string // map from suffix (".mp3") to player name ("mpv")
+	FiletypePlayerOptions map[string]FiletypePlayerOptions
+	Favourites            []string
+	ShowFavouritesOnly    bool
+	PowerLevels           map[string]PowerLevels
+}
+
 type FiletypePlayerOptions struct {
-	Player       string
 	Options      []string
 	MarginLeft   int
 	MarginRight  int
 	MarginTop    int
 	MarginBottom int
+}
+
+type PowerLevels struct {
+	Max MaxPowerLevel
+	FTP int
+}
+
+type MaxPowerLevel struct {
+	ValueType   PowerLevelType
+	Absolute    int
+	MultipleFTP float64
 }
 
 type PowerLevelType int
@@ -32,27 +53,6 @@ const (
 	AbsoluteValue
 	RelovateToFTPValue
 )
-
-type MaxPowerLevel struct {
-	ValueType   PowerLevelType
-	Absolute    int
-	MultipleFTP float64
-}
-
-type PowerLevels struct {
-	Max MaxPowerLevel
-	FTP int
-}
-
-type Profile struct {
-	VideoCacheDirectory string
-	WarmUpMusic         musicdir.MusicDirectory
-	Executables         map[string]string
-	FiletypePlayers     map[string]FiletypePlayerOptions
-	Favourites          []string
-	ShowFavouritesOnly  bool
-	PowerLevels         map[string]PowerLevels
-}
 
 func maxPowerLevel(val interface{}) MaxPowerLevel {
 	if val == nil {
@@ -114,32 +114,40 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 	defer reader.Close()
 
 	decoder := json5.NewDecoder(reader)
-	configMap := make(map[string]any, 1)
+	configMap := map[string]any{}
 	decoder.Decode(&configMap)
 
 	if err := validateProfileFile(configMap); err != nil {
 		return nil, err
 	}
 
-	configFile := &Profile{}
-	configFile.VideoCacheDirectory = configMap["video_cache_directory"].(string)
+	profile := &Profile{}
+	profile.VideoCacheDirectory = configMap["video_cache_directory"].(string)
 	warmUpMusicDirectory := optionalString(configMap["warm_up_music_directory"])
 	if warmUpMusicDirectory != "" {
-		configFile.WarmUpMusic = musicdir.FindMusicFiles(warmUpMusicDirectory)
+		profile.WarmUpMusic = musicdir.FindMusicFiles(warmUpMusicDirectory)
 	}
-	configFile.Executables = make(map[string]string, 5)
+	profile.Executables = map[string]string{}
 	if configMap["executables"] != nil {
 		for exe, exeMap := range configMap["executables"].(map[string]interface{}) {
 			exeMapVal := exeMap.(map[string]interface{})
-			configFile.Executables[exe] = exeMapVal["path"].(string)
+			profile.Executables[exe] = exeMapVal["path"].(string)
 		}
 	}
-	configFile.FiletypePlayers = make(map[string]FiletypePlayerOptions, 5)
+	profile.FiletypePlayers = map[string]string{}
+	profile.FiletypePlayerOptions = map[string]FiletypePlayerOptions{}
 	if configMap["filetypes"] != nil {
 		for filetype, playerMap := range configMap["filetypes"].(map[string]interface{}) {
 			playerMapVal := playerMap.(map[string]interface{})
 			options := FiletypePlayerOptions{}
-			options.Player = playerMapVal["player"].(string)
+			playerName := playerMapVal["player"].(string)
+			// TODO: The easy way of checking whether this is a known player results in an import cycle.
+			// Fix this another day
+			// if _, ok := players.PlayerLookup[playerName]; !ok {
+			// 	fmt.Println("Unrecognised player ", playerName, " selected for filetype ", filetype)
+			// 	continue
+			// }
+			profile.FiletypePlayers[filetype] = playerName
 			options.Options = stringList(playerMapVal["options"])
 
 			if playerMapVal["parameters"] != nil {
@@ -149,23 +157,23 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 				options.MarginTop = optionalInt(paramsMap["margin_top"])
 				options.MarginBottom = optionalInt(paramsMap["margin_bottom"])
 			}
-			configFile.FiletypePlayers[filetype] = options
+			profile.FiletypePlayerOptions[filetype] = options
 		}
 	}
-	configFile.Favourites = stringList(configMap["favourites"])
-	configFile.ShowFavouritesOnly = optionalBool(configMap["show_favourites_only"])
-	configFile.PowerLevels = make(map[string]PowerLevels, 10)
+	profile.Favourites = stringList(configMap["favourites"])
+	profile.ShowFavouritesOnly = optionalBool(configMap["show_favourites_only"])
+	profile.PowerLevels = map[string]PowerLevels{}
 	if configMap["power_levels"] != nil {
 		for video, videoPowerLevelsMap := range configMap["power_levels"].(map[string]interface{}) {
 			videoPowerLevelsMapVal := videoPowerLevelsMap.(map[string]interface{})
 			levels := PowerLevels{}
 			levels.FTP = optionalInt(videoPowerLevelsMapVal["FTP"])
 			levels.Max = maxPowerLevel(videoPowerLevelsMapVal["MAX"])
-			configFile.PowerLevels[video] = levels
+			profile.PowerLevels[video] = levels
 		}
 	}
 
-	return configFile, nil
+	return profile, nil
 }
 
 func validateProfileFile(configMap interface{}) error {
