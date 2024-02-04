@@ -185,7 +185,7 @@ func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter)
 func (panel *VideoIndexPanel) toggleAllOrFavouritesOnly() {
 	panel.Parent.Profile.ShowFavouritesOnly = !panel.Parent.Profile.ShowFavouritesOnly
 	panel.showAllOrFavouritesOnly()
-	// panel.Parent.Profile.Save()
+	panel.Parent.Profile.Save()
 }
 
 func (panel *VideoIndexPanel) showAllOrFavouritesOnly() {

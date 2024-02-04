@@ -14,10 +14,10 @@ type MusicDirectory struct {
 	Files    []string // All files are relative to BasePath, to reduce memory usage
 }
 
-func FindMusicFiles(directory string) MusicDirectory {
+func FindMusicFiles(directory string) *MusicDirectory {
 	// Return a list of (absolute path of) all music files in the given directory
-	rtn := MusicDirectory{directory, []string{}}
-	traverse(directory, "", &rtn)
+	rtn := &MusicDirectory{directory, []string{}}
+	traverse(directory, "", rtn)
 	return rtn
 }
 
