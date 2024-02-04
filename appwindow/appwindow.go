@@ -8,11 +8,12 @@ import (
 )
 
 type AppWindow struct {
-	Profile     *profile.Profile
-	GtkWindow   *gtk.ApplicationWindow
-	Stack       *gtk.Stack
-	MainPanel   *MainPanel
-	WarmUpPanel *WarmUpPanel
+	Profile         *profile.Profile
+	GtkWindow       *gtk.ApplicationWindow
+	Stack           *gtk.Stack
+	MainPanel       *MainPanel
+	WarmUpPanel     *WarmUpPanel
+	VideoIndexPanel *VideoIndexPanel
 }
 
 func NewAppWindow(app *gtk.Application,
@@ -43,9 +44,11 @@ func NewAppWindow(app *gtk.Application,
 
 	rtn.MainPanel = NewMainPanel(rtn)
 	rtn.WarmUpPanel = NewWarmUpPanel(rtn)
+	rtn.VideoIndexPanel = NewVideoIndexPanel(rtn)
 
 	rtn.Stack.AddNamed(rtn.MainPanel.Contents, MainPanelName)
 	rtn.Stack.AddNamed(rtn.WarmUpPanel.Contents, WarmUpPanelName)
+	rtn.Stack.AddNamed(rtn.VideoIndexPanel.Contents, VideoIndexPanelName)
 
 	rtn.Stack.SetVisibleChildName(MainPanelName)
 

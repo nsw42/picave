@@ -44,6 +44,9 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	mainSessionButton.SetHExpand(true)
 	mainSessionButton.SetVExpand(true)
 	buttonBox.Append(mainSessionButton)
+	mainSessionButton.ConnectClicked(func() {
+		parent.Stack.SetVisibleChildName(VideoIndexPanelName)
+	})
 
 	return rtn
 }

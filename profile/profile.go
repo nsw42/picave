@@ -41,9 +41,9 @@ type PowerLevels struct {
 }
 
 type MaxPowerLevel struct {
-	ValueType   PowerLevelType
-	Absolute    int
-	MultipleFTP float64
+	ValueType  PowerLevelType
+	Absolute   int
+	PercentFTP int
 }
 
 type PowerLevelType int
@@ -51,25 +51,24 @@ type PowerLevelType int
 const (
 	NoValue PowerLevelType = iota
 	AbsoluteValue
-	RelovateToFTPValue
+	RelativeToFTPValue
 )
 
 func maxPowerLevel(val interface{}) MaxPowerLevel {
 	if val == nil {
 		return MaxPowerLevel{ValueType: NoValue}
 	}
-	switch val.(type) {
+	switch value := val.(type) {
 	default:
 		return MaxPowerLevel{ValueType: NoValue}
 	case float64:
-		return MaxPowerLevel{ValueType: AbsoluteValue, Absolute: int(val.(float64))}
+		return MaxPowerLevel{ValueType: AbsoluteValue, Absolute: int(value)}
 	case string:
-		stringVal := val.(string)
-		if strings.HasSuffix(stringVal, "%") {
-			floatVal, _ := strconv.ParseFloat(strings.TrimRight(stringVal, "%"), 64)
-			return MaxPowerLevel{ValueType: RelovateToFTPValue, MultipleFTP: floatVal / 100.}
+		if strings.HasSuffix(value, "%") {
+			intVal, _ := strconv.ParseInt(strings.TrimRight(value, "%"), 10, 64)
+			return MaxPowerLevel{ValueType: RelativeToFTPValue, PercentFTP: int(intVal)}
 		} else {
-			floatVal, _ := strconv.ParseFloat(stringVal, 64)
+			floatVal, _ := strconv.ParseFloat(value, 64)
 			return MaxPowerLevel{ValueType: AbsoluteValue, Absolute: int(floatVal)}
 		}
 	}
@@ -174,6 +173,30 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 	}
 
 	return profile, nil
+}
+
+func (profile *Profile) GetVideoFTP(videoId string, expandDefault bool) string {
+	val, found := profile.PowerLevels[videoId]
+	if found && val.FTP != 0 {
+		return strconv.Itoa(val.FTP)
+	}
+	return ""
+}
+
+func (profile *Profile) GetVideoMax(videoId string, expandDefault bool) string {
+	val, found := profile.PowerLevels[videoId]
+	if found {
+		max := val.Max
+		switch max.ValueType {
+		case NoValue:
+			return ""
+		case AbsoluteValue:
+			return strconv.Itoa(max.Absolute)
+		case RelativeToFTPValue:
+			return fmt.Sprintf("%d%%", max.PercentFTP)
+		}
+	}
+	return ""
 }
 
 func validateProfileFile(configMap interface{}) error {
