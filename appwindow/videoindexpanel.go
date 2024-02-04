@@ -10,30 +10,31 @@ import (
 )
 
 type VideoIndexPanel struct {
-	Parent    *AppWindow
-	Contents  *gtk.Grid
-	ListStore *gtk.ListStore
-	TreeView  *gtk.TreeView
+	Parent          *AppWindow
+	Contents        *gtk.Grid
+	ListStore       *gtk.ListStore
+	TreeView        *gtk.TreeView
+	FavouriteIcon   string
+	DownloadedIcon  string
+	DownloadingIcon string
 }
 
 type ListStoreColumn int
 
 const (
 	ColumnFavourite = iota
-	ColumnTitle     = iota
+	ColumnTitle
 	ColumnType
 	ColumnDuration
 	ColumnDate
 	ColumnEffectiveFTP
 	ColumnEffectiveMax
-	// ColumnVideoDownloaded
+	ColumnVideoDownloaded
 	ColumnVideoId
 	ColumnShowRow
 )
 
-var favouriteIcon string // *gdkpixbuf.Pixbuf
-
-func loadIcon(iconsToTry []string) string {
+func findIcon(iconsToTry []string) string {
 	display := gdk.DisplayGetDefault()
 	if display == nil {
 		panic("No display")
@@ -47,12 +48,6 @@ func loadIcon(iconsToTry []string) string {
 		panic("Unable to find icon: " + iconsToTry[0])
 	}
 	return icon.IconName()
-	// iconPath := icon.File().Path()
-	// pixbuf, err := gdkpixbuf.NewPixbufFromFile(iconPath)
-	// if err != nil {
-	// 	panic("Unable to load file: " + iconPath)
-	// }
-	// return pixbuf
 }
 
 func createColumn(title string, renderer gtk.CellRendererer, expand bool, renderAttribute string, colNr ListStoreColumn) *gtk.TreeViewColumn {
@@ -77,10 +72,10 @@ func createPixbufColumn(title string, colNr ListStoreColumn) *gtk.TreeViewColumn
 }
 
 func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
-	if favouriteIcon == "" {
-		favouriteIcon = loadIcon([]string{"starred-symbolic", "starred"})
-	}
 	rtn := &VideoIndexPanel{Parent: parent}
+	rtn.FavouriteIcon = findIcon([]string{"starred-symbolic", "starred"})
+	rtn.DownloadedIcon = findIcon([]string{"emblem-ok-symbolic", "emblem-downloads", "emblem-shared"})
+	rtn.DownloadingIcon = findIcon([]string{"emblem-synchronizing-symbolic", "emblem-synchronizing"})
 	rtn.ListStore = rtn.buildListStore()
 
 	rtn.TreeView = gtk.NewTreeView()
@@ -91,6 +86,7 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.TreeView.AppendColumn(createTextColumn("Date", ColumnDate))
 	rtn.TreeView.AppendColumn(createTextColumn("FTP", ColumnEffectiveFTP))
 	rtn.TreeView.AppendColumn(createTextColumn("Max", ColumnEffectiveMax))
+	rtn.TreeView.AppendColumn(createPixbufColumn("Downloaded", ColumnVideoDownloaded))
 	rtn.TreeView.SetModel(rtn.ListStore)
 	rtn.TreeView.SetEnableSearch(false)
 
@@ -120,25 +116,34 @@ func (panel *VideoIndexPanel) OnBackClicked() {
 
 func (panel *VideoIndexPanel) buildListStore() *gtk.ListStore {
 	listStore := gtk.NewListStore([]glib.Type{
-		glib.TypeString, // fav
-		glib.TypeString, // title
-		glib.TypeString, // session type
-		glib.TypeString, // video duration
-		glib.TypeString, // video date
-		glib.TypeString, // FTP
-		glib.TypeString, // Max
-		// gdkpixbuf.Pixbuf, // downloaded
+		glib.TypeString,  // fav
+		glib.TypeString,  // title
+		glib.TypeString,  // session type
+		glib.TypeString,  // video duration
+		glib.TypeString,  // video date
+		glib.TypeString,  // FTP
+		glib.TypeString,  // Max
+		glib.TypeString,  // downloaded
 		glib.TypeString,  // Video ID
 		glib.TypeBoolean, // Show Row
 	})
 	for _, videoItem := range feed.Index {
 		var favIcon string
 		if slices.Contains(panel.Parent.Profile.Favourites, videoItem.Id) {
-			favIcon = favouriteIcon
+			favIcon = panel.FavouriteIcon
+		}
+		var downloadIcon string
+		switch panel.Parent.FeedCache.State[videoItem.Id] {
+		case feed.NotDownloaded:
+			downloadIcon = ""
+		case feed.Downloading:
+			downloadIcon = panel.DownloadingIcon
+		case feed.Downloaded:
+			downloadIcon = panel.DownloadedIcon
 		}
 		newRow := listStore.Append()
 		listStore.Set(newRow,
-			[]int{ColumnFavourite, ColumnTitle, ColumnType, ColumnDuration, ColumnDate, ColumnEffectiveFTP, ColumnEffectiveMax, ColumnVideoId, ColumnShowRow},
+			[]int{ColumnFavourite, ColumnTitle, ColumnType, ColumnDuration, ColumnDate, ColumnEffectiveFTP, ColumnEffectiveMax, ColumnVideoDownloaded, ColumnVideoId, ColumnShowRow},
 			[]glib.Value{*glib.NewValue(favIcon),
 				*glib.NewValue(videoItem.Name),
 				*glib.NewValue(videoItem.Type),
@@ -146,6 +151,9 @@ func (panel *VideoIndexPanel) buildListStore() *gtk.ListStore {
 				*glib.NewValue(videoItem.Date),
 				*glib.NewValue(formatPower(panel.Parent.Profile.GetVideoFTP(videoItem.Id, false))),
 				*glib.NewValue(formatPower(panel.Parent.Profile.GetVideoMax(videoItem.Id, false))),
+				*glib.NewValue(downloadIcon),
+				*glib.NewValue(videoItem.Id),
+				*glib.NewValue(true),
 			})
 	}
 	return listStore

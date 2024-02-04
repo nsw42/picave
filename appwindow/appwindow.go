@@ -1,6 +1,7 @@
 package appwindow
 
 import (
+	"nsw42/picave/feed"
 	"nsw42/picave/profile"
 
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
@@ -14,6 +15,7 @@ type AppWindow struct {
 	MainPanel       *MainPanel
 	WarmUpPanel     *WarmUpPanel
 	VideoIndexPanel *VideoIndexPanel
+	FeedCache       *feed.FeedCache
 }
 
 func NewAppWindow(app *gtk.Application,
@@ -23,6 +25,8 @@ func NewAppWindow(app *gtk.Application,
 	rtn := &AppWindow{Profile: profile}
 	rtn.GtkWindow = gtk.NewApplicationWindow(app)
 	rtn.GtkWindow.SetTitle("PiCave")
+
+	rtn.FeedCache = feed.NewFeedCache(profile)
 
 	rtn.Stack = gtk.NewStack()
 	rtn.GtkWindow.SetChild(rtn.Stack)
