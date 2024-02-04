@@ -10,13 +10,16 @@ import (
 )
 
 type VideoIndexPanel struct {
-	Parent          *AppWindow
-	Contents        *gtk.Grid
-	ListStore       *gtk.ListStore
-	TreeView        *gtk.TreeView
-	FavouriteIcon   string
-	DownloadedIcon  string
-	DownloadingIcon string
+	Parent                   *AppWindow
+	Contents                 *gtk.Grid
+	ListStore                *gtk.ListStore
+	ListStoreRows            []*gtk.TreeIter
+	ListStoreFavouriteFilter *gtk.TreeModelFilter
+	TreeView                 *gtk.TreeView
+	EventController          *gtk.EventControllerKey
+	FavouriteIcon            string
+	DownloadedIcon           string
+	DownloadingIcon          string
 }
 
 type ListStoreColumn int
@@ -76,7 +79,11 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.FavouriteIcon = findIcon([]string{"starred-symbolic", "starred"})
 	rtn.DownloadedIcon = findIcon([]string{"emblem-ok-symbolic", "emblem-downloads", "emblem-shared"})
 	rtn.DownloadingIcon = findIcon([]string{"emblem-synchronizing-symbolic", "emblem-synchronizing"})
-	rtn.ListStore = rtn.buildListStore()
+	rtn.ListStore, rtn.ListStoreRows = rtn.buildListStore()
+	rtn.showAllOrFavouritesOnly() // Updates the showRow bool in the list store - could do it while building, but it would duplicates much of toggling the state
+
+	rtn.ListStoreFavouriteFilter = rtn.ListStore.NewFilter(nil).Cast().(*gtk.TreeModelFilter)
+	rtn.ListStoreFavouriteFilter.SetVisibleColumn(int(ColumnShowRow))
 
 	rtn.TreeView = gtk.NewTreeView()
 	rtn.TreeView.AppendColumn(createPixbufColumn("Favourite", ColumnFavourite))
@@ -87,8 +94,12 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.TreeView.AppendColumn(createTextColumn("FTP", ColumnEffectiveFTP))
 	rtn.TreeView.AppendColumn(createTextColumn("Max", ColumnEffectiveMax))
 	rtn.TreeView.AppendColumn(createPixbufColumn("Downloaded", ColumnVideoDownloaded))
-	rtn.TreeView.SetModel(rtn.ListStore)
+	rtn.TreeView.SetModel(rtn.ListStoreFavouriteFilter)
 	rtn.TreeView.SetEnableSearch(false)
+
+	rtn.EventController = gtk.NewEventControllerKey()
+	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
+	rtn.TreeView.AddController(rtn.EventController)
 
 	scrollableTree := gtk.NewScrolledWindow()
 	scrollableTree.SetHExpand(true)
@@ -114,7 +125,17 @@ func (panel *VideoIndexPanel) OnBackClicked() {
 	panel.Parent.Stack.SetVisibleChildName(MainPanelName)
 }
 
-func (panel *VideoIndexPanel) buildListStore() *gtk.ListStore {
+func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.ModifierType) bool {
+	// fmt.Println("OnKeyPress: ", keyval, keycode, state)
+	switch {
+	case keyval == 'c':
+		panel.toggleAllOrFavouritesOnly()
+		return true
+	}
+	return false
+}
+
+func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter) {
 	listStore := gtk.NewListStore([]glib.Type{
 		glib.TypeString,  // fav
 		glib.TypeString,  // title
@@ -127,6 +148,7 @@ func (panel *VideoIndexPanel) buildListStore() *gtk.ListStore {
 		glib.TypeString,  // Video ID
 		glib.TypeBoolean, // Show Row
 	})
+	rows := []*gtk.TreeIter{}
 	for _, videoItem := range feed.Index {
 		var favIcon string
 		if slices.Contains(panel.Parent.Profile.Favourites, videoItem.Id) {
@@ -155,8 +177,28 @@ func (panel *VideoIndexPanel) buildListStore() *gtk.ListStore {
 				*glib.NewValue(videoItem.Id),
 				*glib.NewValue(true),
 			})
+		rows = append(rows, newRow)
 	}
-	return listStore
+	return listStore, rows
+}
+
+func (panel *VideoIndexPanel) toggleAllOrFavouritesOnly() {
+	panel.Parent.Profile.ShowFavouritesOnly = !panel.Parent.Profile.ShowFavouritesOnly
+	panel.showAllOrFavouritesOnly()
+	// panel.Parent.Profile.Save()
+}
+
+func (panel *VideoIndexPanel) showAllOrFavouritesOnly() {
+	profile := panel.Parent.Profile
+	for i, videoItem := range feed.Index {
+		var show bool
+		if profile.ShowFavouritesOnly {
+			show = slices.Contains(profile.Favourites, videoItem.Id)
+		} else {
+			show = true
+		}
+		panel.ListStore.SetValue(panel.ListStoreRows[i], int(ColumnShowRow), glib.NewValue(show))
+	}
 }
 
 func formatPower(power string) string {
