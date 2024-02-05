@@ -277,11 +277,22 @@ func (profile *Profile) Save() error {
 }
 
 func (profile *Profile) GetVideoFTP(videoId string, expandDefault bool) string {
+	val := profile.GetVideoFTPVal(videoId, expandDefault)
+	if val == 0 {
+		return ""
+	}
+	return strconv.Itoa(val)
+}
+
+func (profile *Profile) GetVideoFTPVal(videoId string, expandDefault bool) int {
 	val, found := profile.PowerLevels[videoId]
 	if found && val.FTP != 0 {
-		return strconv.Itoa(val.FTP)
+		return val.FTP
 	}
-	return ""
+	if expandDefault {
+		return profile.GetVideoFTPVal("default", false)
+	}
+	return 0
 }
 
 func (profile *Profile) GetVideoMax(videoId string, expandDefault bool) string {
@@ -297,7 +308,30 @@ func (profile *Profile) GetVideoMax(videoId string, expandDefault bool) string {
 			return fmt.Sprintf("%d%%", max.PercentFTP)
 		}
 	}
+	if expandDefault {
+		return profile.GetVideoMax("default", false)
+	}
 	return ""
+}
+
+func (profile *Profile) GetVideoMaxVal(videoId string, expandDefault bool) int {
+	val, found := profile.PowerLevels[videoId]
+	if found {
+		max := val.Max
+		switch max.ValueType {
+		case NoValue:
+			return 0
+		case AbsoluteValue:
+			return max.Absolute
+		case RelativeToFTPValue:
+			ftp := profile.GetVideoFTPVal(videoId, expandDefault)
+			return ftp * max.PercentFTP / 100.0
+		}
+	}
+	if expandDefault {
+		return profile.GetVideoMaxVal("default", false)
+	}
+	return 0
 }
 
 func validateProfileFile(configMap interface{}) error {

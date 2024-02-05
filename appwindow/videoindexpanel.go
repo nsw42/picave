@@ -1,7 +1,9 @@
 package appwindow
 
 import (
+	"fmt"
 	"nsw42/picave/feed"
+	"nsw42/picave/widgets"
 	"slices"
 
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
@@ -16,6 +18,7 @@ type VideoIndexPanel struct {
 	ListStoreRows            []*gtk.TreeIter
 	ListStoreFavouriteFilter *gtk.TreeModelFilter
 	TreeView                 *gtk.TreeView
+	SessionPreview           *widgets.SessionPreview
 	EventController          *gtk.EventControllerKey
 	FavouriteIcon            string
 	DownloadedIcon           string
@@ -82,9 +85,11 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.ListStore, rtn.ListStoreRows = rtn.buildListStore()
 	rtn.showAllOrFavouritesOnly() // Updates the showRow bool in the list store - could do it while building, but it would duplicates much of toggling the state
 
+	// This is deprecated - should use GtkFilterListModel
 	rtn.ListStoreFavouriteFilter = rtn.ListStore.NewFilter(nil).Cast().(*gtk.TreeModelFilter)
 	rtn.ListStoreFavouriteFilter.SetVisibleColumn(int(ColumnShowRow))
 
+	// TODO: TreeView is deprecated - should switch to ColumnView at some point
 	rtn.TreeView = gtk.NewTreeView()
 	rtn.TreeView.AppendColumn(createPixbufColumn("Favourite", ColumnFavourite))
 	rtn.TreeView.AppendColumn(createTextColumn("Title", ColumnTitle))
@@ -96,6 +101,7 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.TreeView.AppendColumn(createPixbufColumn("Downloaded", ColumnVideoDownloaded))
 	rtn.TreeView.SetModel(rtn.ListStoreFavouriteFilter)
 	rtn.TreeView.SetEnableSearch(false)
+	rtn.TreeView.ConnectCursorChanged(rtn.OnIndexSelectionChanged)
 
 	rtn.EventController = gtk.NewEventControllerKey()
 	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
@@ -106,6 +112,9 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	scrollableTree.SetVExpand(true)
 	scrollableTree.SetChild(rtn.TreeView)
 
+	rtn.SessionPreview = widgets.NewSessionPreview(parent.Profile)
+	rtn.SessionPreview.SetVExpand(true)
+
 	backButton := gtk.NewButtonWithLabel("Back")
 	backButton.ConnectClicked(rtn.OnBackClicked)
 
@@ -115,6 +124,7 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	grid.SetMarginStart(200)
 	grid.SetMarginEnd(200)
 	grid.Attach(scrollableTree, 0, 0, 1, 3)
+	grid.Attach(rtn.SessionPreview, 0, 3, 1, 2)
 	grid.Attach(backButton, 0, 5, 1, 1)
 	rtn.Contents = grid
 

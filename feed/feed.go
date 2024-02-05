@@ -18,26 +18,44 @@ type VideoFeedItem struct {
 }
 
 type Color struct {
-	Red   int
-	Green int
-	Blue  int
+	Red   float64
+	Green float64
+	Blue  float64
 }
+
+// These are similar to profile.PowerLevel, but different
+type IntervalPowerLevel struct {
+	Type       IntervalPowerLevelType
+	PercentFTP int
+}
+
+type IntervalPowerLevelType int
+
+const (
+	RelativeToFTPValue IntervalPowerLevelType = iota
+	MaxEffort
+)
 
 type Duration struct {
 	time.Duration
 }
 
-type SessionDefinition struct {
+type IntervalDefinition struct {
 	Name     string
 	Type     string
 	Cadence  int
-	Effort   string
+	Effort   IntervalPowerLevel
 	Duration Duration
 	Color    Color
 }
 
+type SessionDefinition struct {
+	VideoId   string
+	Intervals []IntervalDefinition
+}
+
 var Index []VideoFeedItem
-var Sessions map[string][]SessionDefinition
+var Sessions map[string]*SessionDefinition
 
 func init() {
 	initIndex()

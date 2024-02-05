@@ -24,8 +24,8 @@ func split(s string, sep string) []string {
 	return strings.Split(s, sep)
 }
 
-func atoi(s string) int {
-	v, err := strconv.Atoi(s)
+func atof(s string) float64 {
+	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -50,9 +50,9 @@ func initColourNames() {
 			panic("Unexpected colour definition in line: " + line + " - len(rgb)=" + strconv.Itoa(len(rgb)))
 		}
 		colourNames[colName] = Color{
-			Red:   atoi(rgb[0]),
-			Green: atoi(rgb[1]),
-			Blue:  atoi(rgb[2]),
+			Red:   atof(rgb[0]) / 255.0,
+			Green: atof(rgb[1]) / 255.0,
+			Blue:  atof(rgb[2]) / 255.0,
 		}
 	}
 }
