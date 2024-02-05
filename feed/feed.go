@@ -2,7 +2,7 @@ package feed
 
 import (
 	"embed"
-	"encoding/json"
+	"time"
 )
 
 //go:embed *.json
@@ -17,14 +17,30 @@ type VideoFeedItem struct {
 	Type     string
 }
 
+type Color struct {
+	Red   int
+	Green int
+	Blue  int
+}
+
+type Duration struct {
+	time.Duration
+}
+
+type SessionDefinition struct {
+	Name     string
+	Type     string
+	Cadence  int
+	Effort   string
+	Duration Duration
+	Color    Color
+}
+
 var Index []VideoFeedItem
+var Sessions map[string][]SessionDefinition
 
 func init() {
-	indexData, err := content.ReadFile("index.json")
-	if err != nil {
-		panic("Unable to find index.json in embedded FS: " + err.Error())
-	}
-	if err = json.Unmarshal(indexData, &Index); err != nil {
-		panic("Unable to unmarshal index: " + err.Error())
-	}
+	initIndex()
+	initColourNames()
+	initSessionDefinitions()
 }
