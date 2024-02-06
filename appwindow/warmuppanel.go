@@ -151,6 +151,7 @@ func (panel *WarmUpPanel) PlayRandomTrack() {
 	} else {
 		mm := int(metadata.DurationSeconds / 60.)
 		ss := int(metadata.DurationSeconds - mm*60.0)
+		panel.TimeLabel.SetLabel("00:00")
 		panel.DurationLabel.SetLabel(fmt.Sprintf("/ %02d:%02d", mm, ss))
 	}
 
