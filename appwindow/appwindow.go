@@ -1,6 +1,7 @@
 package appwindow
 
 import (
+	"fmt"
 	"nsw42/picave/feed"
 	"nsw42/picave/profile"
 
@@ -17,6 +18,7 @@ type AppWindow struct {
 	VideoIndexPanel *VideoIndexPanel
 	SessionPanel    *SessionPanel
 	FeedCache       *feed.FeedCache
+	EventController *gtk.EventControllerKey
 }
 
 func NewAppWindow(app *gtk.Application,
@@ -33,6 +35,10 @@ func NewAppWindow(app *gtk.Application,
 	rtn.GtkWindow.SetChild(rtn.Stack)
 	rtn.Stack.SetTransitionType(gtk.StackTransitionTypeSlideLeftRight)
 	rtn.Stack.SetTransitionDuration(1000)
+
+	rtn.EventController = gtk.NewEventControllerKey()
+	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
+	rtn.GtkWindow.AddController(rtn.EventController)
 
 	if fullScreen {
 		rtn.GtkWindow.Fullscreen()
@@ -60,4 +66,51 @@ func NewAppWindow(app *gtk.Application,
 	rtn.Stack.SetVisibleChildName(MainPanelName)
 
 	return rtn
+}
+
+func (window *AppWindow) OnBackKey() {
+	window.StopPlaying()
+	switch window.Stack.VisibleChildName() {
+	case SessionPanelName:
+		window.Stack.SetVisibleChildName(VideoIndexPanelName)
+	case WarmUpPanelName, VideoIndexPanelName:
+		window.Stack.SetVisibleChildName(MainPanelName)
+	case MainPanelName:
+		// TODO: quit dialog
+	}
+}
+
+func (window *AppWindow) OnKeyPress(keyval uint, keycode uint, state gdk.ModifierType) bool {
+	switch {
+	case (keyval == 'c') && (state == 0): // OSMC 'index' button
+		window.OnShowIndex()
+		return true
+	case (keyval == gdk.KEY_Escape) && (state == 0):
+		window.OnShowHome()
+		return true
+	case keyval == 'X': // Simulate the OSMC 'back' button
+		window.OnBackKey()
+		return true
+	}
+	fmt.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
+	return false
+}
+
+func (window *AppWindow) OnShowHome() {
+	window.StopPlaying()
+	window.Stack.SetVisibleChildName(MainPanelName)
+}
+
+func (window *AppWindow) OnShowIndex() {
+	window.StopPlaying()
+	window.Stack.SetVisibleChildName(VideoIndexPanelName)
+}
+
+func (window *AppWindow) StopPlaying() {
+	switch window.Stack.VisibleChildName() {
+	case WarmUpPanelName:
+		window.WarmUpPanel.Stop()
+	case SessionPanelName:
+		window.SessionPanel.Stop()
+	}
 }

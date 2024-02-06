@@ -103,8 +103,7 @@ func NewWarmUpPanel(parent *AppWindow) *WarmUpPanel {
 }
 
 func (panel *WarmUpPanel) OnBackClicked() {
-	glib.SourceRemove(panel.TimerHandle)
-	panel.MusicPlayer.Stop()
+	panel.Stop()
 	panel.Parent.Stack.SetVisibleChildName(MainPanelName)
 }
 
@@ -160,6 +159,13 @@ func (panel *WarmUpPanel) PlayRandomTrack() {
 	}
 	panel.MusicPlayer.Play(musicFile)
 	panel.PlayerStartedAt = time.Now()
+}
+
+func (panel *WarmUpPanel) Stop() {
+	glib.SourceRemove(panel.TimerHandle)
+	if panel.MusicPlayer != nil {
+		panel.MusicPlayer.Stop()
+	}
 }
 
 func expandingLabel(contents string, cssClass string) *gtk.Label {

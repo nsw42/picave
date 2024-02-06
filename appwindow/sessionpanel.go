@@ -99,6 +99,7 @@ func (panel *SessionPanel) StartPlayingIfAllPrerequisitesAvailable() {
 }
 
 func (panel *SessionPanel) Stop() {
+	glib.SourceRemove(panel.TimerHandle)
 	if panel.Player != nil {
 		panel.Player.Stop()
 	}
