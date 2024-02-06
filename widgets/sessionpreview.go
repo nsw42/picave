@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fmt"
 	"math"
 	"nsw42/picave/feed"
 	"nsw42/picave/profile"
@@ -11,11 +10,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-type DrawInterval struct {
+type PreviewInterval struct {
 	feed.IntervalDefinition
 	DurationSec float64
 	EffortVal   float64
-	EffortStr   string
 	StartOffset float64
 }
 
@@ -23,12 +21,12 @@ type SessionPreview struct {
 	*gtk.DrawingArea
 	Profile            *profile.Profile
 	Session            *feed.SessionDefinition
-	DrawOrderIntervals []DrawInterval
+	DrawOrderIntervals []PreviewInterval
 	MaxDuration        float64
 }
 
 func NewSessionPreview(profile *profile.Profile) *SessionPreview {
-	rtn := &SessionPreview{gtk.NewDrawingArea(), profile, nil, []DrawInterval{}, 0}
+	rtn := &SessionPreview{gtk.NewDrawingArea(), profile, nil, []PreviewInterval{}, 0}
 	rtn.SetDrawFunc(rtn.OnDraw)
 	return rtn
 }
@@ -68,38 +66,31 @@ func (widget *SessionPreview) OnDraw(_ *gtk.DrawingArea, cr *cairo.Context, widt
 func (widget *SessionPreview) ShowSession(session *feed.SessionDefinition) {
 	widget.Session = session
 	if session == nil {
-		widget.DrawOrderIntervals = []DrawInterval{}
+		widget.DrawOrderIntervals = []PreviewInterval{}
 		return
 	}
 	// intervals are given to us in chronological order, but sort them
 	// into desired order for drawing
-	widget.DrawOrderIntervals = make([]DrawInterval, len(session.Intervals))
+	widget.DrawOrderIntervals = make([]PreviewInterval, len(session.Intervals))
 	videoFTP := float64(widget.Profile.GetVideoFTPVal(session.VideoId, true))
 	videoMaxInt := widget.Profile.GetVideoMaxVal(session.VideoId, true)
 	var videoMax float64
-	var videoMaxStr string
 	if videoMaxInt == 0 {
 		videoMax = math.Inf(1)
-		videoMaxStr = "MAX"
 	} else {
 		videoMax = float64(videoMaxInt)
-		videoMaxStr = fmt.Sprintf("%d%%", videoMaxInt)
 	}
 	// Initially, construct the intervals in chronological order (the same as the underlying session intervals)
 	startOffset := 0.0
-	for i := range session.Intervals {
-		feedInterval := session.Intervals[i]
+	for i, feedInterval := range session.Intervals {
 		var intervalEffort float64
-		var intervalEffortStr string
 		switch feedInterval.Effort.Type {
 		case feed.RelativeToFTPValue:
 			intervalEffort = float64(feedInterval.Effort.PercentFTP) * videoFTP / 100.0
-			intervalEffortStr = fmt.Sprintf("%dW", int(intervalEffort))
 		case feed.MaxEffort:
 			intervalEffort = videoMax
-			intervalEffortStr = videoMaxStr
 		}
-		widget.DrawOrderIntervals[i] = DrawInterval{feedInterval, feedInterval.Duration.Seconds(), intervalEffort, intervalEffortStr, startOffset}
+		widget.DrawOrderIntervals[i] = PreviewInterval{feedInterval, feedInterval.Duration.Seconds(), intervalEffort, startOffset}
 		startOffset += feedInterval.Duration.Seconds()
 	}
 	widget.MaxDuration = widget.DrawOrderIntervals[len(widget.DrawOrderIntervals)-1].StartOffset + widget.DrawOrderIntervals[len(widget.DrawOrderIntervals)-1].DurationSec

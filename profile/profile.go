@@ -18,18 +18,18 @@ import (
 var schemaString string
 
 type Profile struct {
-	FilePath              string
-	VideoCacheDirectory   string
-	WarmUpMusic           *musicdir.MusicDirectory
-	Executables           map[string]string // map from player name to file path
-	FiletypePlayers       map[string]string // map from suffix (".mp3") to player name ("mpv")
-	FiletypePlayerOptions map[string]FiletypePlayerOptions
-	Favourites            []string
-	ShowFavouritesOnly    bool
-	PowerLevels           map[string]PowerLevels
+	FilePath            string
+	VideoCacheDirectory string
+	WarmUpMusic         *musicdir.MusicDirectory
+	Executables         map[string]string                 // map from player name to file path
+	FiletypePlayers     map[string]*FiletypePlayerOptions // map from suffix (".mp3") to player name ("mpv") and associated options
+	Favourites          []string
+	ShowFavouritesOnly  bool
+	PowerLevels         map[string]PowerLevels
 }
 
 type FiletypePlayerOptions struct {
+	Name         string
 	Options      []string
 	MarginLeft   int
 	MarginRight  int
@@ -156,8 +156,7 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 			profile.Executables[exe] = exeMapVal[fileKeyExePath].(string)
 		}
 	}
-	profile.FiletypePlayers = map[string]string{}
-	profile.FiletypePlayerOptions = map[string]FiletypePlayerOptions{}
+	profile.FiletypePlayers = map[string]*FiletypePlayerOptions{}
 	if configMap[fileKeyFiletypes] != nil {
 		for filetype, playerMap := range configMap[fileKeyFiletypes].(map[string]interface{}) {
 			playerMapVal := playerMap.(map[string]interface{})
@@ -169,7 +168,7 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 			// 	fmt.Println("Unrecognised player ", playerName, " selected for filetype ", filetype)
 			// 	continue
 			// }
-			profile.FiletypePlayers[filetype] = playerName
+			options.Name = playerName
 			options.Options = stringList(playerMapVal[fileKeyOptions])
 
 			if playerMapVal[fileKeyParameters] != nil {
@@ -179,7 +178,7 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 				options.MarginTop = optionalInt(paramsMap[fileKeyParamMarginTop])
 				options.MarginBottom = optionalInt(paramsMap[fileKeyParamMarginBottom])
 			}
-			profile.FiletypePlayerOptions[filetype] = options
+			profile.FiletypePlayers[filetype] = &options
 		}
 	}
 	profile.Favourites = stringList(configMap[fileKeyFavourites])
@@ -208,24 +207,23 @@ func (profile *Profile) buildExecutablesJsonModel() interface{} {
 
 func (profile *Profile) buildFiletypesJsonModel() interface{} {
 	filetypeMap := map[string]any{}
-	for ext, playerName := range profile.FiletypePlayers {
+	for ext, playerOpts := range profile.FiletypePlayers {
 		filetypeMap[ext] = func() interface{} {
 			oneFiletypeMap := map[string]any{}
-			oneFiletypeMap[fileKeyPlayer] = playerName
-			opts := profile.FiletypePlayerOptions[ext]
-			oneFiletypeMap[fileKeyOptions] = opts.Options
+			oneFiletypeMap[fileKeyPlayer] = playerOpts.Name
+			oneFiletypeMap[fileKeyOptions] = playerOpts.Options
 			paramMap := map[string]int{}
-			if opts.MarginLeft != 0 {
-				paramMap[fileKeyParamMarginLeft] = opts.MarginLeft
+			if playerOpts.MarginLeft != 0 {
+				paramMap[fileKeyParamMarginLeft] = playerOpts.MarginLeft
 			}
-			if opts.MarginRight != 0 {
-				paramMap[fileKeyParamMarginRight] = opts.MarginRight
+			if playerOpts.MarginRight != 0 {
+				paramMap[fileKeyParamMarginRight] = playerOpts.MarginRight
 			}
-			if opts.MarginTop != 0 {
-				paramMap[fileKeyParamMarginTop] = opts.MarginTop
+			if playerOpts.MarginTop != 0 {
+				paramMap[fileKeyParamMarginTop] = playerOpts.MarginTop
 			}
-			if opts.MarginBottom != 0 {
-				paramMap[fileKeyParamMarginBottom] = opts.MarginBottom
+			if playerOpts.MarginBottom != 0 {
+				paramMap[fileKeyParamMarginBottom] = playerOpts.MarginBottom
 			}
 			oneFiletypeMap[fileKeyParameters] = paramMap
 			return oneFiletypeMap

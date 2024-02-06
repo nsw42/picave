@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"nsw42/picave/players"
+	"nsw42/picave/utils"
 	"os"
 	"time"
 
@@ -133,9 +134,7 @@ func (panel *WarmUpPanel) OnTimerTick() bool {
 		panel.PlayRandomTrack()
 	} else {
 		musicTrackElapsed := time.Since(panel.PlayerStartedAt)
-		mm := int(musicTrackElapsed.Minutes())
-		ss := int(musicTrackElapsed.Seconds()) - mm*60
-		panel.TimeLabel.SetLabel(fmt.Sprintf("%02d:%02d ", mm, ss))
+		panel.TimeLabel.SetLabel(utils.FormatDurationMMSS(musicTrackElapsed))
 	}
 	return true
 }
@@ -156,9 +155,7 @@ func (panel *WarmUpPanel) PlayRandomTrack() {
 	}
 
 	if panel.MusicPlayer == nil {
-		playerName := panel.Parent.Profile.FiletypePlayers[metadata.Filetype]
-		playerCreator := players.PlayerLookup[playerName]
-		panel.MusicPlayer = playerCreator(panel.Parent.Profile)
+		panel.MusicPlayer = players.CreatePlayerForExt(panel.Parent.Profile, metadata.Filetype)
 	}
 	panel.MusicPlayer.Play(musicFile)
 	panel.PlayerStartedAt = time.Now()

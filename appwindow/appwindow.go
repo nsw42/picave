@@ -15,6 +15,7 @@ type AppWindow struct {
 	MainPanel       *MainPanel
 	WarmUpPanel     *WarmUpPanel
 	VideoIndexPanel *VideoIndexPanel
+	SessionPanel    *SessionPanel
 	FeedCache       *feed.FeedCache
 }
 
@@ -49,10 +50,12 @@ func NewAppWindow(app *gtk.Application,
 	rtn.MainPanel = NewMainPanel(rtn)
 	rtn.WarmUpPanel = NewWarmUpPanel(rtn)
 	rtn.VideoIndexPanel = NewVideoIndexPanel(rtn)
+	rtn.SessionPanel = NewSessionPanel(rtn)
 
 	rtn.Stack.AddNamed(rtn.MainPanel.Contents, MainPanelName)
 	rtn.Stack.AddNamed(rtn.WarmUpPanel.Contents, WarmUpPanelName)
 	rtn.Stack.AddNamed(rtn.VideoIndexPanel.Contents, VideoIndexPanelName)
+	rtn.Stack.AddNamed(rtn.SessionPanel.Contents, SessionPanelName)
 
 	rtn.Stack.SetVisibleChildName(MainPanelName)
 

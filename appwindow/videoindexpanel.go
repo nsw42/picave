@@ -102,6 +102,7 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.TreeView.SetModel(rtn.ListStoreFavouriteFilter)
 	rtn.TreeView.SetEnableSearch(false)
 	rtn.TreeView.ConnectCursorChanged(rtn.OnIndexSelectionChanged)
+	rtn.TreeView.ConnectRowActivated(rtn.OnVideoActivated)
 
 	rtn.EventController = gtk.NewEventControllerKey()
 	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
@@ -135,6 +136,28 @@ func (panel *VideoIndexPanel) OnBackClicked() {
 	panel.Parent.Stack.SetVisibleChildName(MainPanelName)
 }
 
+func (panel *VideoIndexPanel) getSessionFromTreeViewRow(row *gtk.TreePath) *feed.SessionDefinition {
+	iter, ok := panel.ListStoreFavouriteFilter.Iter(row)
+	if !ok {
+		fmt.Println("Unable to construct iter")
+		return nil
+	}
+	val := panel.ListStoreFavouriteFilter.Value(iter, ColumnVideoId)
+	videoId := val.String()
+	session, ok := feed.Sessions[videoId]
+	if !ok {
+		fmt.Println("Unrecognised video id?!")
+		return nil
+	}
+	return session
+}
+
+func (panel *VideoIndexPanel) OnIndexSelectionChanged() {
+	row, _ := panel.TreeView.Cursor()
+	session := panel.getSessionFromTreeViewRow(row)
+	panel.SessionPreview.ShowSession(session)
+}
+
 func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.ModifierType) bool {
 	// fmt.Println("OnKeyPress: ", keyval, keycode, state)
 	switch {
@@ -143,6 +166,16 @@ func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.Mo
 		return true
 	}
 	return false
+}
+
+func (panel *VideoIndexPanel) OnVideoActivated(row *gtk.TreePath, column *gtk.TreeViewColumn) {
+	session := panel.getSessionFromTreeViewRow(row)
+	if panel.Parent.FeedCache.State[session.VideoId] != feed.Downloaded {
+		fmt.Println("Attempt to play a non-downloaded video: " + session.VideoId)
+		return
+	}
+	panel.Parent.SessionPanel.Play(session)
+	panel.Parent.Stack.SetVisibleChildName(SessionPanelName)
 }
 
 func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter) {
