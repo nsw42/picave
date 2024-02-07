@@ -1,25 +1,78 @@
 package players
 
 import (
+	"encoding/json"
+	"fmt"
+	"net"
 	"nsw42/picave/profile"
 	"os/exec"
 	"path/filepath"
 )
 
-type MpvPlayer struct {
-	Profile         *profile.Profile
-	Command         *exec.Cmd
-	CommandFinished bool
-	IpcAddress      string
+var pauseCommand []byte
+var resumeCommand []byte
+
+func encodeCommand(command []string) []byte {
+	toEncode := map[string][]string{"command": command}
+	marshalled, err := json.Marshal(toEncode)
+	if err != nil {
+		panic("Unable to marshal command: " + fmt.Sprintf("%v", toEncode))
+	}
+	marshalled = append(marshalled, '\n')
+	return marshalled
 }
 
-func (player *MpvPlayer) IsFinished() bool {
-	return player.CommandFinished
+func init() {
+	pauseCommand = encodeCommand([]string{"set_property_string", "pause", "yes"})
+	resumeCommand = encodeCommand([]string{"set_property_string", "pause", "no"})
+}
+
+type MpvPlayer struct {
+	Profile    *profile.Profile
+	Command    *exec.Cmd
+	IpcAddress string
+	State      PlayerState
+	Socket     net.Conn
+}
+
+func (player *MpvPlayer) PlayerState() PlayerState {
+	return player.State
 }
 
 func (player *MpvPlayer) Play(file string) {
 	exe := player.Profile.Executables["mpv"]
 	go player.launch(exe, file)
+}
+
+func (player *MpvPlayer) PlayPause() {
+	switch player.State {
+	case PlayerPlaying:
+		player.sendCommand(pauseCommand)
+		player.State = PlayerPaused
+	case PlayerPaused:
+		player.sendCommand(resumeCommand)
+		player.State = PlayerPlaying
+	}
+}
+
+func (player *MpvPlayer) sendCommand(command []byte) {
+	if player.Socket == nil {
+		socket, err := net.Dial("unix", player.IpcAddress)
+		if err != nil {
+			fmt.Println("Unable to create socket to connect to " + player.IpcAddress)
+			return
+		}
+		player.Socket = socket
+	}
+	n, err := player.Socket.Write(command)
+	if err != nil {
+		fmt.Println("Failed to write to socket: " + err.Error())
+		return
+	}
+	if n < len(command) {
+		fmt.Println("Truncated write to socket:", n, "of", len(command))
+		return
+	}
 }
 
 func (player *MpvPlayer) Stop() {
@@ -34,19 +87,19 @@ func (player *MpvPlayer) launch(exe string, file string) {
 		opts = []string{
 			"--geometry=0:0",
 			"--ontop",
-			"--input-ipc-server=" + player.IpcAddress,
 		}
 	}
-	allOpts := append([]string{}, file)
+	allOpts := []string{file}
 	allOpts = append(allOpts, opts...)
-	player.CommandFinished = false
+	allOpts = append(allOpts, "--input-ipc-server="+player.IpcAddress)
 	player.Command = exec.Command(exe, allOpts...)
+	player.State = PlayerPlaying
 	player.Command.Run()
-	player.CommandFinished = true
+	player.State = PlayerFinished
 }
 
 func NewMpvPlayer(profile *profile.Profile) Player {
-	return &MpvPlayer{profile, nil, false, "/tmp/picave.mpv-socket"}
+	return &MpvPlayer{profile, nil, "/tmp/picave.mpv-socket", PlayerNotStarted, nil}
 }
 
 func init() {

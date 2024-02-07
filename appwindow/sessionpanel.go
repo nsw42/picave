@@ -29,7 +29,7 @@ func NewSessionPanel(parent *AppWindow) *SessionPanel {
 	rtn := &SessionPanel{Parent: parent, VideoFile: "", Realized: false, SizeKnown: false}
 
 	rtn.VideoArea = gtk.NewDrawingArea()
-	// rtn.VideoArea.SetDrawFunc(rtn.OnDraw)
+	rtn.VideoArea.SetDrawFunc(rtn.OnDraw)
 	rtn.VideoArea.ConnectRealize(rtn.OnRealized)
 	rtn.VideoArea.ConnectResize(rtn.OnResized)
 	rtn.VideoArea.SetHExpand(true)
@@ -51,6 +51,11 @@ func (panel *SessionPanel) OnDraw(_ *gtk.DrawingArea, cr *cairo.Context, width, 
 	cr.Paint()
 }
 
+func (panel *SessionPanel) OnPlayPause() {
+	panel.Player.PlayPause()
+	panel.IntervalWidget.PlayPause()
+}
+
 func (panel *SessionPanel) OnRealized() {
 	panel.Realized = true
 	panel.StartPlayingIfAllPrerequisitesAvailable()
@@ -68,7 +73,7 @@ func (panel *SessionPanel) OnResized(width int, height int) {
 }
 
 func (panel *SessionPanel) OnTimerTick() bool {
-	if panel.Player == nil || panel.Player.IsFinished() {
+	if panel.Player == nil || panel.Player.PlayerState() == players.PlayerFinished {
 		panel.Stop()
 		panel.Parent.Stack.SetVisibleChildName(VideoIndexPanelName)
 		return false

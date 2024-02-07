@@ -19,7 +19,7 @@ type VideoIndexPanel struct {
 	ListStoreFavouriteFilter *gtk.TreeModelFilter
 	TreeView                 *gtk.TreeView
 	SessionPreview           *widgets.SessionPreview
-	EventController          *gtk.EventControllerKey
+	KeyController            *gtk.EventControllerKey
 	FavouriteIcon            string
 	DownloadedIcon           string
 	DownloadingIcon          string
@@ -104,9 +104,9 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.TreeView.ConnectCursorChanged(rtn.OnIndexSelectionChanged)
 	rtn.TreeView.ConnectRowActivated(rtn.OnVideoActivated)
 
-	rtn.EventController = gtk.NewEventControllerKey()
-	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
-	rtn.TreeView.AddController(rtn.EventController)
+	rtn.KeyController = gtk.NewEventControllerKey()
+	rtn.KeyController.ConnectKeyPressed(rtn.OnKeyPress)
+	rtn.TreeView.AddController(rtn.KeyController)
 
 	scrollableTree := gtk.NewScrolledWindow()
 	scrollableTree.SetHExpand(true)

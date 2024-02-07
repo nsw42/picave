@@ -6,10 +6,20 @@ import (
 )
 
 type Player interface {
-	IsFinished() bool
+	PlayerState() PlayerState
 	Play(file string)
 	Stop()
+	PlayPause()
 }
+
+type PlayerState int
+
+const (
+	PlayerNotStarted PlayerState = iota
+	PlayerPlaying
+	PlayerPaused
+	PlayerFinished
+)
 
 type PlayerCreator func(*profile.Profile) Player
 

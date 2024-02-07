@@ -18,7 +18,7 @@ type AppWindow struct {
 	VideoIndexPanel *VideoIndexPanel
 	SessionPanel    *SessionPanel
 	FeedCache       *feed.FeedCache
-	EventController *gtk.EventControllerKey
+	KeyController   *gtk.EventControllerKey
 }
 
 func NewAppWindow(app *gtk.Application,
@@ -36,9 +36,9 @@ func NewAppWindow(app *gtk.Application,
 	rtn.Stack.SetTransitionType(gtk.StackTransitionTypeSlideLeftRight)
 	rtn.Stack.SetTransitionDuration(1000)
 
-	rtn.EventController = gtk.NewEventControllerKey()
-	rtn.EventController.ConnectKeyPressed(rtn.OnKeyPress)
-	rtn.GtkWindow.AddController(rtn.EventController)
+	rtn.KeyController = gtk.NewEventControllerKey()
+	rtn.KeyController.ConnectKeyPressed(rtn.OnKeyPress)
+	rtn.GtkWindow.AddController(rtn.KeyController)
 
 	if fullScreen {
 		rtn.GtkWindow.Fullscreen()
@@ -91,9 +91,21 @@ func (window *AppWindow) OnKeyPress(keyval uint, keycode uint, state gdk.Modifie
 	case keyval == 'X': // Simulate the OSMC 'back' button
 		window.OnBackKey()
 		return true
+	case keyval == 'p' || keyval == 'P': // Simulate the OSMC play/pause button
+		window.OnPlayPause()
+		return true
 	}
 	fmt.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
 	return false
+}
+
+func (window *AppWindow) OnPlayPause() {
+	switch window.Stack.VisibleChildName() {
+	case WarmUpPanelName:
+		window.WarmUpPanel.OnPlayPause()
+	case SessionPanelName:
+		window.SessionPanel.OnPlayPause()
+	}
 }
 
 func (window *AppWindow) OnShowHome() {

@@ -26,6 +26,8 @@ type IntervalWidget struct {
 	PlayerStartTime      time.Time
 	DrawIntervals        []DrawInterval
 	CurrentIntervalIndex int
+	IsPlaying            bool
+	TotalElapsedPlayback time.Duration
 }
 
 const (
@@ -35,7 +37,7 @@ const (
 )
 
 func NewIntervalWidget(profile *profile.Profile) *IntervalWidget {
-	rtn := &IntervalWidget{gtk.NewDrawingArea(), profile, nil, time.Time{}, []DrawInterval{}, -1}
+	rtn := &IntervalWidget{gtk.NewDrawingArea(), profile, nil, time.Time{}, []DrawInterval{}, -1, false, 0}
 	rtn.SetDrawFunc(rtn.OnDraw)
 	return rtn
 }
@@ -46,6 +48,15 @@ func (widget *IntervalWidget) ForceRedraw() bool {
 	}
 	widget.QueueDraw()
 	return true
+}
+
+func (widget *IntervalWidget) PlayPause() {
+	if widget.IsPlaying {
+		widget.TotalElapsedPlayback = time.Since(widget.PlayerStartTime)
+	} else {
+		widget.PlayerStartTime = time.Now().Add(-widget.TotalElapsedPlayback)
+	}
+	widget.IsPlaying = !widget.IsPlaying
 }
 
 func (widget *IntervalWidget) StartPlaying(session *feed.SessionDefinition) {
@@ -80,6 +91,7 @@ func (widget *IntervalWidget) StartPlaying(session *feed.SessionDefinition) {
 	}
 	widget.CurrentIntervalIndex = 0
 	widget.PlayerStartTime = time.Now()
+	widget.IsPlaying = true
 	glib.TimeoutAdd(200, widget.ForceRedraw)
 }
 
@@ -90,10 +102,15 @@ func (widget *IntervalWidget) OnDraw(area *gtk.DrawingArea, cr *cairo.Context, w
 		return
 	}
 
-	now := time.Now()
+	var drawTimeOffset time.Duration
+	if widget.IsPlaying {
+		drawTimeOffset = time.Since(widget.PlayerStartTime)
+	} else {
+		drawTimeOffset = widget.TotalElapsedPlayback
+	}
 	intervals := widget.DrawIntervals
 	for widget.CurrentIntervalIndex < len(intervals) &&
-		now.After(widget.PlayerStartTime.Add(intervals[widget.CurrentIntervalIndex].EndOffset)) {
+		drawTimeOffset >= intervals[widget.CurrentIntervalIndex].EndOffset {
 		widget.CurrentIntervalIndex++
 	}
 
@@ -112,15 +129,13 @@ func (widget *IntervalWidget) OnDraw(area *gtk.DrawingArea, cr *cairo.Context, w
 		var rectY, rectH, textY float64
 		if drawIndex == 0 {
 			// 0 => current interval, not necessarily the first in the session
-			drawIntervalEnd := widget.PlayerStartTime.Add(drawInterval.EndOffset)
-			drawIntervalRemaining = drawIntervalEnd.Sub(now)
+			drawIntervalRemaining = drawInterval.EndOffset - drawTimeOffset
 			rectY = 0
 			rectH = drawIntervalRemaining.Seconds() * oneSecondHeight
 			textY = min(0, rectH-TextBlockHeight-8) + TextHeight
 		} else {
 			drawIntervalRemaining = drawInterval.Duration.Duration
-			intervalStartTime := widget.PlayerStartTime.Add(drawInterval.StartOffset)
-			startDelta := intervalStartTime.Sub(now)
+			startDelta := drawInterval.StartOffset - drawTimeOffset
 			rectY = startDelta.Seconds() * oneSecondHeight
 			rectH = drawIntervalRemaining.Seconds() * oneSecondHeight
 			textY = rectY + TextHeight

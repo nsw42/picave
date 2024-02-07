@@ -28,6 +28,7 @@ type WarmUpPanel struct {
 	TimerHandle     glib.SourceHandle
 	MusicPlayer     players.Player
 	PlayerStartedAt time.Time
+	ElapsedPlayback time.Duration
 }
 
 type MusicFileMetadata struct {
@@ -112,6 +113,17 @@ func (panel *WarmUpPanel) OnNextButtonClicked() {
 	panel.PlayRandomTrack()
 }
 
+func (panel *WarmUpPanel) OnPlayPause() {
+	if panel.MusicPlayer != nil {
+		panel.MusicPlayer.PlayPause()
+		if panel.MusicPlayer.PlayerState() == players.PlayerPaused {
+			panel.ElapsedPlayback = time.Since(panel.PlayerStartedAt)
+		} else {
+			panel.PlayerStartedAt = time.Now().Add(-panel.ElapsedPlayback)
+		}
+	}
+}
+
 func (panel *WarmUpPanel) OnRealized() {
 	panel.NextButton.GrabFocus()
 }
@@ -129,9 +141,12 @@ func (panel *WarmUpPanel) OnTimerTick() bool {
 	if panel.MusicPlayer == nil {
 		return false
 	}
-	if panel.MusicPlayer.IsFinished() {
+	switch panel.MusicPlayer.PlayerState() {
+	case players.PlayerNotStarted, players.PlayerFinished:
 		panel.PlayRandomTrack()
-	} else {
+	case players.PlayerPaused:
+		// do nothing
+	case players.PlayerPlaying:
 		musicTrackElapsed := time.Since(panel.PlayerStartedAt)
 		panel.TimeLabel.SetLabel(utils.FormatDurationMMSS(musicTrackElapsed))
 	}

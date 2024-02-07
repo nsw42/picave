@@ -4,6 +4,7 @@ go 1.21.5
 
 require (
 	github.com/akamensky/argparse v1.4.0
+	github.com/creack/pty v1.1.21
 	github.com/dhowden/tag v0.0.0-20240122214204-713ab0e94639
 	github.com/diamondburned/gotk4/pkg v0.1.0
 	github.com/qri-io/jsonschema v0.2.1
