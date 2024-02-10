@@ -136,14 +136,18 @@ func (panel *VideoIndexPanel) OnBackClicked() {
 	panel.Parent.Stack.SetVisibleChildName(MainPanelName)
 }
 
-func (panel *VideoIndexPanel) getSessionFromTreeViewRow(row *gtk.TreePath) *feed.SessionDefinition {
+func (panel *VideoIndexPanel) getSessionVideoIdFromTreeViewRow(row *gtk.TreePath) string {
 	iter, ok := panel.ListStoreFavouriteFilter.Iter(row)
 	if !ok {
 		fmt.Println("Unable to construct iter")
-		return nil
+		return ""
 	}
 	val := panel.ListStoreFavouriteFilter.Value(iter, ColumnVideoId)
-	videoId := val.String()
+	return val.String()
+}
+
+func (panel *VideoIndexPanel) getSessionFromTreeViewRow(row *gtk.TreePath) *feed.SessionDefinition {
+	videoId := panel.getSessionVideoIdFromTreeViewRow(row)
 	session, ok := feed.Sessions[videoId]
 	if !ok {
 		fmt.Println("Unrecognised video id?!")
@@ -163,6 +167,9 @@ func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.Mo
 	switch {
 	case keyval == 'c':
 		panel.toggleAllOrFavouritesOnly()
+		return true
+	case keyval == '*':
+		panel.toggleFavouriteForCurrentRow()
 		return true
 	}
 	return false
@@ -229,6 +236,25 @@ func (panel *VideoIndexPanel) toggleAllOrFavouritesOnly() {
 	panel.Parent.Profile.ShowFavouritesOnly = !panel.Parent.Profile.ShowFavouritesOnly
 	panel.showAllOrFavouritesOnly()
 	panel.Parent.Profile.Save()
+}
+
+func (panel *VideoIndexPanel) toggleFavouriteForCurrentRow() {
+	row, _ := panel.TreeView.Cursor()
+	videoId := panel.getSessionVideoIdFromTreeViewRow(row)
+	if videoId == "" {
+		fmt.Println("Unable to get video id from current row")
+		return
+	}
+	panel.Parent.Profile.ToggleVideoFavourite(videoId)
+	panel.Parent.Profile.Save()
+
+	var newFavIconValue string
+	if slices.Contains(panel.Parent.Profile.Favourites, videoId) {
+		newFavIconValue = panel.FavouriteIcon
+	}
+	iter, _ := panel.ListStoreFavouriteFilter.Iter(row)
+	storeRow := panel.ListStoreFavouriteFilter.ConvertIterToChildIter(iter)
+	panel.ListStore.Set(storeRow, []int{ColumnFavourite}, []glib.Value{*glib.NewValue(newFavIconValue)})
 }
 
 func (panel *VideoIndexPanel) showAllOrFavouritesOnly() {

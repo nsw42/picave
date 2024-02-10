@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"nsw42/picave/musicdir"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -330,6 +331,15 @@ func (profile *Profile) GetVideoMaxVal(videoId string, expandDefault bool) int {
 		return profile.GetVideoMaxVal("default", false)
 	}
 	return 0
+}
+
+func (profile *Profile) ToggleVideoFavourite(videoId string) {
+	index := slices.Index(profile.Favourites, videoId)
+	if index == -1 {
+		profile.Favourites = append(profile.Favourites, videoId)
+	} else {
+		profile.Favourites = slices.Delete(profile.Favourites, index, index+1)
+	}
 }
 
 func validateProfileFile(configMap interface{}) error {
