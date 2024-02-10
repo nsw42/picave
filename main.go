@@ -6,6 +6,8 @@ import (
 	"nsw42/picave/appwindow"
 	"nsw42/picave/profile"
 	"os"
+	"os/user"
+	"path"
 
 	"github.com/akamensky/argparse"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -23,14 +25,21 @@ var appWindow *appwindow.AppWindow
 func validateOptionFileExists(args []string) error {
 	_, err := os.Stat(args[0])
 	if errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("File '%s' does not exist", args[0])
+		return fmt.Errorf("file '%s' does not exist", args[0])
 	}
 	return nil
 }
 
 func parseArgs() bool {
+	user, err := user.Current()
+	var defaultConfigFile string
+	if err == nil {
+		defaultConfigFile = path.Join(user.HomeDir, ".picaverc")
+	} else {
+		defaultConfigFile = ".picaverc" // Just look in current working directory
+	}
 	parser := argparse.NewParser("picave", "A GTK-based personal trainer for cyclists")
-	ProfileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Validate: validateOptionFileExists})
+	ProfileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Default: defaultConfigFile, Validate: validateOptionFileExists})
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
 
 	if err := parser.Parse(os.Args); err != nil {
@@ -38,7 +47,6 @@ func parseArgs() bool {
 		return false
 	}
 
-	var err error
 	args.Profile, err = profile.LoadProfile(*ProfileArg)
 	if err != nil {
 		fmt.Println("Profile file validation failed: ", err)
