@@ -15,7 +15,7 @@ import (
 type SessionPanel struct {
 	Parent         *AppWindow
 	Contents       *gtk.Box
-	VideoArea      *gtk.DrawingArea
+	BlankVideoArea *gtk.DrawingArea
 	IntervalWidget *widgets.IntervalWidget
 	Session        *feed.SessionDefinition
 	VideoFile      string
@@ -28,11 +28,10 @@ type SessionPanel struct {
 func NewSessionPanel(parent *AppWindow) *SessionPanel {
 	rtn := &SessionPanel{Parent: parent, VideoFile: "", Realized: false, SizeKnown: false}
 
-	rtn.VideoArea = gtk.NewDrawingArea()
-	rtn.VideoArea.SetDrawFunc(rtn.OnDraw)
-	rtn.VideoArea.ConnectRealize(rtn.OnRealized)
-	rtn.VideoArea.ConnectResize(rtn.OnResized)
-	rtn.VideoArea.SetHExpand(true)
+	rtn.BlankVideoArea = gtk.NewDrawingArea()
+	rtn.BlankVideoArea.SetDrawFunc(rtn.OnDraw)
+	rtn.BlankVideoArea.ConnectResize(rtn.OnResized)
+	rtn.BlankVideoArea.SetHExpand(true)
 
 	rtn.IntervalWidget = widgets.NewIntervalWidget(parent.Profile)
 	rtn.IntervalWidget.SetSizeRequest(256, -1)
@@ -40,8 +39,10 @@ func NewSessionPanel(parent *AppWindow) *SessionPanel {
 
 	rtn.Contents = gtk.NewBox(gtk.OrientationHorizontal, 0)
 	rtn.Contents.SetHomogeneous(false)
-	rtn.Contents.Append(rtn.VideoArea)
+	rtn.Contents.Append(rtn.BlankVideoArea)
 	rtn.Contents.Append(rtn.IntervalWidget)
+
+	rtn.Contents.ConnectRealize(rtn.OnRealized)
 
 	return rtn
 }
