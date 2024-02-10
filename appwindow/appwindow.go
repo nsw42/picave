@@ -2,8 +2,10 @@ package appwindow
 
 import (
 	"fmt"
+	"nsw42/picave/exitdialog"
 	"nsw42/picave/feed"
 	"nsw42/picave/profile"
+	"os/exec"
 
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -68,6 +70,24 @@ func NewAppWindow(app *gtk.Application,
 	return rtn
 }
 
+func (window *AppWindow) DoQuitDialog() {
+	dialog := exitdialog.NewExitDialog(&window.GtkWindow.Window)
+	dialog.ConnectResponse(func(responseId int) {
+		switch exitdialog.ExitChoice(responseId) {
+		case exitdialog.ExitChoiceCancel:
+			// Nothing needed
+		case exitdialog.ExitChoiceChangeProfile:
+			// Not yet supported
+		case exitdialog.ExitChoiceQuit:
+			window.OnQuit()
+		case exitdialog.ExitChoiceShutdown:
+			window.OnShutdown()
+		}
+		dialog.Destroy()
+	})
+	dialog.Show()
+}
+
 func (window *AppWindow) OnBackKey() {
 	window.StopPlaying()
 	switch window.Stack.VisibleChildName() {
@@ -76,27 +96,27 @@ func (window *AppWindow) OnBackKey() {
 	case WarmUpPanelName, VideoIndexPanelName:
 		window.Stack.SetVisibleChildName(MainPanelName)
 	case MainPanelName:
-		// TODO: quit dialog
+		window.DoQuitDialog()
 	}
 }
 
 func (window *AppWindow) OnKeyPress(keyval uint, keycode uint, state gdk.ModifierType) bool {
 	switch {
+	default:
+		fmt.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
+		return false
 	case (keyval == 'c') && (state == 0): // OSMC 'index' button
 		window.OnShowIndex()
-		return true
 	case (keyval == gdk.KEY_Escape) && (state == 0):
 		window.OnShowHome()
-		return true
+	case (keyval == gdk.KEY_Escape) && (state.Has(gdk.ShiftMask)):
+		window.DoQuitDialog()
 	case keyval == 'X': // Simulate the OSMC 'back' button
 		window.OnBackKey()
-		return true
 	case keyval == 'p' || keyval == 'P': // Simulate the OSMC play/pause button
 		window.OnPlayPause()
-		return true
 	}
-	fmt.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
-	return false
+	return true
 }
 
 func (window *AppWindow) OnPlayPause() {
@@ -108,6 +128,11 @@ func (window *AppWindow) OnPlayPause() {
 	}
 }
 
+func (window *AppWindow) OnQuit() {
+	window.StopPlaying()
+	window.GtkWindow.Application().Quit()
+}
+
 func (window *AppWindow) OnShowHome() {
 	window.StopPlaying()
 	window.Stack.SetVisibleChildName(MainPanelName)
@@ -116,6 +141,12 @@ func (window *AppWindow) OnShowHome() {
 func (window *AppWindow) OnShowIndex() {
 	window.StopPlaying()
 	window.Stack.SetVisibleChildName(VideoIndexPanelName)
+}
+
+func (window *AppWindow) OnShutdown() {
+	window.OnQuit()
+	cmd := exec.Command("sudo", "shutdown", "-h", "+1")
+	cmd.Run()
 }
 
 func (window *AppWindow) StopPlaying() {
