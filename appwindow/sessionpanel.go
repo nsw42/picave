@@ -98,7 +98,12 @@ func (panel *SessionPanel) Play(session *feed.SessionDefinition) {
 
 func (panel *SessionPanel) StartPlayingIfAllPrerequisitesAvailable() {
 	if panel.VideoFile != "" && panel.Realized {
-		panel.Player.Play(panel.VideoFile)
+		// Skipping starting video in the event of a missing player means that we add the timer,
+		// which causes us to stop and jump back to the index. If we skip this entire block,
+		// people are just faced with a blank window.
+		if panel.Player != nil {
+			panel.Player.Play(panel.VideoFile, &panel.BlankVideoArea.Widget)
+		}
 		panel.IntervalWidget.StartPlaying(panel.Session)
 		panel.TimerHandle = glib.TimeoutSecondsAdd(1, panel.OnTimerTick)
 	}
