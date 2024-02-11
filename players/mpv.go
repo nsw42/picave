@@ -12,21 +12,6 @@ import (
 var pauseCommand []byte
 var resumeCommand []byte
 
-func encodeCommand(command []string) []byte {
-	toEncode := map[string][]string{"command": command}
-	marshalled, err := json.Marshal(toEncode)
-	if err != nil {
-		panic("Unable to marshal command: " + fmt.Sprintf("%v", toEncode))
-	}
-	marshalled = append(marshalled, '\n')
-	return marshalled
-}
-
-func init() {
-	pauseCommand = encodeCommand([]string{"set_property_string", "pause", "yes"})
-	resumeCommand = encodeCommand([]string{"set_property_string", "pause", "no"})
-}
-
 type MpvPlayer struct {
 	Profile    *profile.Profile
 	Command    *exec.Cmd
@@ -102,6 +87,18 @@ func NewMpvPlayer(profile *profile.Profile) Player {
 	return &MpvPlayer{profile, nil, "/tmp/picave.mpv-socket", PlayerNotStarted, nil}
 }
 
+func encodeCommand(command []string) []byte {
+	toEncode := map[string][]string{"command": command}
+	marshalled, err := json.Marshal(toEncode)
+	if err != nil {
+		panic("Unable to marshal command: " + fmt.Sprintf("%v", toEncode))
+	}
+	marshalled = append(marshalled, '\n')
+	return marshalled
+}
+
 func init() {
+	pauseCommand = encodeCommand([]string{"set_property_string", "pause", "yes"})
+	resumeCommand = encodeCommand([]string{"set_property_string", "pause", "no"})
 	registerPlayer("mpv", NewMpvPlayer)
 }
