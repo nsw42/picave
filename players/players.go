@@ -20,7 +20,7 @@ type MusicPlayer interface {
 
 type VideoPlayer interface {
 	Player
-	Play(file string) *gtk.Widget
+	Play(file string, parent *gtk.Widget) *gtk.Widget
 }
 
 type PlayerState int
@@ -57,7 +57,7 @@ func CreateMusicPlayerForExt(profile *profile.Profile, ext string) MusicPlayer {
 	return playerCreator(profile)
 }
 
-type VideoPlayerCreator func(*profile.Profile) VideoPlayer
+type VideoPlayerCreator func(*profile.Profile, *profile.FiletypePlayerOptions) VideoPlayer
 
 var VideoPlayerLookup = map[string]VideoPlayerCreator{}
 
@@ -76,5 +76,5 @@ func CreateVideoPlayerForExt(profile *profile.Profile, ext string) VideoPlayer {
 		fmt.Println("Player lookup failed for " + player.Name)
 		return nil
 	}
-	return playerCreator(profile)
+	return playerCreator(profile, player)
 }

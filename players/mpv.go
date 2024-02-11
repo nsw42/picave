@@ -26,7 +26,7 @@ func (player *MpvPlayer) PlayerState() PlayerState {
 	return player.State
 }
 
-func (player *MpvPlayer) Play(file string) *gtk.Widget {
+func (player *MpvPlayer) Play(file string, parent *gtk.Widget) *gtk.Widget {
 	exe := player.Profile.Executables["mpv"]
 	go player.launch(exe, file)
 	return nil
@@ -86,7 +86,7 @@ func (player *MpvPlayer) launch(exe string, file string) {
 	player.State = PlayerFinished
 }
 
-func NewMpvPlayer(profile *profile.Profile) VideoPlayer {
+func NewMpvPlayer(profile *profile.Profile, options *profile.FiletypePlayerOptions) VideoPlayer {
 	return &MpvPlayer{profile, nil, "/tmp/picave.mpv-socket", PlayerNotStarted, nil}
 }
 
