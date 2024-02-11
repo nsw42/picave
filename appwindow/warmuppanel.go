@@ -26,7 +26,7 @@ type WarmUpPanel struct {
 	NextButton      *gtk.Button
 	BackButton      *gtk.Button
 	TimerHandle     glib.SourceHandle
-	MusicPlayer     players.Player
+	MusicPlayer     players.MusicPlayer
 	PlayerStartedAt time.Time
 	ElapsedPlayback time.Duration
 }
@@ -170,7 +170,7 @@ func (panel *WarmUpPanel) PlayRandomTrack() {
 	}
 
 	if panel.MusicPlayer == nil {
-		panel.MusicPlayer = players.CreatePlayerForExt(panel.Parent.Profile, metadata.Filetype)
+		panel.MusicPlayer = players.CreateMusicPlayerForExt(panel.Parent.Profile, metadata.Filetype)
 	}
 	panel.MusicPlayer.Play(musicFile)
 	panel.PlayerStartedAt = time.Now()

@@ -11,10 +11,18 @@ import (
 )
 
 type Mpg123Player struct {
+	State    PlayerState
 	Profile  *profile.Profile
 	Command  *exec.Cmd
 	ChildPty *os.File
-	State    PlayerState
+}
+
+func NewMpg123Player(profile *profile.Profile) MusicPlayer {
+	return &Mpg123Player{PlayerNotStarted, profile, nil, nil}
+}
+
+func init() {
+	registerMusicPlayer("mpg123", NewMpg123Player)
 }
 
 func (player *Mpg123Player) PlayerState() PlayerState {
@@ -22,8 +30,7 @@ func (player *Mpg123Player) PlayerState() PlayerState {
 }
 
 func (player *Mpg123Player) Play(file string) {
-	exe := player.Profile.Executables["mpg123"]
-	go player.launch(exe, file)
+	go player.launch(file)
 }
 
 func (player *Mpg123Player) PlayPause() {
@@ -50,7 +57,8 @@ func (player *Mpg123Player) Stop() {
 	}
 }
 
-func (player *Mpg123Player) launch(exe string, file string) {
+func (player *Mpg123Player) launch(file string) {
+	exe := player.Profile.Executables["mpg123"]
 	opts := player.Profile.FiletypePlayers[filepath.Ext(file)].Options
 	if len(opts) == 0 {
 		opts = []string{
@@ -68,12 +76,4 @@ func (player *Mpg123Player) launch(exe string, file string) {
 	}
 	player.Command.Wait()
 	player.State = PlayerFinished
-}
-
-func NewMpg123Player(profile *profile.Profile) Player {
-	return &Mpg123Player{profile, nil, nil, PlayerNotStarted}
-}
-
-func init() {
-	registerPlayer("mpg123", NewMpg123Player)
 }

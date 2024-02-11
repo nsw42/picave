@@ -3,13 +3,24 @@ package players
 import (
 	"fmt"
 	"nsw42/picave/profile"
+
+	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 type Player interface {
 	PlayerState() PlayerState
-	Play(file string)
 	Stop()
 	PlayPause()
+}
+
+type MusicPlayer interface {
+	Player
+	Play(file string)
+}
+
+type VideoPlayer interface {
+	Player
+	Play(file string) *gtk.Widget
 }
 
 type PlayerState int
@@ -21,17 +32,24 @@ const (
 	PlayerFinished
 )
 
-type PlayerCreator func(*profile.Profile) Player
+// This seems like generics should allow us to avoid the duplication,
+// but the compiler didn't like it
 
-var PlayerLookup = make(map[string]PlayerCreator, 0)
+type MusicPlayerCreator func(*profile.Profile) MusicPlayer
 
-func CreatePlayerForExt(profile *profile.Profile, ext string) Player {
+var MusicPlayerLookup = map[string]MusicPlayerCreator{}
+
+func registerMusicPlayer(playerName string, creator MusicPlayerCreator) {
+	MusicPlayerLookup[playerName] = creator
+}
+
+func CreateMusicPlayerForExt(profile *profile.Profile, ext string) MusicPlayer {
 	player, ok := profile.FiletypePlayers[ext]
 	if !ok || player == nil {
 		fmt.Println("No known player for files of type " + ext)
 		return nil
 	}
-	playerCreator, ok := PlayerLookup[player.Name]
+	playerCreator, ok := MusicPlayerLookup[player.Name]
 	if !ok || playerCreator == nil {
 		fmt.Println("Player lookup failed for " + player.Name)
 		return nil
@@ -39,6 +57,24 @@ func CreatePlayerForExt(profile *profile.Profile, ext string) Player {
 	return playerCreator(profile)
 }
 
-func registerPlayer(playerName string, creator PlayerCreator) {
-	PlayerLookup[playerName] = creator
+type VideoPlayerCreator func(*profile.Profile) VideoPlayer
+
+var VideoPlayerLookup = map[string]VideoPlayerCreator{}
+
+func registerVideoPlayer(playerName string, creator VideoPlayerCreator) {
+	VideoPlayerLookup[playerName] = creator
+}
+
+func CreateVideoPlayerForExt(profile *profile.Profile, ext string) VideoPlayer {
+	player, ok := profile.FiletypePlayers[ext]
+	if !ok || player == nil {
+		fmt.Println("No known player for files of type " + ext)
+		return nil
+	}
+	playerCreator, ok := VideoPlayerLookup[player.Name]
+	if !ok || playerCreator == nil {
+		fmt.Println("Player lookup failed for " + player.Name)
+		return nil
+	}
+	return playerCreator(profile)
 }

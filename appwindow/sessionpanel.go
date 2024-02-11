@@ -21,7 +21,7 @@ type SessionPanel struct {
 	VideoFile      string
 	Realized       bool
 	SizeKnown      bool
-	Player         players.Player
+	Player         players.VideoPlayer
 	TimerHandle    glib.SourceHandle
 }
 
@@ -89,7 +89,7 @@ func (panel *SessionPanel) Play(session *feed.SessionDefinition) {
 		fmt.Println("No local video file found for video id: " + session.VideoId)
 		return
 	}
-	panel.Player = players.CreatePlayerForExt(panel.Parent.Profile, filepath.Ext(panel.VideoFile))
+	panel.Player = players.CreateVideoPlayerForExt(panel.Parent.Profile, filepath.Ext(panel.VideoFile))
 	if panel.Player == nil {
 		return
 	}

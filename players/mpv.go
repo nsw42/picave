@@ -7,6 +7,8 @@ import (
 	"nsw42/picave/profile"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 var pauseCommand []byte
@@ -24,9 +26,10 @@ func (player *MpvPlayer) PlayerState() PlayerState {
 	return player.State
 }
 
-func (player *MpvPlayer) Play(file string) {
+func (player *MpvPlayer) Play(file string) *gtk.Widget {
 	exe := player.Profile.Executables["mpv"]
 	go player.launch(exe, file)
+	return nil
 }
 
 func (player *MpvPlayer) PlayPause() {
@@ -83,7 +86,7 @@ func (player *MpvPlayer) launch(exe string, file string) {
 	player.State = PlayerFinished
 }
 
-func NewMpvPlayer(profile *profile.Profile) Player {
+func NewMpvPlayer(profile *profile.Profile) VideoPlayer {
 	return &MpvPlayer{profile, nil, "/tmp/picave.mpv-socket", PlayerNotStarted, nil}
 }
 
@@ -100,5 +103,5 @@ func encodeCommand(command []string) []byte {
 func init() {
 	pauseCommand = encodeCommand([]string{"set_property_string", "pause", "yes"})
 	resumeCommand = encodeCommand([]string{"set_property_string", "pause", "no"})
-	registerPlayer("mpv", NewMpvPlayer)
+	registerVideoPlayer("mpv", NewMpvPlayer)
 }
