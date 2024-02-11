@@ -2,11 +2,9 @@ package musicdir
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
-
-	"golang.org/x/exp/rand"
 )
 
 type MusicDirectory struct {
@@ -42,7 +40,6 @@ func traverse(absolutePath string, relativePath string, md *MusicDirectory) {
 }
 
 func (musicDir *MusicDirectory) PickRandomFile() string {
-	rand.Seed(uint64(time.Now().UnixMilli()))
 	file := rand.Intn(len(musicDir.Files))
 	return filepath.Join(musicDir.BasePath, musicDir.Files[file])
 }
