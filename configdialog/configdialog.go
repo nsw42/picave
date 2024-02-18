@@ -1,11 +1,14 @@
 package configdialog
 
 import (
+	_ "embed"
 	"nsw42/picave/players"
 	"nsw42/picave/profile"
+	"os"
 	"path/filepath"
 	"slices"
 
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"golang.org/x/exp/maps"
 )
@@ -14,6 +17,9 @@ const (
 	GridLeft  = 0
 	GridRight = 1
 )
+
+//go:embed "configdialog.css"
+var ConfigDialogCss string
 
 type ConfigDialog struct {
 	*gtk.Dialog
@@ -45,16 +51,43 @@ func newIntegerSpinner(lower, upper, value int) *gtk.SpinButton {
 	return gtk.NewSpinButton(adjustment, 1.0, 0)
 }
 
-func newTextEntry(initVal string) *gtk.Entry {
+func newTextEntry(initVal string, validator func(string) bool) *gtk.Entry {
+	// Validators must return true if the given string is valid
 	entry := gtk.NewEntry()
 	entry.SetText(initVal)
 	entry.SetHExpand(true)
+	if validator != nil {
+		entry.ConnectChanged(func() {
+			newValue := entry.Text()
+			ok := validator(newValue)
+			if ok {
+				entry.RemoveCSSClass("error")
+			} else {
+				entry.AddCSSClass("error")
+			}
+		})
+	}
 	return entry
+}
+
+func validateDirectory(dirname string) bool {
+	if dirname == "" {
+		return false
+	}
+	info, err := os.Stat(dirname)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
 }
 
 func NewConfigDialog(parent *gtk.Window, profile *profile.Profile) *ConfigDialog {
 	dialog := &ConfigDialog{}
 	dialog.Dialog = gtk.NewDialogWithFlags("Configuration "+filepath.Base(profile.FilePath), parent, gtk.DialogModal)
+
+	cssProvider := gtk.NewCSSProvider()
+	cssProvider.LoadFromData(ConfigDialogCss)
+	gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	dialog.Profile = profile
 	dialog.Stack = gtk.NewStack()
@@ -91,7 +124,7 @@ func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 	for _, playerName := range executables {
 		exePath := dialog.Profile.Executables[playerName]
 		grid.Attach(gtk.NewLabel(playerName), GridLeft, y, 1, 1)
-		grid.Attach(newTextEntry(exePath), GridRight, y, 1, 1)
+		grid.Attach(newTextEntry(exePath, nil), GridRight, y, 1, 1)
 		y++
 	}
 
@@ -130,14 +163,14 @@ func (dialog *ConfigDialog) initGeneralGrid() *gtk.Grid {
 
 	// Warm up music row
 	grid.Attach(gtk.NewLabel("Warm up music"), GridLeft, y, 1, 1)
-	dialog.WarmUpEntry = newTextEntry(dialog.Profile.WarmUpMusic.BasePath)
+	dialog.WarmUpEntry = newTextEntry(dialog.Profile.WarmUpMusic.BasePath, validateDirectory)
 	// TODO: ConnectChanged
 	grid.Attach(dialog.WarmUpEntry, GridRight, y, 1, 1)
 	y++
 
 	// Video cache row
 	grid.Attach(gtk.NewLabel("Video cache"), GridLeft, y, 1, 1)
-	dialog.VideoCacheEntry = newTextEntry(dialog.Profile.VideoCacheDirectory)
+	dialog.VideoCacheEntry = newTextEntry(dialog.Profile.VideoCacheDirectory, validateDirectory)
 	// TODO: ConnectChanged
 	grid.Attach(dialog.VideoCacheEntry, GridRight, y, 1, 1)
 	y++
