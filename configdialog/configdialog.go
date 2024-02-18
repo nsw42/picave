@@ -81,6 +81,23 @@ func validateDirectory(dirname string) bool {
 	return info.IsDir()
 }
 
+func validateExecutable(exename string) bool {
+	if exename == "" {
+		// Empty means "this player is disabled/not available"
+		return true
+	}
+	info, err := os.Stat(exename)
+	if err != nil || info.IsDir() {
+		// If an error, then we probably don't have permission to access it, or it doesn't exist
+		return false
+	}
+	if (info.Mode().Perm() & 1) != 0 {
+		// executable
+		return true
+	}
+	return false
+}
+
 func NewConfigDialog(parent *gtk.Window, profile *profile.Profile) *ConfigDialog {
 	dialog := &ConfigDialog{}
 	dialog.Dialog = gtk.NewDialogWithFlags("Configuration "+filepath.Base(profile.FilePath), parent, gtk.DialogModal)
@@ -124,7 +141,7 @@ func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 	for _, playerName := range executables {
 		exePath := dialog.Profile.Executables[playerName]
 		grid.Attach(gtk.NewLabel(playerName), GridLeft, y, 1, 1)
-		grid.Attach(newTextEntry(exePath, nil), GridRight, y, 1, 1)
+		grid.Attach(newTextEntry(exePath, validateExecutable), GridRight, y, 1, 1)
 		y++
 	}
 
