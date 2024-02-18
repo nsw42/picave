@@ -1,6 +1,8 @@
 package appwindow
 
 import (
+	"nsw42/picave/configdialog"
+
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -29,6 +31,10 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	configButton.SetVExpand(false)
 	configButton.SetMarginBottom(100)
 	buttonBox.Append(configButton)
+	configButton.ConnectClicked(func() {
+		dialog := configdialog.NewConfigDialog(&parent.GtkWindow.Window, parent.Profile)
+		dialog.Show()
+	})
 
 	warmUpButton := gtk.NewButtonWithLabel("Warm up")
 	warmUpButton.SetHExpand(true)

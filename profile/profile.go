@@ -275,6 +275,10 @@ func (profile *Profile) Save() error {
 	return nil
 }
 
+func (profile *Profile) DefaultFTPVal() int {
+	return profile.GetVideoFTPVal("default", false)
+}
+
 func (profile *Profile) GetVideoFTP(videoId string, expandDefault bool) string {
 	val := profile.GetVideoFTPVal(videoId, expandDefault)
 	if val == 0 {
@@ -289,7 +293,7 @@ func (profile *Profile) GetVideoFTPVal(videoId string, expandDefault bool) int {
 		return val.FTP
 	}
 	if expandDefault {
-		return profile.GetVideoFTPVal("default", false)
+		return profile.DefaultFTPVal()
 	}
 	return 0
 }
