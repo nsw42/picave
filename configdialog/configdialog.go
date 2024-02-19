@@ -2,20 +2,26 @@ package configdialog
 
 import (
 	_ "embed"
+	"nsw42/picave/musicdir"
 	"nsw42/picave/players"
 	"nsw42/picave/profile"
 	"os"
 	"path/filepath"
 	"slices"
 
+	// coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"golang.org/x/exp/maps"
 )
 
 const (
-	GridLeft  = 0
-	GridRight = 1
+	TwoColGridLeft  = 0
+	TwoColGridRight = 1
+
+	ThreeColGridLeft   = 0
+	ThreeColGridMiddle = 1
+	ThreeColGridRight  = 2
 )
 
 //go:embed "configdialog.css"
@@ -31,6 +37,12 @@ type ConfigDialog struct {
 	WarmUpEntry     *gtk.Entry
 	VideoCacheEntry *gtk.Entry
 	FtpSpinButton   *gtk.SpinButton
+
+	// Fields related to the Executables panel
+	ExecutableEntryBoxes map[string]*gtk.Entry // key is the executable name ("mpv", etc)
+
+	// Fields related to the Filetypes panel
+	FiletypeDropDowns map[string]*gtk.DropDown // key is the filetype (".mp4", etc)
 }
 
 func newGrid() *gtk.Grid {
@@ -98,15 +110,15 @@ func validateExecutable(exename string) bool {
 	return false
 }
 
-func NewConfigDialog(parent *gtk.Window, profile *profile.Profile) *ConfigDialog {
+func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 	dialog := &ConfigDialog{}
-	dialog.Dialog = gtk.NewDialogWithFlags("Configuration "+filepath.Base(profile.FilePath), parent, gtk.DialogModal)
+	dialog.Dialog = gtk.NewDialogWithFlags("Configuration "+filepath.Base(prf.FilePath), parent, gtk.DialogModal)
 
 	cssProvider := gtk.NewCSSProvider()
 	cssProvider.LoadFromData(ConfigDialogCss)
 	gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-	dialog.Profile = profile
+	dialog.Profile = prf
 	dialog.Stack = gtk.NewStack()
 
 	dialog.Stack.AddTitled(dialog.initGeneralGrid(), "general", "General")
@@ -127,6 +139,30 @@ func NewConfigDialog(parent *gtk.Window, profile *profile.Profile) *ConfigDialog
 	dialog.SetDefaultResponse(int(gtk.ResponseOK))
 
 	dialog.ConnectResponse(func(responseId int) {
+		if responseId == int(gtk.ResponseOK) {
+			// Update the profile
+			// General tab:
+			prf.WarmUpMusic = musicdir.NewMusicDirectory(dialog.WarmUpEntry.Text())
+			prf.VideoCacheDirectory = dialog.VideoCacheEntry.Text()
+			prf.SetDefaultFTPVal(int(dialog.FtpSpinButton.Value()))
+
+			// Executables tab:
+			for exeName, entry := range dialog.ExecutableEntryBoxes {
+				prf.Executables[exeName] = entry.Text()
+			}
+
+			// Filetypes tab:
+			for filetypeSuffix, dropdown := range dialog.FiletypeDropDowns {
+				player := dropdown.SelectedItem().Cast().(*gtk.StringObject).String()
+				dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
+					Name:    player,
+					Options: []string{},
+				}
+			}
+
+			// And save it
+			prf.Save()
+		}
 		dialog.Destroy()
 	})
 
@@ -136,12 +172,18 @@ func NewConfigDialog(parent *gtk.Window, profile *profile.Profile) *ConfigDialog
 func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 	grid := newGrid()
 	y := 0
-	executables := maps.Keys(dialog.Profile.Executables)
-	slices.Sort(executables)
-	for _, playerName := range executables {
-		exePath := dialog.Profile.Executables[playerName]
-		grid.Attach(gtk.NewLabel(playerName), GridLeft, y, 1, 1)
-		grid.Attach(newTextEntry(exePath, validateExecutable), GridRight, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Executable"), TwoColGridLeft, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Path"), TwoColGridRight, y, 1, 1)
+	y++
+	executableNames := maps.Keys(dialog.Profile.Executables)
+	slices.Sort(executableNames)
+	dialog.ExecutableEntryBoxes = make(map[string]*gtk.Entry, len(executableNames))
+	for _, exeName := range executableNames {
+		exePath := dialog.Profile.Executables[exeName]
+		grid.Attach(gtk.NewLabel(exeName), TwoColGridLeft, y, 1, 1)
+		entry := newTextEntry(exePath, validateExecutable)
+		dialog.ExecutableEntryBoxes[exeName] = entry
+		grid.Attach(entry, TwoColGridRight, y, 1, 1)
 		y++
 	}
 
@@ -151,10 +193,14 @@ func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 	grid := newGrid()
 	y := 0
+	grid.Attach(gtk.NewLabel("Filetype"), ThreeColGridLeft, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Application"), ThreeColGridMiddle, y, 1, 1)
+	y++
 	filetypes := maps.Keys(dialog.Profile.FiletypePlayers)
 	slices.Sort(filetypes)
+	dialog.FiletypeDropDowns = make(map[string]*gtk.DropDown, len(filetypes))
 	for _, filetypeSuffix := range filetypes {
-		grid.Attach(gtk.NewLabel(filetypeSuffix), GridLeft, y, 1, 1)
+		grid.Attach(gtk.NewLabel(filetypeSuffix), ThreeColGridLeft, y, 1, 1)
 		playerNames := []string{}
 		if filetypeSuffix == ".mp3" {
 			for playerName := range players.MusicPlayerLookup {
@@ -167,7 +213,9 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		}
 		dropdown := gtk.NewDropDownFromStrings(playerNames)
 		dropdown.SetHExpand(true)
-		grid.Attach(dropdown, GridRight, y, 1, 1)
+		dropdown.SetSelected(uint(slices.Index(playerNames, dialog.Profile.FiletypePlayers[filetypeSuffix].Name)))
+		dialog.FiletypeDropDowns[filetypeSuffix] = dropdown
+		grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
 		y++
 	}
 	return grid
@@ -179,23 +227,23 @@ func (dialog *ConfigDialog) initGeneralGrid() *gtk.Grid {
 	y := 0
 
 	// Warm up music row
-	grid.Attach(gtk.NewLabel("Warm up music"), GridLeft, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Warm up music"), TwoColGridLeft, y, 1, 1)
 	dialog.WarmUpEntry = newTextEntry(dialog.Profile.WarmUpMusic.BasePath, validateDirectory)
 	// TODO: ConnectChanged
-	grid.Attach(dialog.WarmUpEntry, GridRight, y, 1, 1)
+	grid.Attach(dialog.WarmUpEntry, TwoColGridRight, y, 1, 1)
 	y++
 
 	// Video cache row
-	grid.Attach(gtk.NewLabel("Video cache"), GridLeft, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Video cache"), TwoColGridLeft, y, 1, 1)
 	dialog.VideoCacheEntry = newTextEntry(dialog.Profile.VideoCacheDirectory, validateDirectory)
 	// TODO: ConnectChanged
-	grid.Attach(dialog.VideoCacheEntry, GridRight, y, 1, 1)
+	grid.Attach(dialog.VideoCacheEntry, TwoColGridRight, y, 1, 1)
 	y++
 
 	// Default FTP row
-	grid.Attach(gtk.NewLabel("Default FTP"), GridLeft, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Default FTP"), TwoColGridLeft, y, 1, 1)
 	dialog.FtpSpinButton = newIntegerSpinner(0, 1000, dialog.Profile.DefaultFTPVal())
-	grid.Attach(dialog.FtpSpinButton, GridRight, y, 1, 1)
+	grid.Attach(dialog.FtpSpinButton, TwoColGridRight, y, 1, 1)
 	y++
 
 	return grid

@@ -26,7 +26,7 @@ type Profile struct {
 	FiletypePlayers     map[string]*FiletypePlayerOptions // map from suffix (".mp3") to player name ("mpv") and associated options
 	Favourites          []string
 	ShowFavouritesOnly  bool
-	PowerLevels         map[string]PowerLevels
+	PowerLevels         map[string]PowerLevels // map from video id (incl DefaultVideoId) to power levels
 }
 
 type FiletypePlayerOptions struct {
@@ -37,6 +37,8 @@ type FiletypePlayerOptions struct {
 	MarginTop    int
 	MarginBottom int
 }
+
+// Power level types and constants
 
 type PowerLevels struct {
 	Max MaxPowerLevel
@@ -57,6 +59,11 @@ const (
 	RelativeToFTPValue
 )
 
+const (
+	DefaultVideoId = "default"
+)
+
+// Profile file JSON keys
 const (
 	fileKeyVideoCacheDirectory  = "video_cache_directory"
 	fileKeyWarmUpMusicDirectory = "warm_up_music_directory"
@@ -148,7 +155,7 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 	profile.VideoCacheDirectory = configMap[fileKeyVideoCacheDirectory].(string)
 	warmUpMusicDirectory := optionalString(configMap[fileKeyWarmUpMusicDirectory])
 	if warmUpMusicDirectory != "" {
-		profile.WarmUpMusic = musicdir.FindMusicFiles(warmUpMusicDirectory)
+		profile.WarmUpMusic = musicdir.NewMusicDirectory(warmUpMusicDirectory)
 	}
 	profile.Executables = map[string]string{}
 	if configMap[fileKeyExecutables] != nil {
@@ -276,7 +283,14 @@ func (profile *Profile) Save() error {
 }
 
 func (profile *Profile) DefaultFTPVal() int {
-	return profile.GetVideoFTPVal("default", false)
+	return profile.GetVideoFTPVal(DefaultVideoId, false)
+}
+
+func (profile *Profile) SetDefaultFTPVal(ftp int) {
+	// stupid language
+	powerLevel := profile.PowerLevels[DefaultVideoId]
+	powerLevel.FTP = ftp
+	profile.PowerLevels[DefaultVideoId] = powerLevel
 }
 
 func (profile *Profile) GetVideoFTP(videoId string, expandDefault bool) string {
@@ -312,7 +326,7 @@ func (profile *Profile) GetVideoMax(videoId string, expandDefault bool) string {
 		}
 	}
 	if expandDefault {
-		return profile.GetVideoMax("default", false)
+		return profile.GetVideoMax(DefaultVideoId, false)
 	}
 	return ""
 }
@@ -332,7 +346,7 @@ func (profile *Profile) GetVideoMaxVal(videoId string, expandDefault bool) int {
 		}
 	}
 	if expandDefault {
-		return profile.GetVideoMaxVal("default", false)
+		return profile.GetVideoMaxVal(DefaultVideoId, false)
 	}
 	return 0
 }
