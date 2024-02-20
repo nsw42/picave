@@ -29,13 +29,17 @@ type Profile struct {
 	PowerLevels         map[string]PowerLevels // map from video id (incl DefaultVideoId) to power levels
 }
 
+type Margins struct {
+	Left   int
+	Right  int
+	Top    int
+	Bottom int
+}
+
 type FiletypePlayerOptions struct {
-	Name         string
-	Options      []string
-	MarginLeft   int
-	MarginRight  int
-	MarginTop    int
-	MarginBottom int
+	Name    string
+	Options []string
+	Margins Margins
 }
 
 // Power level types and constants
@@ -181,10 +185,10 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 
 			if playerMapVal[fileKeyParameters] != nil {
 				paramsMap := playerMapVal[fileKeyParameters].(map[string]interface{})
-				options.MarginLeft = optionalInt(paramsMap[fileKeyParamMarginLeft])
-				options.MarginRight = optionalInt(paramsMap[fileKeyParamMarginRight])
-				options.MarginTop = optionalInt(paramsMap[fileKeyParamMarginTop])
-				options.MarginBottom = optionalInt(paramsMap[fileKeyParamMarginBottom])
+				options.Margins.Left = optionalInt(paramsMap[fileKeyParamMarginLeft])
+				options.Margins.Right = optionalInt(paramsMap[fileKeyParamMarginRight])
+				options.Margins.Top = optionalInt(paramsMap[fileKeyParamMarginTop])
+				options.Margins.Bottom = optionalInt(paramsMap[fileKeyParamMarginBottom])
 			}
 			profile.FiletypePlayers[filetype] = &options
 		}
@@ -221,17 +225,17 @@ func (profile *Profile) buildFiletypesJsonModel() interface{} {
 			oneFiletypeMap[fileKeyPlayer] = playerOpts.Name
 			oneFiletypeMap[fileKeyOptions] = playerOpts.Options
 			paramMap := map[string]int{}
-			if playerOpts.MarginLeft != 0 {
-				paramMap[fileKeyParamMarginLeft] = playerOpts.MarginLeft
+			if playerOpts.Margins.Left != 0 {
+				paramMap[fileKeyParamMarginLeft] = playerOpts.Margins.Left
 			}
-			if playerOpts.MarginRight != 0 {
-				paramMap[fileKeyParamMarginRight] = playerOpts.MarginRight
+			if playerOpts.Margins.Right != 0 {
+				paramMap[fileKeyParamMarginRight] = playerOpts.Margins.Right
 			}
-			if playerOpts.MarginTop != 0 {
-				paramMap[fileKeyParamMarginTop] = playerOpts.MarginTop
+			if playerOpts.Margins.Top != 0 {
+				paramMap[fileKeyParamMarginTop] = playerOpts.Margins.Top
 			}
-			if playerOpts.MarginBottom != 0 {
-				paramMap[fileKeyParamMarginBottom] = playerOpts.MarginBottom
+			if playerOpts.Margins.Bottom != 0 {
+				paramMap[fileKeyParamMarginBottom] = playerOpts.Margins.Bottom
 			}
 			oneFiletypeMap[fileKeyParameters] = paramMap
 			return oneFiletypeMap

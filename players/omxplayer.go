@@ -52,10 +52,10 @@ func (player *OmxPlayer) Play(filepath string, parent *gtk.Widget) *gtk.Widget {
 	args := player.Options.Options
 
 	window := parent.Allocation()
-	windowX := window.X() + player.Options.MarginLeft
-	windowY := window.Y() + player.Options.MarginTop
-	windowW := window.Width() - player.Options.MarginLeft - player.Options.MarginRight
-	windowH := window.Height() - player.Options.MarginTop - player.Options.MarginBottom
+	windowX := window.X() + player.Options.Margins.Left
+	windowY := window.Y() + player.Options.Margins.Top
+	windowW := window.Width() - player.Options.Margins.Left - player.Options.Margins.Right
+	windowH := window.Height() - player.Options.Margins.Top - player.Options.Margins.Bottom
 	log.Println("Target playback size: ", windowW, "x", windowH, " at ", windowX, ",", windowY)
 
 	videoW, videoH := getVideoSize(filepath)

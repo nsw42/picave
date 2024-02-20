@@ -10,16 +10,16 @@ type OmxplayerParamsDialog struct {
 	*gtk.Dialog
 }
 
-func NewOmxplayerParamsDialog(parent *gtk.Window, filetype string, options *profile.FiletypePlayerOptions) *OmxplayerParamsDialog {
+func NewOmxplayerParamsDialog(parent *gtk.Window, filetype string, margins *profile.Margins) *OmxplayerParamsDialog {
 	dialog := &OmxplayerParamsDialog{}
 	dialog.Dialog = gtk.NewDialogWithFlags("omxplayer parameters for "+filetype, parent, gtk.DialogModal)
 
 	grid := newGrid()
 	y := 0
-	topMarginSpinner := addRow(grid, &y, "Top margin", options.MarginTop)
-	bottomMarginSpinner := addRow(grid, &y, "Bottom margin", options.MarginBottom)
-	leftMarginSpinner := addRow(grid, &y, "Left margin", options.MarginLeft)
-	rightMarginSpinner := addRow(grid, &y, "Right margin", options.MarginRight)
+	topMarginSpinner := addRow(grid, &y, "Top margin", margins.Top)
+	bottomMarginSpinner := addRow(grid, &y, "Bottom margin", margins.Bottom)
+	leftMarginSpinner := addRow(grid, &y, "Left margin", margins.Left)
+	rightMarginSpinner := addRow(grid, &y, "Right margin", margins.Right)
 
 	dialog.ContentArea().Append(grid)
 
@@ -29,10 +29,10 @@ func NewOmxplayerParamsDialog(parent *gtk.Window, filetype string, options *prof
 
 	dialog.ConnectResponse(func(responseId int) {
 		if responseId == int(gtk.ResponseOK) {
-			options.MarginTop = topMarginSpinner.ValueAsInt()
-			options.MarginBottom = bottomMarginSpinner.ValueAsInt()
-			options.MarginLeft = leftMarginSpinner.ValueAsInt()
-			options.MarginRight = rightMarginSpinner.ValueAsInt()
+			margins.Top = topMarginSpinner.ValueAsInt()
+			margins.Bottom = bottomMarginSpinner.ValueAsInt()
+			margins.Left = leftMarginSpinner.ValueAsInt()
+			margins.Right = rightMarginSpinner.ValueAsInt()
 		}
 		dialog.Destroy()
 	})

@@ -40,7 +40,7 @@ type ConfigDialog struct {
 type FiletypeControl struct {
 	DropDown *gtk.DropDown
 	Entry    *gtk.Entry
-	Margins  profile.FiletypePlayerOptions
+	Margins  profile.Margins
 }
 
 func validateDirectory(dirname string) bool {
@@ -116,12 +116,9 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 			for filetypeSuffix, controls := range dialog.FiletypeControls {
 				player := controls.DropDown.SelectedItem().Cast().(*gtk.StringObject).String()
 				dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
-					Name:         player,
-					Options:      strings.Split(controls.Entry.Text(), " "),
-					MarginLeft:   controls.Margins.MarginLeft,
-					MarginRight:  controls.Margins.MarginRight,
-					MarginTop:    controls.Margins.MarginTop,
-					MarginBottom: controls.Margins.MarginBottom,
+					Name:    player,
+					Options: strings.Split(controls.Entry.Text(), " "),
+					Margins: controls.Margins,
 				}
 			}
 
@@ -207,7 +204,7 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		optsAndParamsBox.Append(paramsButton)
 		grid.Attach(optsAndParamsBox, ThreeColGridRight, y, 1, 1)
 
-		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, *filetypePlayer}
+		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, filetypePlayer.Margins}
 		y++
 	}
 	return grid
