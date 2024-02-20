@@ -145,6 +145,64 @@ func stringList(jsonSlice interface{}) []string {
 	return rtn
 }
 
+func loadProfileExecutables(configMap map[string]any) map[string]string {
+	rtn := map[string]string{}
+	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp("executables").(*jsonschema.Schema)
+	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
+	executableNames := maps.Keys(executablesMap)
+	for _, exe := range executableNames {
+		if exe[0] != '$' {
+			rtn[exe] = ""
+		}
+	}
+	if configMap[fileKeyExecutables] != nil {
+		for exe, exeMap := range configMap[fileKeyExecutables].(map[string]interface{}) {
+			exeMapVal := exeMap.(map[string]interface{})
+			rtn[exe] = exeMapVal[fileKeyExePath].(string)
+		}
+	}
+	return rtn
+}
+
+func loadProfileFiletypePlayers(configMap map[string]any) map[string]*FiletypePlayerOptions {
+	rtn := map[string]*FiletypePlayerOptions{}
+	if configMap[fileKeyFiletypes] != nil {
+		for filetype, playerMap := range configMap[fileKeyFiletypes].(map[string]interface{}) {
+			playerMapVal := playerMap.(map[string]interface{})
+			options := FiletypePlayerOptions{}
+			playerName := playerMapVal[fileKeyPlayer].(string)
+			// The easy way of checking whether this is a known player (checking in players.FooPlayerLookup)
+			// results in an import cycle. So, instead, just rely on the schema matching the implementation.
+			options.Name = playerName
+			options.Options = stringList(playerMapVal[fileKeyOptions])
+
+			if playerMapVal[fileKeyParameters] != nil {
+				paramsMap := playerMapVal[fileKeyParameters].(map[string]interface{})
+				options.Margins.Left = optionalInt(paramsMap[fileKeyParamMarginLeft])
+				options.Margins.Right = optionalInt(paramsMap[fileKeyParamMarginRight])
+				options.Margins.Top = optionalInt(paramsMap[fileKeyParamMarginTop])
+				options.Margins.Bottom = optionalInt(paramsMap[fileKeyParamMarginBottom])
+			}
+			rtn[filetype] = &options
+		}
+	}
+	return rtn
+}
+
+func loadProfilePowerLevels(configMap map[string]any) map[string]PowerLevels {
+	rtn := map[string]PowerLevels{}
+	if configMap[fileKeyPowerLevels] != nil {
+		for video, videoPowerLevelsMap := range configMap[fileKeyPowerLevels].(map[string]interface{}) {
+			videoPowerLevelsMapVal := videoPowerLevelsMap.(map[string]interface{})
+			levels := PowerLevels{}
+			levels.FTP = optionalInt(videoPowerLevelsMapVal[fileKeyFTP])
+			levels.Max = maxPowerLevel(videoPowerLevelsMapVal[fileKeyMax])
+			rtn[video] = levels
+		}
+	}
+	return rtn
+}
+
 func LoadProfile(profileFilePath string) (*Profile, error) {
 	reader, err := os.Open(profileFilePath)
 	if err != nil {
@@ -167,54 +225,11 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 	if warmUpMusicDirectory != "" {
 		profile.WarmUpMusic = musicdir.NewMusicDirectory(warmUpMusicDirectory)
 	}
-	profile.Executables = map[string]string{}
-	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp("executables").(*jsonschema.Schema)
-	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
-	executableNames := maps.Keys(executablesMap)
-	for _, exe := range executableNames {
-		if exe[0] != '$' {
-			profile.Executables[exe] = ""
-		}
-	}
-	if configMap[fileKeyExecutables] != nil {
-		for exe, exeMap := range configMap[fileKeyExecutables].(map[string]interface{}) {
-			exeMapVal := exeMap.(map[string]interface{})
-			profile.Executables[exe] = exeMapVal[fileKeyExePath].(string)
-		}
-	}
-	profile.FiletypePlayers = map[string]*FiletypePlayerOptions{}
-	if configMap[fileKeyFiletypes] != nil {
-		for filetype, playerMap := range configMap[fileKeyFiletypes].(map[string]interface{}) {
-			playerMapVal := playerMap.(map[string]interface{})
-			options := FiletypePlayerOptions{}
-			playerName := playerMapVal[fileKeyPlayer].(string)
-			// The easy way of checking whether this is a known player (checking in players.FooPlayerLookup)
-			// results in an import cycle. So, instead, just rely on the schema matching the implementation.
-			options.Name = playerName
-			options.Options = stringList(playerMapVal[fileKeyOptions])
-
-			if playerMapVal[fileKeyParameters] != nil {
-				paramsMap := playerMapVal[fileKeyParameters].(map[string]interface{})
-				options.Margins.Left = optionalInt(paramsMap[fileKeyParamMarginLeft])
-				options.Margins.Right = optionalInt(paramsMap[fileKeyParamMarginRight])
-				options.Margins.Top = optionalInt(paramsMap[fileKeyParamMarginTop])
-				options.Margins.Bottom = optionalInt(paramsMap[fileKeyParamMarginBottom])
-			}
-			profile.FiletypePlayers[filetype] = &options
-		}
-	}
+	profile.Executables = loadProfileExecutables(configMap)
+	profile.FiletypePlayers = loadProfileFiletypePlayers(configMap)
 	profile.Favourites = stringList(configMap[fileKeyFavourites])
 	profile.ShowFavouritesOnly = optionalBool(configMap[fileKeyShowFavouritesOnly])
-	profile.PowerLevels = map[string]PowerLevels{}
-	if configMap[fileKeyPowerLevels] != nil {
-		for video, videoPowerLevelsMap := range configMap[fileKeyPowerLevels].(map[string]interface{}) {
-			videoPowerLevelsMapVal := videoPowerLevelsMap.(map[string]interface{})
-			levels := PowerLevels{}
-			levels.FTP = optionalInt(videoPowerLevelsMapVal[fileKeyFTP])
-			levels.Max = maxPowerLevel(videoPowerLevelsMapVal[fileKeyMax])
-			profile.PowerLevels[video] = levels
-		}
-	}
+	profile.PowerLevels = loadProfilePowerLevels(configMap)
 
 	return profile, nil
 }
