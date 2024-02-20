@@ -167,15 +167,11 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		// left: label
 		grid.Attach(gtk.NewLabel(filetypeSuffix), ThreeColGridLeft, y, 1, 1)
 		// middle: dropdown
-		playerNames := []string{}
+		var playerNames []string
 		if filetypeSuffix == ".mp3" {
-			for playerName := range players.MusicPlayerLookup {
-				playerNames = append(playerNames, playerName)
-			}
+			playerNames = maps.Keys[map[string]players.MusicPlayerCreator](players.MusicPlayerLookup)
 		} else {
-			for playerName := range players.VideoPlayerLookup {
-				playerNames = append(playerNames, playerName)
-			}
+			playerNames = maps.Keys[map[string]players.VideoPlayerCreator](players.VideoPlayerLookup)
 		}
 		filetypePlayer := dialog.Profile.FiletypePlayers[filetypeSuffix]
 		dropdown := gtk.NewDropDownFromStrings(playerNames)
