@@ -237,7 +237,9 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 func (profile *Profile) buildExecutablesJsonModel() interface{} {
 	exeMap := map[string]map[string]string{}
 	for playerName, filePath := range profile.Executables {
-		exeMap[playerName] = map[string]string{fileKeyExePath: filePath}
+		if filePath != "" {
+			exeMap[playerName] = map[string]string{fileKeyExePath: filePath}
+		}
 	}
 	return exeMap
 }
