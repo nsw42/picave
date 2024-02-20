@@ -188,12 +188,8 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 			playerMapVal := playerMap.(map[string]interface{})
 			options := FiletypePlayerOptions{}
 			playerName := playerMapVal[fileKeyPlayer].(string)
-			// TODO: The easy way of checking whether this is a known player results in an import cycle.
-			// Fix this another day
-			// if _, ok := players.PlayerLookup[playerName]; !ok {
-			// 	fmt.Println("Unrecognised player ", playerName, " selected for filetype ", filetype)
-			// 	continue
-			// }
+			// The easy way of checking whether this is a known player (checking in players.FooPlayerLookup)
+			// results in an import cycle. So, instead, just rely on the schema matching the implementation.
 			options.Name = playerName
 			options.Options = stringList(playerMapVal[fileKeyOptions])
 
