@@ -21,8 +21,6 @@
                 "mplayer": { "$ref": "#/$defs/executable" },
                 "mpv": { "$ref": "#/$defs/executable" },
                 "omxplayer": { "$ref": "#/$defs/executable" },
-                "libvlc": { "$ref": "#/$defs/executable" },
-                "vlc": { "$ref": "#/$defs/executable" },
                 "youtube-dl": { "$ref": "#/$defs/executable" }
             }
         },
@@ -119,9 +117,7 @@
                 "mpg123",
                 "mplayer",
                 "mpv",
-                "omxplayer",
-                "libvlc",
-                "vlc"
+                "omxplayer"
             ]
         }
     }

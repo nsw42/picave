@@ -13,10 +13,16 @@ import (
 
 	"github.com/qri-io/jsonschema"
 	"github.com/titanous/json5"
+	"golang.org/x/exp/maps"
 )
 
 //go:embed profile.schema.json
 var schemaString string
+var schema *jsonschema.Schema
+
+func init() {
+	schema = jsonschema.Must(schemaString)
+}
 
 type Profile struct {
 	FilePath            string
@@ -162,6 +168,14 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 		profile.WarmUpMusic = musicdir.NewMusicDirectory(warmUpMusicDirectory)
 	}
 	profile.Executables = map[string]string{}
+	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp("executables").(*jsonschema.Schema)
+	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
+	executableNames := maps.Keys(executablesMap)
+	for _, exe := range executableNames {
+		if exe[0] != '$' {
+			profile.Executables[exe] = ""
+		}
+	}
 	if configMap[fileKeyExecutables] != nil {
 		for exe, exeMap := range configMap[fileKeyExecutables].(map[string]interface{}) {
 			exeMapVal := exeMap.(map[string]interface{})
@@ -365,8 +379,6 @@ func (profile *Profile) ToggleVideoFavourite(videoId string) {
 }
 
 func validateProfileFile(configMap interface{}) error {
-	schema := jsonschema.Must(schemaString)
-
 	validationState := schema.Validate(context.Background(), configMap)
 	errs := *validationState.Errs
 	if len(errs) > 0 {
