@@ -23,6 +23,7 @@ type VideoIndexPanel struct {
 	FavouriteIcon            string
 	DownloadedIcon           string
 	DownloadingIcon          string
+	DownloadBlockedIcon      string
 }
 
 type ListStoreColumn int
@@ -82,6 +83,7 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	rtn.FavouriteIcon = findIcon([]string{"starred-symbolic", "starred"})
 	rtn.DownloadedIcon = findIcon([]string{"emblem-ok-symbolic", "emblem-downloads", "emblem-shared"})
 	rtn.DownloadingIcon = findIcon([]string{"emblem-synchronizing-symbolic", "emblem-synchronizing"})
+	rtn.DownloadBlockedIcon = findIcon([]string{"action-unavailable-symbolic", "process-stop-symbolic", "changes-prevent-symbolic"})
 	rtn.ListStore, rtn.ListStoreRows = rtn.buildListStore()
 	rtn.showAllOrFavouritesOnly() // Updates the showRow bool in the list store - could do it while building, but it would duplicates much of toggling the state
 
@@ -208,6 +210,8 @@ func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter)
 		switch panel.Parent.FeedCache.State[videoItem.Id] {
 		case feed.NotDownloaded:
 			downloadIcon = ""
+		case feed.DownloadBlocked:
+			downloadIcon = panel.DownloadBlockedIcon
 		case feed.Downloading:
 			downloadIcon = panel.DownloadingIcon
 		case feed.Downloaded:
