@@ -16,15 +16,6 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-const (
-	TwoColGridLeft  = 0
-	TwoColGridRight = 1
-
-	ThreeColGridLeft   = 0
-	ThreeColGridMiddle = 1
-	ThreeColGridRight  = 2
-)
-
 //go:embed "configdialog.css"
 var ConfigDialogCss string
 
@@ -49,43 +40,7 @@ type ConfigDialog struct {
 type FiletypeControl struct {
 	DropDown *gtk.DropDown
 	Entry    *gtk.Entry
-}
-
-func newGrid() *gtk.Grid {
-	grid := gtk.NewGrid()
-	grid.SetColumnSpacing(4)
-	grid.SetRowSpacing(4)
-	grid.SetMarginStart(8)
-	grid.SetMarginEnd(8)
-	grid.SetMarginTop(8)
-	grid.SetMarginBottom(8)
-	grid.SetHExpand(true)
-	grid.SetVExpand(false)
-	return grid
-}
-
-func newIntegerSpinner(lower, upper, value int) *gtk.SpinButton {
-	adjustment := gtk.NewAdjustment(float64(value), float64(lower), float64(upper), 1.0, 5.0, 0.0)
-	return gtk.NewSpinButton(adjustment, 1.0, 0)
-}
-
-func newTextEntry(initVal string, validator func(string) bool) *gtk.Entry {
-	// Validators must return true if the given string is valid
-	entry := gtk.NewEntry()
-	entry.SetText(initVal)
-	entry.SetHExpand(true)
-	if validator != nil {
-		entry.ConnectChanged(func() {
-			newValue := entry.Text()
-			ok := validator(newValue)
-			if ok {
-				entry.RemoveCSSClass("error")
-			} else {
-				entry.AddCSSClass("error")
-			}
-		})
-	}
-	return entry
+	Margins  profile.FiletypePlayerOptions
 }
 
 func validateDirectory(dirname string) bool {
@@ -161,8 +116,12 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 			for filetypeSuffix, controls := range dialog.FiletypeControls {
 				player := controls.DropDown.SelectedItem().Cast().(*gtk.StringObject).String()
 				dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
-					Name:    player,
-					Options: strings.Split(controls.Entry.Text(), " "),
+					Name:         player,
+					Options:      strings.Split(controls.Entry.Text(), " "),
+					MarginLeft:   controls.Margins.MarginLeft,
+					MarginRight:  controls.Margins.MarginRight,
+					MarginTop:    controls.Margins.MarginTop,
+					MarginBottom: controls.Margins.MarginBottom,
 				}
 			}
 
@@ -226,18 +185,37 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
 		grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
 		// right: options and parameters
-		paramsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
+		optsAndParamsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
 		optsEntry := gtk.NewEntry()
 		optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
 		optsEntry.SetHExpand(true)
-		paramsBox.Append(optsEntry)
-		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry}
-		// TODO: Margins
-		grid.Attach(paramsBox, ThreeColGridRight, y, 1, 1)
+		optsAndParamsBox.Append(optsEntry)
+		paramsButton := gtk.NewButtonWithLabel("Parameters")
+		paramsButton.ConnectClicked(func() {
+			dialog.OnFiletypePlayerParamsButtonClicked(filetypeSuffix)
+		})
+		if filetypePlayer.Name != "omxplayer" {
+			paramsButton.Hide()
+		}
+		dropdown.Connect("notify::selected-item", func() {
+			if dropdown.SelectedItem().Cast().(*gtk.StringObject).String() == "omxplayer" {
+				paramsButton.Show()
+			} else {
+				paramsButton.Hide()
+			}
+		})
+		optsAndParamsBox.Append(paramsButton)
+		grid.Attach(optsAndParamsBox, ThreeColGridRight, y, 1, 1)
 
+		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, *filetypePlayer}
 		y++
 	}
 	return grid
+}
+
+func (dialog *ConfigDialog) OnFiletypePlayerParamsButtonClicked(filetypeSuffix string) {
+	paramsDialog := NewOmxplayerParamsDialog(&dialog.Window, filetypeSuffix, &dialog.FiletypeControls[filetypeSuffix].Margins)
+	paramsDialog.Show()
 }
 
 func (dialog *ConfigDialog) initGeneralGrid() *gtk.Grid {
