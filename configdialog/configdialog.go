@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	// coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
@@ -42,7 +43,12 @@ type ConfigDialog struct {
 	ExecutableEntryBoxes map[string]*gtk.Entry // key is the executable name ("mpv", etc)
 
 	// Fields related to the Filetypes panel
-	FiletypeDropDowns map[string]*gtk.DropDown // key is the filetype (".mp4", etc)
+	FiletypeControls map[string]*FiletypeControl // key is the filetype (".mp4", etc)
+}
+
+type FiletypeControl struct {
+	DropDown *gtk.DropDown
+	Entry    *gtk.Entry
 }
 
 func newGrid() *gtk.Grid {
@@ -152,11 +158,11 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 			}
 
 			// Filetypes tab:
-			for filetypeSuffix, dropdown := range dialog.FiletypeDropDowns {
-				player := dropdown.SelectedItem().Cast().(*gtk.StringObject).String()
+			for filetypeSuffix, controls := range dialog.FiletypeControls {
+				player := controls.DropDown.SelectedItem().Cast().(*gtk.StringObject).String()
 				dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
 					Name:    player,
-					Options: []string{},
+					Options: strings.Split(controls.Entry.Text(), " "),
 				}
 			}
 
@@ -192,15 +198,19 @@ func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 
 func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 	grid := newGrid()
+	grid.SetColumnHomogeneous(false)
 	y := 0
 	grid.Attach(gtk.NewLabel("Filetype"), ThreeColGridLeft, y, 1, 1)
 	grid.Attach(gtk.NewLabel("Application"), ThreeColGridMiddle, y, 1, 1)
+	grid.Attach(gtk.NewLabel("Options"), ThreeColGridRight, y, 1, 1)
 	y++
 	filetypes := maps.Keys(dialog.Profile.FiletypePlayers)
 	slices.Sort(filetypes)
-	dialog.FiletypeDropDowns = make(map[string]*gtk.DropDown, len(filetypes))
+	dialog.FiletypeControls = make(map[string]*FiletypeControl, len(filetypes))
 	for _, filetypeSuffix := range filetypes {
+		// left: label
 		grid.Attach(gtk.NewLabel(filetypeSuffix), ThreeColGridLeft, y, 1, 1)
+		// middle: dropdown
 		playerNames := []string{}
 		if filetypeSuffix == ".mp3" {
 			for playerName := range players.MusicPlayerLookup {
@@ -211,11 +221,20 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 				playerNames = append(playerNames, playerName)
 			}
 		}
+		filetypePlayer := dialog.Profile.FiletypePlayers[filetypeSuffix]
 		dropdown := gtk.NewDropDownFromStrings(playerNames)
-		dropdown.SetHExpand(true)
-		dropdown.SetSelected(uint(slices.Index(playerNames, dialog.Profile.FiletypePlayers[filetypeSuffix].Name)))
-		dialog.FiletypeDropDowns[filetypeSuffix] = dropdown
+		dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
 		grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
+		// right: options and parameters
+		paramsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
+		optsEntry := gtk.NewEntry()
+		optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
+		optsEntry.SetHExpand(true)
+		paramsBox.Append(optsEntry)
+		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry}
+		// TODO: Margins
+		grid.Attach(paramsBox, ThreeColGridRight, y, 1, 1)
+
 		y++
 	}
 	return grid
