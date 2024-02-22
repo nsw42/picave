@@ -54,6 +54,13 @@ func validateDirectory(dirname string) bool {
 	return info.IsDir()
 }
 
+func validateOptionalDirectory(dirname string) bool {
+	if dirname == "" {
+		return true
+	}
+	return validateDirectory(dirname)
+}
+
 func validateExecutable(exename string) bool {
 	if exename == "" {
 		// Empty means "this player is disabled/not available"
@@ -71,7 +78,7 @@ func validateExecutable(exename string) bool {
 	return false
 }
 
-func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
+func NewConfigDialog(parent *gtk.Window, prf *profile.Profile, okCallback func()) *ConfigDialog {
 	dialog := &ConfigDialog{}
 	dialog.Dialog = gtk.NewDialogWithFlags("Configuration "+filepath.Base(prf.FilePath), parent, gtk.DialogModal)
 
@@ -103,7 +110,11 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 		if responseId == int(gtk.ResponseOK) {
 			// Update the profile
 			// General tab:
-			prf.WarmUpMusic = musicdir.NewMusicDirectory(dialog.WarmUpEntry.Text())
+			if dialog.WarmUpEntry.Text() == "" {
+				prf.WarmUpMusic = nil
+			} else {
+				prf.WarmUpMusic = musicdir.NewMusicDirectory(dialog.WarmUpEntry.Text())
+			}
 			prf.VideoCacheDirectory = dialog.VideoCacheEntry.Text()
 			prf.SetDefaultFTPVal(int(dialog.FtpSpinButton.Value()))
 
@@ -124,6 +135,10 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile) *ConfigDialog {
 
 			// And save it
 			prf.Save()
+
+			// Ensure that the 'warm up button' on the main panel is enabled/disabled appropriately,
+			// and that the 'downloaded' icons in the session panel are updated.
+			okCallback()
 		}
 		dialog.Destroy()
 	})
@@ -218,15 +233,17 @@ func (dialog *ConfigDialog) initGeneralGrid() *gtk.Grid {
 
 	// Warm up music row
 	grid.Attach(gtk.NewLabel("Warm up music"), TwoColGridLeft, y, 1, 1)
-	dialog.WarmUpEntry = newTextEntry(dialog.Profile.WarmUpMusic.BasePath, validateDirectory)
-	// TODO: ConnectChanged
+	var basePath string
+	if dialog.Profile.WarmUpMusic != nil {
+		basePath = dialog.Profile.WarmUpMusic.BasePath
+	}
+	dialog.WarmUpEntry = newTextEntry(basePath, validateOptionalDirectory)
 	grid.Attach(dialog.WarmUpEntry, TwoColGridRight, y, 1, 1)
 	y++
 
 	// Video cache row
 	grid.Attach(gtk.NewLabel("Video cache"), TwoColGridLeft, y, 1, 1)
 	dialog.VideoCacheEntry = newTextEntry(dialog.Profile.VideoCacheDirectory, validateDirectory)
-	// TODO: ConnectChanged
 	grid.Attach(dialog.VideoCacheEntry, TwoColGridRight, y, 1, 1)
 	y++
 

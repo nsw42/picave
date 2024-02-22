@@ -7,8 +7,11 @@ import (
 )
 
 type MainPanel struct {
-	Parent   *AppWindow
-	Contents *gtk.Box
+	Parent            *AppWindow
+	Contents          *gtk.Box
+	ConfigButton      *gtk.Button
+	WarmUpButton      *gtk.Button
+	MainSessionButton *gtk.Button
 }
 
 const border = 300
@@ -32,19 +35,30 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	configButton.SetMarginBottom(100)
 	buttonBox.Append(configButton)
 	configButton.ConnectClicked(func() {
-		dialog := configdialog.NewConfigDialog(&parent.GtkWindow.Window, parent.Profile)
+		dialog := configdialog.NewConfigDialog(&parent.GtkWindow.Window,
+			parent.Profile,
+			func() {
+				rtn.WarmUpButton.SetSensitive(parent.Profile.WarmUpMusic != nil)
+				parent.VideoCacheDirectoryUpdated()
+
+			})
 		dialog.Show()
 	})
+	rtn.ConfigButton = configButton
 
 	warmUpButton := gtk.NewButtonWithLabel("Warm up")
 	warmUpButton.SetHExpand(true)
 	warmUpButton.SetVExpand(true)
 	warmUpButton.SetMarginBottom(200)
 	buttonBox.Append(warmUpButton)
+	if parent.Profile.WarmUpMusic == nil {
+		warmUpButton.SetSensitive(false)
+	}
 	warmUpButton.ConnectClicked(func() {
 		parent.Stack.SetVisibleChildName(WarmUpPanelName)
 		parent.WarmUpPanel.OnShown()
 	})
+	rtn.WarmUpButton = warmUpButton
 
 	mainSessionButton := gtk.NewButtonWithLabel("Main session")
 	mainSessionButton.SetHExpand(true)
@@ -53,6 +67,7 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	mainSessionButton.ConnectClicked(func() {
 		parent.Stack.SetVisibleChildName(VideoIndexPanelName)
 	})
+	rtn.MainSessionButton = mainSessionButton
 
 	return rtn
 }

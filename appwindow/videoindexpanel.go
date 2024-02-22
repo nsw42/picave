@@ -206,17 +206,7 @@ func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter)
 		if slices.Contains(panel.Parent.Profile.Favourites, videoItem.Id) {
 			favIcon = panel.FavouriteIcon
 		}
-		var downloadIcon string
-		switch panel.Parent.FeedCache.State[videoItem.Id] {
-		case feed.NotDownloaded:
-			downloadIcon = ""
-		case feed.DownloadBlocked:
-			downloadIcon = panel.DownloadBlockedIcon
-		case feed.Downloading:
-			downloadIcon = panel.DownloadingIcon
-		case feed.Downloaded:
-			downloadIcon = panel.DownloadedIcon
-		}
+		downloadIcon := panel.downloadIconForVideo(videoItem.Id)
 		newRow := listStore.Append()
 		listStore.Set(newRow,
 			[]int{ColumnFavourite, ColumnTitle, ColumnType, ColumnDuration, ColumnDate, ColumnEffectiveFTP, ColumnEffectiveMax, ColumnVideoDownloaded, ColumnVideoId, ColumnShowRow},
@@ -234,6 +224,28 @@ func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter)
 		rows = append(rows, newRow)
 	}
 	return listStore, rows
+}
+
+func (panel *VideoIndexPanel) RefreshDownloadStateIcons() {
+	for i, videoItem := range feed.Index {
+		downloadIcon := panel.downloadIconForVideo(videoItem.Id)
+		panel.ListStore.SetValue(panel.ListStoreRows[i], int(ColumnVideoDownloaded), glib.NewValue(downloadIcon))
+	}
+}
+
+func (panel *VideoIndexPanel) downloadIconForVideo(videoId string) string {
+	switch panel.Parent.FeedCache.State[videoId] {
+	case feed.NotDownloaded:
+		return ""
+	case feed.DownloadBlocked:
+		return panel.DownloadBlockedIcon
+	case feed.Downloading:
+		return panel.DownloadingIcon
+	case feed.Downloaded:
+		return panel.DownloadedIcon
+	}
+	// Should never happen
+	return ""
 }
 
 func (panel *VideoIndexPanel) toggleAllOrFavouritesOnly() {

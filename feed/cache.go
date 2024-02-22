@@ -40,6 +40,9 @@ func lookForYoutubeDL() string {
 
 func lookForVideo(profile *profile.Profile, itemId string) (string, DownloadState) {
 	// Returns path and download state
+	if profile.VideoCacheDirectory == "" {
+		return "", DownloadBlocked
+	}
 	matches, err := filepath.Glob(filepath.Join(profile.VideoCacheDirectory, itemId+".*"))
 	if err != nil {
 		return "", NotDownloaded
@@ -66,15 +69,21 @@ func NewFeedCache(profile *profile.Profile) *FeedCache {
 	cache.Path = map[string]string{}
 	ctx := context.Background()
 	cache.DownloadContext, cache.CancelDownload = context.WithCancel(ctx)
+	for _, item := range Index {
+		cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
+	}
+	go cache.StartDownloads(profile)
+	return cache
+}
+
+func (cache *FeedCache) StartDownloads(profile *profile.Profile) {
 	downloadItemChannel := make(chan int)
 	go cache.DoDownloads(profile, downloadItemChannel)
 	for itemIndex, item := range Index {
-		cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
 		if cache.State[item.Id] == NotDownloaded {
 			downloadItemChannel <- itemIndex
 		}
 	}
-	return cache
 }
 
 func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan int) {
@@ -86,7 +95,7 @@ func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan
 			return
 		}
 	}
-	cacheDir := profile.VideoCacheDirectory
+	cacheDir := profile.VideoCacheDirectory // Guaranteed not empty: cache.State[itemId] = DownloadBlocked if there's no cache dir
 	for {
 		select {
 		case <-cache.DownloadContext.Done():
@@ -105,6 +114,7 @@ func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan
 				// Download (presumably) successful
 				cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
 			}
+			cache.DownloadCommand = nil
 		}
 	}
 }

@@ -157,3 +157,9 @@ func (window *AppWindow) StopPlaying() {
 		window.SessionPanel.Stop()
 	}
 }
+
+func (window *AppWindow) VideoCacheDirectoryUpdated() {
+	// A function to be called when the configuration is updated
+	window.FeedCache = feed.NewFeedCache(window.Profile)
+	window.VideoIndexPanel.RefreshDownloadStateIcons()
+}

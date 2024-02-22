@@ -39,7 +39,7 @@ func parseArgs() bool {
 		defaultConfigFile = ".picaverc" // Just look in current working directory
 	}
 	parser := argparse.NewParser("picave", "A GTK-based personal trainer for cyclists")
-	ProfileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Default: defaultConfigFile, Validate: validateOptionFileExists})
+	profileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Default: defaultConfigFile, Validate: validateOptionFileExists})
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
 
 	if err := parser.Parse(os.Args); err != nil {
@@ -47,10 +47,16 @@ func parseArgs() bool {
 		return false
 	}
 
-	args.Profile, err = profile.LoadProfile(*ProfileArg)
+	args.Profile, err = profile.LoadProfile(*profileArg)
 	if err != nil {
-		fmt.Println("Profile file validation failed: ", err)
-		return false
+		var pErr *os.PathError
+		if errors.As(err, &pErr) {
+			// No such file or directory (probably)
+			args.Profile = profile.DefaultProfile(*profileArg)
+		} else {
+			fmt.Println("Profile file validation failed: ", err)
+			return false
+		}
 	}
 
 	args.Fullscreen = *fullscreenArg
