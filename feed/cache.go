@@ -67,7 +67,7 @@ func NewFeedCache(profile *profile.Profile) *FeedCache {
 	ctx := context.Background()
 	cache.DownloadContext, cache.CancelDownload = context.WithCancel(ctx)
 	downloadItemChannel := make(chan int)
-	go cache.Downloader(profile, downloadItemChannel)
+	go cache.DoDownloads(profile, downloadItemChannel)
 	for itemIndex, item := range Index {
 		cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
 		if cache.State[item.Id] == NotDownloaded {
@@ -77,7 +77,7 @@ func NewFeedCache(profile *profile.Profile) *FeedCache {
 	return cache
 }
 
-func (cache *FeedCache) Downloader(profile *profile.Profile, itemIndexChan chan int) {
+func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan int) {
 	ytdlp := profile.Executables["youtube-dl"]
 	if ytdlp == "" {
 		ytdlp = lookForYoutubeDL()
