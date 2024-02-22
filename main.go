@@ -66,6 +66,7 @@ func main() {
 	app := gtk.NewApplication("com.github.nsw42.picave", gio.ApplicationFlagsNone)
 	app.ConnectActivate(func() { activate(app) })
 	app.Run([]string{})
+	appWindow.FeedCache.StopUpdating()
 }
 
 func activate(app *gtk.Application) {
