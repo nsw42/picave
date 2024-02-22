@@ -7,7 +7,7 @@ require (
 	github.com/basilfx/go-omxplayer v0.2.0
 	github.com/creack/pty v1.1.21
 	github.com/dhowden/tag v0.0.0-20240122214204-713ab0e94639
-	github.com/diamondburned/gotk4/pkg v0.1.0
+	github.com/diamondburned/gotk4/pkg v0.2.2
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/tcolgate/mp3 v0.0.0-20170426193717-e79c5a46d300
 	github.com/titanous/json5 v1.0.0
@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/KarpelesLab/weak v0.1.1 // indirect
 	github.com/godbus/dbus/v5 v5.0.3 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/qri-io/jsonpointer v0.1.1 // indirect
