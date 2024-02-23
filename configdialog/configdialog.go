@@ -120,7 +120,7 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile, okCallback func()
 
 			// Executables tab:
 			for exeName, entry := range dialog.ExecutableEntryBoxes {
-				prf.Executables[exeName] = entry.Text()
+				prf.Executables[exeName] = profile.NewExecutable(exeName, entry.Text())
 			}
 
 			// Filetypes tab:
@@ -158,7 +158,7 @@ func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
 	for _, exeName := range executableNames {
 		exePath := dialog.Profile.Executables[exeName]
 		grid.Attach(gtk.NewLabel(exeName), TwoColGridLeft, y, 1, 1)
-		entry := newTextEntry(exePath, validateExecutable)
+		entry := newTextEntry(exePath.ConfiguredPath, validateExecutable)
 		dialog.ExecutableEntryBoxes[exeName] = entry
 		grid.Attach(entry, TwoColGridRight, y, 1, 1)
 		y++

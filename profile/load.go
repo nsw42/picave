@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"nsw42/picave/musicdir"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -17,9 +18,16 @@ import (
 //go:embed profile.schema.json
 var schemaString string
 var schema *jsonschema.Schema
+var executableNames []string
 
 func init() {
 	schema = jsonschema.Must(schemaString)
+	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp(fileKeyExecutables).(*jsonschema.Schema)
+	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
+	executableNames = maps.Keys(executablesMap)
+	executableNames = slices.DeleteFunc[[]string](executableNames, func(s string) bool {
+		return s == "" || s[0] == '$'
+	})
 }
 
 func maxPowerLevel(val interface{}) MaxPowerLevel {
@@ -73,20 +81,12 @@ func stringList(jsonSlice interface{}) []string {
 	return rtn
 }
 
-func loadProfileExecutables(configMap map[string]any) map[string]string {
-	rtn := map[string]string{}
-	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp(fileKeyExecutables).(*jsonschema.Schema)
-	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
-	executableNames := maps.Keys(executablesMap)
-	for _, exe := range executableNames {
-		if exe[0] != '$' {
-			rtn[exe] = ""
-		}
-	}
+func loadProfileExecutables(configMap map[string]any) map[string]*Executable {
+	rtn := defaultProfileExecutables() // Ensure every executable has a value, although possibly not a useful one
 	if configMap[fileKeyExecutables] != nil {
 		for exe, exeMap := range configMap[fileKeyExecutables].(map[string]interface{}) {
 			exeMapVal := exeMap.(map[string]interface{})
-			rtn[exe] = exeMapVal[fileKeyExePath].(string)
+			rtn[exe] = NewExecutable(exe, exeMapVal[fileKeyExePath].(string))
 		}
 	}
 	return rtn

@@ -58,7 +58,7 @@ func (player *Mpg123Player) Stop() {
 }
 
 func (player *Mpg123Player) launch(file string) {
-	exe := player.Profile.Executables["mpg123"]
+	exe := player.Profile.Executables["mpg123"].ExePath()
 	opts := player.Profile.FiletypePlayers[filepath.Ext(file)].Options
 	if len(opts) == 0 {
 		opts = []string{

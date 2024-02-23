@@ -11,11 +11,16 @@ type Profile struct {
 	FilePath            string
 	VideoCacheDirectory string
 	WarmUpMusic         *musicdir.MusicDirectory
-	Executables         map[string]string                 // map from player name to file path
+	Executables         map[string]*Executable            // map from player name (e.g. "mpv") to information about the player exe
 	FiletypePlayers     map[string]*FiletypePlayerOptions // map from suffix (".mp3") to player name ("mpv") and associated options
 	Favourites          []string
 	ShowFavouritesOnly  bool
 	PowerLevels         map[string]PowerLevels // map from video id (incl DefaultVideoId) to power levels
+}
+
+type Executable struct {
+	Name           string
+	ConfiguredPath string
 }
 
 type Margins struct {
@@ -26,7 +31,7 @@ type Margins struct {
 }
 
 type FiletypePlayerOptions struct {
-	Name    string
+	Name    string // e.g. "mpv"
 	Options []string
 	Margins Margins
 }

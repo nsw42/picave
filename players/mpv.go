@@ -27,7 +27,11 @@ func (player *MpvPlayer) PlayerState() PlayerState {
 }
 
 func (player *MpvPlayer) Play(file string, parent *gtk.Widget) *gtk.Widget {
-	exe := player.Profile.Executables["mpv"]
+	exe := player.Profile.Executables["mpv"].ExePath()
+	if exe == "" {
+		fmt.Println("Unable to find mpv executable. Skipping playback.")
+		return nil
+	}
 	go player.launch(exe, file)
 	return nil
 }

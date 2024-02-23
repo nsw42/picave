@@ -172,7 +172,9 @@ func (panel *WarmUpPanel) PlayRandomTrack() {
 	if panel.MusicPlayer == nil {
 		panel.MusicPlayer = players.CreateMusicPlayerForExt(panel.Parent.Profile, metadata.Filetype)
 	}
-	panel.MusicPlayer.Play(musicFile)
+	if panel.MusicPlayer != nil {
+		panel.MusicPlayer.Play(musicFile)
+	}
 	panel.PlayerStartedAt = time.Now()
 }
 

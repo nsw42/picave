@@ -8,9 +8,9 @@ import (
 
 func (profile *Profile) buildExecutablesJsonModel() interface{} {
 	exeMap := map[string]map[string]string{}
-	for playerName, filePath := range profile.Executables {
-		if filePath != "" {
-			exeMap[playerName] = map[string]string{fileKeyExePath: filePath}
+	for playerName, exe := range profile.Executables {
+		if exe != nil && exe.ConfiguredPath != "" {
+			exeMap[playerName] = map[string]string{fileKeyExePath: exe.ConfiguredPath}
 		}
 	}
 	return exeMap

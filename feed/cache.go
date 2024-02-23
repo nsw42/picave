@@ -27,17 +27,6 @@ type FeedCache struct {
 	CancelDownload  context.CancelFunc
 }
 
-func lookForYoutubeDL() string {
-	ytdlp, err := exec.LookPath("youtube-dl")
-	if err != nil {
-		ytdlp, err = exec.LookPath("yt-dlp")
-	}
-	if err != nil {
-		return ""
-	}
-	return ytdlp
-}
-
 func lookForVideo(profile *profile.Profile, itemId string) (string, DownloadState) {
 	// Returns path and download state
 	if profile.VideoCacheDirectory == "" {
@@ -87,15 +76,12 @@ func (cache *FeedCache) StartDownloads(profile *profile.Profile) {
 }
 
 func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan int) {
-	ytdlp := profile.Executables["youtube-dl"]
+	ytdlp := profile.Executables["youtube-dl"].ExePath()
 	if ytdlp == "" {
-		ytdlp = lookForYoutubeDL()
-		if ytdlp == "" {
-			log.Println("No path configured for youtube-dl, and unable to find it on the PATH. Download not possible.")
-			return
-		}
+		log.Println("No path configured for youtube-dl, and unable to find it on the PATH. Download not possible.")
+		return
 	}
-	cacheDir := profile.VideoCacheDirectory // Guaranteed not empty: cache.State[itemId] = DownloadBlocked if there's no cache dir
+	cacheDir := profile.VideoCacheDirectory // Guaranteed not empty if we're actually going to use it: cache.State[itemId] = DownloadBlocked if there's no cache dir
 	for {
 		select {
 		case <-cache.DownloadContext.Done():
