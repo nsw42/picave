@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"nsw42/picave/appwindow"
+	"nsw42/picave/osmc"
 	"nsw42/picave/profile"
 	"os"
 	"os/user"
@@ -15,8 +16,10 @@ import (
 )
 
 type Arguments struct {
-	Profile    *profile.Profile
-	Fullscreen bool
+	Profile     *profile.Profile
+	Fullscreen  bool
+	RunOsmcTest bool
+	OsmcPath    string
 }
 
 var args Arguments
@@ -39,6 +42,8 @@ func parseArgs() bool {
 		defaultConfigFile = ".picaverc" // Just look in current working directory
 	}
 	parser := argparse.NewParser("picave", "A GTK-based personal trainer for cyclists")
+	osmcPathArg := parser.String("o", "osmc", &argparse.Options{Help: "Path to the OSMC device", Default: ""})
+	osmcTestArg := parser.Flag("O", "osmctest", &argparse.Options{Help: "Run the OSMC test", Default: false})
 	profileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Default: defaultConfigFile, Validate: validateOptionFileExists})
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
 
@@ -60,12 +65,19 @@ func parseArgs() bool {
 	}
 
 	args.Fullscreen = *fullscreenArg
+	args.RunOsmcTest = *osmcTestArg
+	args.OsmcPath = *osmcPathArg
 
 	return true
 }
 
 func main() {
 	if !parseArgs() {
+		return
+	}
+
+	if args.RunOsmcTest {
+		osmc.RunTest(args.OsmcPath, true) // TODO: Make this debounce optional?
 		return
 	}
 
