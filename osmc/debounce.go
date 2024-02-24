@@ -1,7 +1,5 @@
 package osmc
 
-import "log"
-
 const DebounceInterval = 1.0 // seconds
 
 type DebouncedOsmcRemotecontrol struct {
@@ -27,7 +25,7 @@ func (debounced *DebouncedOsmcRemotecontrol) Poll() *OsmcEvent {
 	if event.KeyCode == debounced.LastEvent.KeyCode && event.Time.Sub(debounced.LastEvent.Time).Seconds() < DebounceInterval {
 		// Note that this simplistic debouncing means we never see 'key release' events.
 		// This is OK for our purposes, but might prove problematic in other contexts.
-		log.Println("Debounce: ignoring event")
+		// log.Println("Debounce: ignoring event")
 		return nil
 	}
 	debounced.LastEvent = *event
