@@ -1,6 +1,7 @@
 package appwindow
 
 import (
+	"log"
 	"nsw42/picave/configdialog"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -70,18 +71,33 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 }
 
 func (panel *MainPanel) SetWarmUpButtonSensitive() {
-	enabled := false
-	prf := panel.Parent.Profile
-	if prf.WarmUpMusic != nil {
-		mp3Player := prf.FiletypePlayers["mp3"]
-		if mp3Player != nil {
-			exe := prf.Executables[mp3Player.Name]
-			if exe != nil {
-				if exe.ExePath() != "" {
-					enabled = true
-				}
-			}
-		}
-	}
+	enabled := panel.ShouldEnableWarmUpButton()
 	panel.WarmUpButton.SetSensitive(enabled)
+}
+
+func (panel *MainPanel) ShouldEnableWarmUpButton() bool {
+	prf := panel.Parent.Profile
+	if prf.WarmUpMusic == nil {
+		log.Println("No warm up music folder configured")
+		return false
+	}
+
+	mp3Player := prf.FiletypePlayers[".mp3"]
+	if mp3Player == nil {
+		log.Println("No player enabled for .mp3 files")
+		return false
+	}
+
+	exe := prf.Executables[mp3Player.Name]
+	if exe == nil {
+		log.Println("Could not find a definition for player ", mp3Player.Name)
+		return false
+	}
+
+	if exe.ExePath() == "" {
+		log.Println("Could not find the binary", exe.Name)
+		return false
+	}
+
+	return true
 }
