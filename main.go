@@ -77,7 +77,7 @@ func main() {
 	}
 
 	if args.RunOsmcTest {
-		osmc.RunTest(args.OsmcPath, true) // TODO: Make this debounce optional?
+		osmc.RunTest(args.OsmcPath)
 		return
 	}
 

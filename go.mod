@@ -12,6 +12,7 @@ require (
 	github.com/tcolgate/mp3 v0.0.0-20170426193717-e79c5a46d300
 	github.com/titanous/json5 v1.0.0
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
+	golang.org/x/sys v0.0.0-20190422165155-953cdadca894
 )
 
 require (
@@ -22,5 +23,4 @@ require (
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20190422165155-953cdadca894 // indirect
 )

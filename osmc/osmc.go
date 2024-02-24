@@ -2,6 +2,7 @@ package osmc
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -21,19 +22,20 @@ type Osmc interface {
 	Poll() *OsmcEvent
 }
 
-func RunTest(filepath string, debounce bool) {
-	// An alternative to main(), which repeatedly polls for input events
-	var osmc Osmc
-	var err error
-	if debounce {
-		osmc, err = NewDebouncedOsmcRemoteControlReader(filepath)
-	} else {
-		osmc, err = NewOsmcRemoteControlReader(filepath)
-	}
+func NewOsmcRemoteControlReader(filepath string) Osmc {
+	//
+	debounced, err := NewDebouncedOsmcRemoteControlReader(filepath)
 	if err != nil {
-		fmt.Println("Unable to open OSMC: ", err)
-		return
+		log.Println("OSMC unavailable:", err)
+		return &NullOsmcReader{}
 	}
+	return debounced
+}
+
+func RunTest(filepath string) {
+	// An alternative to main(), which repeatedly polls for input events
+	osmc := NewOsmcRemoteControlReader(filepath)
+	fmt.Println("Polling for events")
 	for {
 		event := osmc.Poll()
 		if event != nil {

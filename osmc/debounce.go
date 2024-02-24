@@ -11,7 +11,7 @@ type DebouncedOsmcRemotecontrol struct {
 
 func NewDebouncedOsmcRemoteControlReader(filepath string) (*DebouncedOsmcRemotecontrol, error) {
 	debounced := &DebouncedOsmcRemotecontrol{}
-	osmc, err := NewOsmcRemoteControlReader(filepath)
+	osmc, err := NewRawOsmcRemoteControlReader(filepath)
 	if err != nil {
 		return nil, err
 	}

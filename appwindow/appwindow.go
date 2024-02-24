@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"nsw42/picave/exitdialog"
 	"nsw42/picave/feed"
+	"nsw42/picave/osmc"
 	"nsw42/picave/profile"
 	"os/exec"
 
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -21,6 +23,7 @@ type AppWindow struct {
 	SessionPanel    *SessionPanel
 	FeedCache       *feed.FeedCache
 	KeyController   *gtk.EventControllerKey
+	Osmc            osmc.Osmc
 }
 
 func NewAppWindow(app *gtk.Application,
@@ -66,6 +69,9 @@ func NewAppWindow(app *gtk.Application,
 	rtn.Stack.AddNamed(rtn.SessionPanel.Contents, SessionPanelName)
 
 	rtn.Stack.SetVisibleChildName(MainPanelName)
+
+	rtn.Osmc = osmc.NewOsmcRemoteControlReader("")
+	glib.TimeoutAdd(50, rtn.PollOsmc)
 
 	return rtn
 }
@@ -147,6 +153,22 @@ func (window *AppWindow) OnShutdown() {
 	window.OnQuit()
 	cmd := exec.Command("sudo", "shutdown", "-h", "+1")
 	cmd.Run()
+}
+
+func (window *AppWindow) PollOsmc() bool {
+	event := window.Osmc.Poll()
+	if event != nil {
+		switch event.KeyCode {
+		case osmc.KeyBack:
+			window.OnBackKey()
+		case osmc.KeyPlayPause:
+			window.OnPlayPause()
+		case osmc.KeyStop:
+			window.StopPlaying()
+			window.OnBackKey()
+		}
+	}
+	return true
 }
 
 func (window *AppWindow) StopPlaying() {

@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/binary"
 	"log"
-	"os"
 	"syscall"
 	"time"
 	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 type OsmcRemoteControl struct {
-	Handle *os.File
+	Handle int
 }
 
 type InputEventData struct {
@@ -28,12 +29,17 @@ const (
 	EventKeyType = 1
 )
 
-func NewOsmcRemoteControlReader(filename string) (*OsmcRemoteControl, error) {
+func NewRawOsmcRemoteControlReader(filename string) (*OsmcRemoteControl, error) {
 	if filename == "" {
 		filename = "/dev/input/by-id/usb-OSMC_Remote_Controller_USB_Keyboard_Mouse-event-if01"
 	}
-	handle, err := os.OpenFile(filename, syscall.O_RDONLY|syscall.O_NDELAY, 0444)
-	if err != nil || handle == nil {
+	// NB os.Open doesn't support O_NDELAY - see e.g. https://github.com/golang/go/issues/47715
+	// Adding support for Windows should be possible by converting this to use
+	// os.Open and reading in a goroutines, returning events over a channel.
+	// That might be the more idiomatic approach, regardless.
+	// PRs welcome...
+	handle, err := unix.Open(filename, syscall.O_RDONLY|syscall.O_NDELAY, 0444)
+	if err != nil || handle == -1 {
 		return nil, err
 	}
 	return &OsmcRemoteControl{handle}, nil
@@ -43,12 +49,15 @@ func (osmc *OsmcRemoteControl) Poll() *OsmcEvent {
 	// Linux document states that we'll always get an integer number of input events on a read.
 	// So, no need for the accumulator that was implemented in the original Python version.
 	tmpBuf := make([]byte, EventSize)
-	n, err := osmc.Handle.Read(tmpBuf)
+	n, err := unix.Read(osmc.Handle, tmpBuf)
 	if err != nil {
-		log.Println("Error reading from osmc file", err)
+		errno := err.(syscall.Errno)
+		if errno != syscall.EAGAIN {
+			log.Println("Error reading from osmc file", err)
+		}
 		return nil
 	}
-	if n == 0 {
+	if n <= 0 {
 		return nil
 	}
 	reader := bytes.NewReader(tmpBuf)
