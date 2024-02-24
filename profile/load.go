@@ -19,15 +19,20 @@ import (
 var schemaString string
 var schema *jsonschema.Schema
 var executableNames []string
+var supportedFiletypes []string
 
 func init() {
 	schema = jsonschema.Must(schemaString)
-	executables := schema.JSONProp("properties").(*jsonschema.Properties).JSONProp(fileKeyExecutables).(*jsonschema.Schema)
+	schemaProperties := schema.JSONProp("properties").(*jsonschema.Properties)
+	executables := schemaProperties.JSONProp(fileKeyExecutables).(*jsonschema.Schema)
 	executablesMap := executables.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
 	executableNames = maps.Keys(executablesMap)
 	executableNames = slices.DeleteFunc[[]string](executableNames, func(s string) bool {
 		return s == "" || s[0] == '$'
 	})
+	filetypes := schemaProperties.JSONProp(fileKeyFiletypes).(*jsonschema.Schema)
+	filetypesMap := filetypes.JSONProp("properties").(*jsonschema.Properties).JSONChildren()
+	supportedFiletypes = maps.Keys(filetypesMap)
 }
 
 func maxPowerLevel(val interface{}) MaxPowerLevel {
@@ -92,8 +97,8 @@ func loadProfileExecutables(configMap map[string]any) map[string]*Executable {
 	return rtn
 }
 
-func loadProfileFiletypePlayers(configMap map[string]any) map[string]*FiletypePlayerOptions {
-	rtn := map[string]*FiletypePlayerOptions{}
+func loadProfileFiletypePlayers(executables map[string]*Executable, configMap map[string]any) map[string]*FiletypePlayerOptions {
+	rtn := defaultProfilePlayers(executables) // Ensure every player has a value, although possibly not a useful one
 	if configMap[fileKeyFiletypes] != nil {
 		for filetype, playerMap := range configMap[fileKeyFiletypes].(map[string]interface{}) {
 			playerMapVal := playerMap.(map[string]interface{})
@@ -154,7 +159,7 @@ func LoadProfile(profileFilePath string) (*Profile, error) {
 		profile.WarmUpMusic = musicdir.NewMusicDirectory(warmUpMusicDirectory)
 	}
 	profile.Executables = loadProfileExecutables(configMap)
-	profile.FiletypePlayers = loadProfileFiletypePlayers(configMap)
+	profile.FiletypePlayers = loadProfileFiletypePlayers(profile.Executables, configMap)
 	profile.Favourites = stringList(configMap[fileKeyFavourites])
 	profile.ShowFavouritesOnly = optionalBool(configMap[fileKeyShowFavouritesOnly])
 	profile.PowerLevels = loadProfilePowerLevels(configMap)

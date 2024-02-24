@@ -12,8 +12,13 @@ import (
 
 	// coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"golang.org/x/exp/maps"
+)
+
+const (
+	InvalidListPosition = glib.MAXUINT32
 )
 
 //go:embed "configdialog.css"
@@ -125,11 +130,16 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile, okCallback func()
 
 			// Filetypes tab:
 			for filetypeSuffix, controls := range dialog.FiletypeControls {
-				player := controls.DropDown.SelectedItem().Cast().(*gtk.StringObject).String()
-				dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
-					Name:    player,
-					Options: strings.Split(controls.Entry.Text(), " "),
-					Margins: controls.Margins,
+				selected := controls.DropDown.SelectedItem()
+				if selected == nil {
+					dialog.Profile.FiletypePlayers[filetypeSuffix] = nil
+				} else {
+					player := selected.Cast().(*gtk.StringObject).String()
+					dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
+						Name:    player,
+						Options: strings.Split(controls.Entry.Text(), " "),
+						Margins: controls.Margins,
+					}
 				}
 			}
 
@@ -190,19 +200,25 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		}
 		filetypePlayer := dialog.Profile.FiletypePlayers[filetypeSuffix]
 		dropdown := gtk.NewDropDownFromStrings(playerNames)
-		dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
+		if filetypePlayer == nil {
+			dropdown.SetSelected(InvalidListPosition)
+		} else {
+			dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
+		}
 		grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
 		// right: options and parameters
 		optsAndParamsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
 		optsEntry := gtk.NewEntry()
-		optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
+		if filetypePlayer != nil {
+			optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
+		}
 		optsEntry.SetHExpand(true)
 		optsAndParamsBox.Append(optsEntry)
 		paramsButton := gtk.NewButtonWithLabel("Parameters")
 		paramsButton.ConnectClicked(func() {
 			dialog.OnFiletypePlayerParamsButtonClicked(filetypeSuffix)
 		})
-		if filetypePlayer.Name != "omxplayer" {
+		if filetypePlayer == nil || filetypePlayer.Name != "omxplayer" {
 			paramsButton.Hide()
 		}
 		dropdown.Connect("notify::selected-item", func() {
@@ -215,7 +231,11 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 		optsAndParamsBox.Append(paramsButton)
 		grid.Attach(optsAndParamsBox, ThreeColGridRight, y, 1, 1)
 
-		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, filetypePlayer.Margins}
+		var margins profile.Margins
+		if filetypePlayer != nil {
+			margins = filetypePlayer.Margins
+		}
+		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, margins}
 		y++
 	}
 	return grid

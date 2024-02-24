@@ -19,26 +19,28 @@ func (profile *Profile) buildExecutablesJsonModel() interface{} {
 func (profile *Profile) buildFiletypesJsonModel() interface{} {
 	filetypeMap := map[string]any{}
 	for ext, playerOpts := range profile.FiletypePlayers {
-		filetypeMap[ext] = func() interface{} {
-			oneFiletypeMap := map[string]any{}
-			oneFiletypeMap[fileKeyPlayer] = playerOpts.Name
-			oneFiletypeMap[fileKeyOptions] = playerOpts.Options
-			paramMap := map[string]int{}
-			if playerOpts.Margins.Left != 0 {
-				paramMap[fileKeyParamMarginLeft] = playerOpts.Margins.Left
-			}
-			if playerOpts.Margins.Right != 0 {
-				paramMap[fileKeyParamMarginRight] = playerOpts.Margins.Right
-			}
-			if playerOpts.Margins.Top != 0 {
-				paramMap[fileKeyParamMarginTop] = playerOpts.Margins.Top
-			}
-			if playerOpts.Margins.Bottom != 0 {
-				paramMap[fileKeyParamMarginBottom] = playerOpts.Margins.Bottom
-			}
-			oneFiletypeMap[fileKeyParameters] = paramMap
-			return oneFiletypeMap
-		}()
+		if playerOpts != nil {
+			filetypeMap[ext] = func() interface{} {
+				oneFiletypeMap := map[string]any{}
+				oneFiletypeMap[fileKeyPlayer] = playerOpts.Name
+				oneFiletypeMap[fileKeyOptions] = playerOpts.Options
+				paramMap := map[string]int{}
+				if playerOpts.Margins.Left != 0 {
+					paramMap[fileKeyParamMarginLeft] = playerOpts.Margins.Left
+				}
+				if playerOpts.Margins.Right != 0 {
+					paramMap[fileKeyParamMarginRight] = playerOpts.Margins.Right
+				}
+				if playerOpts.Margins.Top != 0 {
+					paramMap[fileKeyParamMarginTop] = playerOpts.Margins.Top
+				}
+				if playerOpts.Margins.Bottom != 0 {
+					paramMap[fileKeyParamMarginBottom] = playerOpts.Margins.Bottom
+				}
+				oneFiletypeMap[fileKeyParameters] = paramMap
+				return oneFiletypeMap
+			}()
+		}
 	}
 	return filetypeMap
 }
