@@ -23,7 +23,7 @@ func defaultProfileExecutables() map[string]*Executable {
 func defaultProfilePlayers(executables map[string]*Executable) map[string]*FiletypePlayerOptions {
 	rtn := map[string]*FiletypePlayerOptions{}
 	rtn[".mp3"] = defaultMusicPlayer(executables)
-	rtn[".mk4"] = defaultVideoPlayer(executables)
+	rtn[".mp4"] = defaultVideoPlayer(executables)
 	rtn[".mkv"] = defaultVideoPlayer(executables)
 	return rtn
 }
