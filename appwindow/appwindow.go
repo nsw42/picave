@@ -29,6 +29,7 @@ type AppWindow struct {
 func NewAppWindow(app *gtk.Application,
 	profile *profile.Profile,
 	fullScreen bool,
+	developerMode bool,
 ) *AppWindow {
 	rtn := &AppWindow{Profile: profile}
 	rtn.GtkWindow = gtk.NewApplicationWindow(app)
@@ -60,7 +61,7 @@ func NewAppWindow(app *gtk.Application,
 
 	rtn.MainPanel = NewMainPanel(rtn)
 	rtn.WarmUpPanel = NewWarmUpPanel(rtn)
-	rtn.VideoIndexPanel = NewVideoIndexPanel(rtn)
+	rtn.VideoIndexPanel = NewVideoIndexPanel(rtn, developerMode)
 	rtn.SessionPanel = NewSessionPanel(rtn)
 
 	rtn.Stack.AddNamed(rtn.MainPanel.Contents, MainPanelName)

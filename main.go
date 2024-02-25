@@ -16,10 +16,11 @@ import (
 )
 
 type Arguments struct {
-	Profile     *profile.Profile
-	Fullscreen  bool
-	RunOsmcTest bool
-	OsmcPath    string
+	Profile       *profile.Profile
+	Fullscreen    bool
+	RunOsmcTest   bool
+	OsmcPath      string
+	DeveloperMode bool
 }
 
 var args Arguments
@@ -46,6 +47,7 @@ func parseArgs() bool {
 	osmcTestArg := parser.Flag("O", "osmctest", &argparse.Options{Help: "Run the OSMC test", Default: false})
 	profileArg := parser.String("p", "profile", &argparse.Options{Help: "Profile file to read", Default: defaultConfigFile, Validate: validateOptionFileExists})
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
+	developerModeArg := parser.Flag("d", "developer", &argparse.Options{Help: "Enable developer mode. Include things like the video id in the index panel"})
 
 	if err := parser.Parse(os.Args); err != nil {
 		fmt.Println(err)
@@ -67,6 +69,7 @@ func parseArgs() bool {
 	args.Fullscreen = *fullscreenArg
 	args.RunOsmcTest = *osmcTestArg
 	args.OsmcPath = *osmcPathArg
+	args.DeveloperMode = *developerModeArg
 
 	return true
 }
@@ -88,6 +91,6 @@ func main() {
 }
 
 func activate(app *gtk.Application) {
-	appWindow = appwindow.NewAppWindow(app, args.Profile, args.Fullscreen)
+	appWindow = appwindow.NewAppWindow(app, args.Profile, args.Fullscreen, args.DeveloperMode)
 	appWindow.GtkWindow.Show()
 }

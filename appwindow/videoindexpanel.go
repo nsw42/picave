@@ -79,7 +79,7 @@ func createPixbufColumn(title string, colNr ListStoreColumn) *gtk.TreeViewColumn
 	return createColumn(title, renderer, false, "icon-name", colNr)
 }
 
-func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
+func NewVideoIndexPanel(parent *AppWindow, showVideoId bool) *VideoIndexPanel {
 	rtn := &VideoIndexPanel{Parent: parent}
 	rtn.FavouriteIcon = findIcon([]string{"starred-symbolic", "starred"})
 	rtn.DownloadedIcon = findIcon([]string{"emblem-ok-symbolic", "emblem-downloads", "emblem-shared"})
@@ -95,6 +95,9 @@ func NewVideoIndexPanel(parent *AppWindow) *VideoIndexPanel {
 	// TODO: TreeView is deprecated - should switch to ColumnView at some point
 	rtn.TreeView = gtk.NewTreeView()
 	rtn.TreeView.AppendColumn(createPixbufColumn("Favourite", ColumnFavourite))
+	if showVideoId {
+		rtn.TreeView.AppendColumn(createTextColumn("Id", ColumnVideoId))
+	}
 	rtn.TreeView.AppendColumn(createTextColumn("Title", ColumnTitle))
 	rtn.TreeView.AppendColumn(createTextColumn("Type", ColumnType))
 	rtn.TreeView.AppendColumn(createTextColumn("Duration", ColumnDuration))
