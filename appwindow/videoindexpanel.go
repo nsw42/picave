@@ -171,7 +171,7 @@ func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.Mo
 	case keyval == 'c':
 		panel.toggleAllOrFavouritesOnly()
 		return true
-	case keyval == '*':
+	case keyval == '*', keyval == gdk.KEY_Left:
 		panel.toggleFavouriteForCurrentRow()
 		return true
 	case (keyval == 'p') && (state == gdk.ControlMask), (keyval == gdk.KEY_Right):
