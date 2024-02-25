@@ -82,6 +82,10 @@ const (
 	fileKeyMax                  = "MAX"
 )
 
+func (profile *Profile) DefaultFTP() string {
+	return profile.GetVideoFTP(DefaultVideoId, false)
+}
+
 func (profile *Profile) DefaultFTPVal() int {
 	return profile.GetVideoFTPVal(DefaultVideoId, false)
 }
@@ -91,6 +95,14 @@ func (profile *Profile) SetDefaultFTPVal(ftp int) {
 	powerLevel := profile.PowerLevels[DefaultVideoId]
 	powerLevel.FTP = ftp
 	profile.PowerLevels[DefaultVideoId] = powerLevel
+}
+
+func (profile *Profile) DefaultMax() string {
+	return profile.GetVideoMax(DefaultVideoId, false)
+}
+
+func (profile *Profile) DefaultMaxVal() int {
+	return profile.GetVideoMaxVal(DefaultVideoId, false)
 }
 
 func (profile *Profile) GetVideoFTP(videoId string, expandDefault bool) string {
@@ -149,6 +161,36 @@ func (profile *Profile) GetVideoMaxVal(videoId string, expandDefault bool) int {
 		return profile.GetVideoMaxVal(DefaultVideoId, false)
 	}
 	return 0
+}
+
+func (profile *Profile) SetVideoFTPDefault(videoId string) {
+	profile.SetVideoFTPVal(videoId, 0)
+}
+
+func (profile *Profile) SetVideoFTPVal(videoId string, ftp int) {
+	profile.PowerLevels[videoId] = PowerLevels{
+		Max: profile.PowerLevels[videoId].Max,
+		FTP: ftp,
+	}
+}
+
+func (profile *Profile) SetVideoMaxDefault(videoId string) {
+	profile.SetVideoMaxVal(videoId, MaxPowerLevel{NoValue, 0, 0})
+}
+
+func (profile *Profile) SetVideoMaxAbsolute(videoId string, absolute int) {
+	profile.SetVideoMaxVal(videoId, MaxPowerLevel{AbsoluteValue, absolute, 0})
+}
+
+func (profile *Profile) SetVideoMaxRelative(videoId string, relative int) {
+	profile.SetVideoMaxVal(videoId, MaxPowerLevel{RelativeToFTPValue, 0, relative})
+}
+
+func (profile *Profile) SetVideoMaxVal(videoId string, level MaxPowerLevel) {
+	profile.PowerLevels[videoId] = PowerLevels{
+		Max: level,
+		FTP: profile.PowerLevels[videoId].FTP,
+	}
 }
 
 func (profile *Profile) ToggleVideoFavourite(videoId string) {

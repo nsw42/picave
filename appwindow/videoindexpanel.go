@@ -3,6 +3,7 @@ package appwindow
 import (
 	"fmt"
 	"nsw42/picave/feed"
+	"nsw42/picave/powerdialog"
 	"nsw42/picave/widgets"
 	"slices"
 
@@ -173,6 +174,11 @@ func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.Mo
 	case keyval == '*':
 		panel.toggleFavouriteForCurrentRow()
 		return true
+	case (keyval == 'p') && (state == gdk.ControlMask), (keyval == gdk.KEY_Right):
+		row, _ := panel.TreeView.Cursor()
+		dialog := powerdialog.NewPowerDialog(&panel.Parent.GtkWindow.Window, panel.Parent.Profile, panel.getSessionVideoIdFromTreeViewRow(row), panel.RefreshPowerLevels)
+		dialog.Show()
+		return true
 	}
 	return false
 }
@@ -224,6 +230,13 @@ func (panel *VideoIndexPanel) buildListStore() (*gtk.ListStore, []*gtk.TreeIter)
 		rows = append(rows, newRow)
 	}
 	return listStore, rows
+}
+
+func (panel *VideoIndexPanel) RefreshPowerLevels() {
+	for i, videoItem := range feed.Index {
+		panel.ListStore.SetValue(panel.ListStoreRows[i], int(ColumnEffectiveFTP), glib.NewValue(formatPower(panel.Parent.Profile.GetVideoFTP(videoItem.Id, false))))
+		panel.ListStore.SetValue(panel.ListStoreRows[i], int(ColumnEffectiveMax), glib.NewValue(formatPower(panel.Parent.Profile.GetVideoMax(videoItem.Id, false))))
+	}
 }
 
 func (panel *VideoIndexPanel) RefreshDownloadStateIcons() {

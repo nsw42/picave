@@ -5,6 +5,7 @@ import (
 	"nsw42/picave/musicdir"
 	"nsw42/picave/players"
 	"nsw42/picave/profile"
+	"nsw42/picave/widgets"
 	"os"
 	"path/filepath"
 	"slices"
@@ -18,6 +19,9 @@ import (
 )
 
 const (
+	// TODO: This can be removed, and gtk.InvalidListItem used, when
+	// https://github.com/diamondburned/gotk4/commit/748122820761fbd6ffe83b7602403e74f04c25c4
+	// is merged
 	InvalidListPosition = glib.MAXUINT32
 )
 
@@ -113,47 +117,46 @@ func NewConfigDialog(parent *gtk.Window, prf *profile.Profile, okCallback func()
 
 	dialog.ConnectResponse(func(responseId int) {
 		if responseId == int(gtk.ResponseOK) {
-			// Update the profile
-			// General tab:
-			if dialog.WarmUpEntry.Text() == "" {
-				prf.WarmUpMusic = nil
-			} else {
-				prf.WarmUpMusic = musicdir.NewMusicDirectory(dialog.WarmUpEntry.Text())
-			}
-			prf.VideoCacheDirectory = dialog.VideoCacheEntry.Text()
-			prf.SetDefaultFTPVal(int(dialog.FtpSpinButton.Value()))
-
-			// Executables tab:
-			for exeName, entry := range dialog.ExecutableEntryBoxes {
-				prf.Executables[exeName] = profile.NewExecutable(exeName, entry.Text())
-			}
-
-			// Filetypes tab:
-			for filetypeSuffix, controls := range dialog.FiletypeControls {
-				selected := controls.DropDown.SelectedItem()
-				if selected == nil {
-					dialog.Profile.FiletypePlayers[filetypeSuffix] = nil
-				} else {
-					player := selected.Cast().(*gtk.StringObject).String()
-					dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
-						Name:    player,
-						Options: strings.Split(controls.Entry.Text(), " "),
-						Margins: controls.Margins,
-					}
-				}
-			}
-
-			// And save it
+			dialog.SaveValuesToProfile()
 			prf.Save()
-
-			// Ensure that the 'warm up button' on the main panel is enabled/disabled appropriately,
-			// and that the 'downloaded' icons in the session panel are updated.
 			okCallback()
 		}
 		dialog.Destroy()
 	})
 
 	return dialog
+}
+
+func (dialog *ConfigDialog) SaveValuesToProfile() {
+	prf := dialog.Profile
+	// General tab:
+	if dialog.WarmUpEntry.Text() == "" {
+		prf.WarmUpMusic = nil
+	} else {
+		prf.WarmUpMusic = musicdir.NewMusicDirectory(dialog.WarmUpEntry.Text())
+	}
+	prf.VideoCacheDirectory = dialog.VideoCacheEntry.Text()
+	prf.SetDefaultFTPVal(int(dialog.FtpSpinButton.Value()))
+
+	// Executables tab:
+	for exeName, entry := range dialog.ExecutableEntryBoxes {
+		prf.Executables[exeName] = profile.NewExecutable(exeName, entry.Text())
+	}
+
+	// Filetypes tab:
+	for filetypeSuffix, controls := range dialog.FiletypeControls {
+		selected := controls.DropDown.SelectedItem()
+		if selected == nil {
+			dialog.Profile.FiletypePlayers[filetypeSuffix] = nil
+		} else {
+			player := selected.Cast().(*gtk.StringObject).String()
+			dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
+				Name:    player,
+				Options: strings.Split(controls.Entry.Text(), " "),
+				Margins: controls.Margins,
+			}
+		}
+	}
 }
 
 func (dialog *ConfigDialog) initExecutablesGrid() *gtk.Grid {
@@ -269,7 +272,7 @@ func (dialog *ConfigDialog) initGeneralGrid() *gtk.Grid {
 
 	// Default FTP row
 	grid.Attach(gtk.NewLabel("Default FTP"), TwoColGridLeft, y, 1, 1)
-	dialog.FtpSpinButton = newIntegerSpinner(0, 1000, dialog.Profile.DefaultFTPVal())
+	dialog.FtpSpinButton = widgets.NewIntegerSpinner(0, 1000, dialog.Profile.DefaultFTPVal())
 	grid.Attach(dialog.FtpSpinButton, TwoColGridRight, y, 1, 1)
 	y++
 

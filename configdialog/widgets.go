@@ -24,11 +24,6 @@ func newGrid() *gtk.Grid {
 	return grid
 }
 
-func newIntegerSpinner(lower, upper, value int) *gtk.SpinButton {
-	adjustment := gtk.NewAdjustment(float64(value), float64(lower), float64(upper), 1.0, 5.0, 0.0)
-	return gtk.NewSpinButton(adjustment, 1.0, 0)
-}
-
 func newTextEntry(initVal string, validator func(string) bool) *gtk.Entry {
 	// Validators must return true if the given string is valid
 	entry := gtk.NewEntry()

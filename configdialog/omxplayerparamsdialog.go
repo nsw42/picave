@@ -2,6 +2,7 @@ package configdialog
 
 import (
 	"nsw42/picave/profile"
+	"nsw42/picave/widgets"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -42,7 +43,7 @@ func NewOmxplayerParamsDialog(parent *gtk.Window, filetype string, margins *prof
 
 func addRow(grid *gtk.Grid, y *int, labelText string, initVal int) *gtk.SpinButton {
 	grid.Attach(gtk.NewLabel(labelText), TwoColGridLeft, *y, 1, 1)
-	spinner := newIntegerSpinner(-1024, 1024, initVal)
+	spinner := widgets.NewIntegerSpinner(-1024, 1024, initVal)
 	grid.Attach(spinner, TwoColGridRight, *y, 1, 1)
 	(*y)++
 	return spinner
