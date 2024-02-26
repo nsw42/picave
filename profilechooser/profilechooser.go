@@ -3,6 +3,7 @@ package profilechooser
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -14,6 +15,7 @@ type CompletionCallback func(string)
 type ProfileChooserWindow struct {
 	*gtk.ApplicationWindow
 	MruFilename        string
+	MruListbox         *gtk.ListBox
 	Mru                []MruEntry
 	CompletionCallback CompletionCallback
 }
@@ -41,28 +43,27 @@ func NewProfileChooserWindow(app *gtk.Application, selectProfilePath string, com
 	} else {
 		rtn.MruFilename = filepath.Join(homedir, MruLeafname)
 	}
-	rtn.Mru = tryLoadMru(rtn.MruFilename)
+	rtn.Mru = rtn.TryLoadMru()
 	rtn.CompletionCallback = completionCallback
 
 	layout := gtk.NewBox(gtk.OrientationVertical, 4)
 	layout.SetHomogeneous(false)
 	// List of existing items
-	listbox := gtk.NewListBox()
+	rtn.MruListbox = gtk.NewListBox()
 	for _, mruitem := range rtn.Mru {
-		listboxrow := gtk.NewListBoxRow()
-		listboxrow.SetChild(gtk.NewLabel(mruitem.DisplayName))
-		listbox.Append(listboxrow)
 		mruPathAbs, err := filepath.Abs(mruitem.ProfilePath)
 		if err != nil {
 			mruPathAbs = mruitem.ProfilePath
 		}
-		if mruPathAbs == toSelectAbs {
-			listbox.SelectRow(listboxrow)
-		}
+		rtn.AddListBoxEntry(mruitem.DisplayName, mruPathAbs == toSelectAbs)
 	}
-	listbox.SetVExpand(true)
-	listbox.ConnectRowActivated(rtn.OnProfileChosen)
-	layout.Append(listbox)
+	rtn.MruListbox.SetVExpand(true)
+	rtn.MruListbox.ConnectRowActivated(rtn.OnProfileChosen)
+	layout.Append(rtn.MruListbox)
+	// 'Add' button
+	add := gtk.NewButtonWithLabel("Add")
+	add.ConnectClicked(rtn.DoAddDialog)
+	layout.Append(add)
 
 	layout.SetMarginStart(100)
 	layout.SetMarginEnd(100)
@@ -77,30 +78,57 @@ func NewProfileChooserWindow(app *gtk.Application, selectProfilePath string, com
 	return rtn
 }
 
+func (window *ProfileChooserWindow) AddListBoxEntry(displayName string, selectItem bool) {
+	listboxrow := gtk.NewListBoxRow()
+	listboxrow.SetChild(gtk.NewLabel(displayName))
+	window.MruListbox.Append(listboxrow)
+	if selectItem {
+		window.MruListbox.SelectRow(listboxrow)
+	}
+}
+
 func (window *ProfileChooserWindow) OnProfileChosen(row *gtk.ListBoxRow) {
 	window.CompletionCallback(window.Mru[row.Index()].ProfilePath)
 	window.Close()
 }
 
-func tryLoadMru(filename string) []MruEntry {
-	data, err := os.ReadFile(filename)
+// Note that the file format for the MRU was chosen for compatibility with the MRU written by the Python version.
+// It might make sense to make TryLoadMru support both, but switch to an object-format at some point in the future.
+
+func (window *ProfileChooserWindow) TryLoadMru() []MruEntry {
+	data, err := os.ReadFile(window.MruFilename)
 	if err != nil {
 		return []MruEntry{}
 	}
 	var stringArray [][]string
 	err = json.Unmarshal(data, &stringArray)
 	if err != nil {
-		fmt.Println("Warning: Unable to read MRU file", filename, ":", err)
+		fmt.Println("Warning: Unable to read MRU file", window.MruFilename, ":", err)
 		return []MruEntry{}
 	}
 	mru := []MruEntry{}
 	for _, strings := range stringArray {
 		if len(strings) != 2 {
-			fmt.Println("Warning; Invalid MRU file format in ", filename)
+			fmt.Println("Warning; Invalid MRU file format in ", window.MruFilename)
 			return []MruEntry{}
 		}
 		mru = append(mru, MruEntry{strings[0], strings[1]})
 	}
 
 	return mru
+}
+
+func (window *ProfileChooserWindow) SaveMru() {
+	var stringArray [][]string
+	for _, mruItem := range window.Mru {
+		stringArray = append(stringArray, []string{mruItem.DisplayName, mruItem.ProfilePath})
+	}
+	data, err := json.MarshalIndent(stringArray, "", "    ")
+	if err != nil {
+		log.Println("Error marshalling data: ", err)
+		return
+	}
+	if err = os.WriteFile(window.MruFilename, data, 0666); err != nil {
+		log.Println("Error writing profile file ", window.MruFilename, ":", err)
+	}
 }
