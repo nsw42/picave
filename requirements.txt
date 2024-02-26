@@ -1,7 +1,0 @@
-json5
-jsonschema
-mutagen
-pycairo
-pygobject
-requests
-autoupdate@git+https://github.com/nsw42/python-autoupdate
