@@ -135,6 +135,10 @@ func NewVideoIndexPanel(parent *AppWindow, showVideoId bool) *VideoIndexPanel {
 	grid.Attach(backButton, 0, 5, 1, 1)
 	rtn.Contents = grid
 
+	rtn.Contents.ConnectMap(func() {
+		rtn.RefreshDownloadStateIcons()
+	})
+
 	return rtn
 }
 
