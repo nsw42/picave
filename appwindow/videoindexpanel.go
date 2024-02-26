@@ -183,7 +183,7 @@ func (panel *VideoIndexPanel) OnKeyPress(keyval uint, keycode uint, state gdk.Mo
 		return true
 	case (keyval == 'p') && (state == gdk.ControlMask), (keyval == gdk.KEY_Right):
 		row, _ := panel.TreeView.Cursor()
-		dialog := powerdialog.NewPowerDialog(&panel.Parent.GtkWindow.Window, panel.Parent.Profile, panel.getSessionVideoIdFromTreeViewRow(row), panel.RefreshPowerLevels)
+		dialog := powerdialog.NewPowerDialog(&panel.Parent.Window, panel.Parent.Profile, panel.getSessionVideoIdFromTreeViewRow(row), panel.RefreshPowerLevels)
 		dialog.Show()
 		return true
 	}

@@ -16,6 +16,11 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+type Application struct {
+	*gtk.Application
+	Arguments Arguments
+}
+
 type Arguments struct {
 	ProfilePath        string
 	Fullscreen         bool
@@ -25,7 +30,6 @@ type Arguments struct {
 	ShowProfileChooser bool
 }
 
-var args Arguments
 var appWindow *appwindow.AppWindow
 
 func validateOptionFileExists(args []string) error {
@@ -36,7 +40,7 @@ func validateOptionFileExists(args []string) error {
 	return nil
 }
 
-func parseArgs() bool {
+func parseArgs() (Arguments, bool) {
 	user, err := user.Current()
 	var defaultConfigFile string
 	if err == nil {
@@ -54,21 +58,24 @@ func parseArgs() bool {
 
 	if err := parser.Parse(os.Args); err != nil {
 		fmt.Println(err)
-		return false
+		return Arguments{}, false
 	}
 
-	args.ProfilePath = *profileArg
-	args.Fullscreen = *fullscreenArg
-	args.RunOsmcTest = *osmcTestArg
-	args.OsmcPath = *osmcPathArg
-	args.DeveloperMode = *developerModeArg
-	args.ShowProfileChooser = *chooserArg
+	args := Arguments{
+		ProfilePath:        *profileArg,
+		Fullscreen:         *fullscreenArg,
+		RunOsmcTest:        *osmcTestArg,
+		OsmcPath:           *osmcPathArg,
+		DeveloperMode:      *developerModeArg,
+		ShowProfileChooser: *chooserArg,
+	}
 
-	return true
+	return args, true
 }
 
 func main() {
-	if !parseArgs() {
+	args, ok := parseArgs()
+	if !ok {
 		return
 	}
 
@@ -77,28 +84,31 @@ func main() {
 		return
 	}
 
-	app := gtk.NewApplication("com.github.nsw42.picave", gio.ApplicationFlagsNone)
-	app.ConnectActivate(func() { activate(app) })
+	app := &Application{}
+	app.Application = gtk.NewApplication("com.github.nsw42.picave", gio.ApplicationFlagsNone)
+	app.Arguments = args
+	app.ConnectActivate(func() { app.OnActivate() })
 	app.Run([]string{})
-	if appWindow != nil && appWindow.FeedCache != nil {
-		appWindow.FeedCache.StopUpdating()
-	}
 }
 
-func activate(app *gtk.Application) {
-	if args.ShowProfileChooser {
-		chooser := profilechooser.NewProfileChooserWindow(app,
-			args.ProfilePath,
-			func(profilePath string) {
-				showMainWindow(app, profilePath)
-			})
-		chooser.Show()
+func (app *Application) OnActivate() {
+	if app.Arguments.ShowProfileChooser {
+		app.RunProfileChooser()
 	} else {
-		showMainWindow(app, args.ProfilePath)
+		app.showMainWindow(app.Arguments.ProfilePath)
 	}
 }
 
-func showMainWindow(app *gtk.Application, profilePath string) {
+func (app *Application) RunProfileChooser() {
+	chooser := profilechooser.NewProfileChooserWindow(app.Application,
+		app.Arguments.ProfilePath,
+		func(profilePath string) {
+			app.showMainWindow(profilePath)
+		})
+	chooser.Show()
+}
+
+func (app *Application) showMainWindow(profilePath string) {
 	prf, err := profile.LoadProfile(profilePath)
 	if err != nil {
 		var pErr *os.PathError
@@ -111,6 +121,10 @@ func showMainWindow(app *gtk.Application, profilePath string) {
 			return
 		}
 	}
-	appWindow = appwindow.NewAppWindow(app, prf, args.Fullscreen, args.DeveloperMode)
-	appWindow.GtkWindow.Show()
+	appWindow = appwindow.NewAppWindow(app.Application,
+		prf,
+		app.Arguments.Fullscreen,
+		app.Arguments.DeveloperMode,
+		app.RunProfileChooser)
+	appWindow.Show()
 }

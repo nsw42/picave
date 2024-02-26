@@ -18,7 +18,7 @@ type ExitDialog struct {
 func NewExitDialog(parent *gtk.Window) *ExitDialog {
 	dialog := gtk.NewDialogWithFlags("Really quit?", parent, gtk.DialogModal)
 	dialog.AddButton("Cancel", int(ExitChoiceCancel))
-	// dialog.AddButton("Change profile", int(ExitChoiceChangeProfile))
+	dialog.AddButton("Change profile", int(ExitChoiceChangeProfile))
 	dialog.AddButton("Quit", int(ExitChoiceQuit))
 	dialog.AddButton("Shutdown", int(ExitChoiceShutdown))
 	dialog.SetDefaultSize(150, 100)

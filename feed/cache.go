@@ -109,5 +109,6 @@ func (cache *FeedCache) StopUpdating() {
 	cache.CancelDownload()
 	if cache.DownloadCommand != nil {
 		cache.DownloadCommand.Process.Kill()
+		cache.DownloadCommand = nil
 	}
 }

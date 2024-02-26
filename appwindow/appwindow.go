@@ -14,40 +14,42 @@ import (
 )
 
 type AppWindow struct {
-	Profile         *profile.Profile
-	GtkWindow       *gtk.ApplicationWindow
-	Stack           *gtk.Stack
-	MainPanel       *MainPanel
-	WarmUpPanel     *WarmUpPanel
-	VideoIndexPanel *VideoIndexPanel
-	SessionPanel    *SessionPanel
-	FeedCache       *feed.FeedCache
-	KeyController   *gtk.EventControllerKey
-	Osmc            osmc.Osmc
+	*gtk.ApplicationWindow
+	Profile           *profile.Profile
+	Stack             *gtk.Stack
+	MainPanel         *MainPanel
+	WarmUpPanel       *WarmUpPanel
+	VideoIndexPanel   *VideoIndexPanel
+	SessionPanel      *SessionPanel
+	FeedCache         *feed.FeedCache
+	KeyController     *gtk.EventControllerKey
+	Osmc              osmc.Osmc
+	RunProfileChooser func()
 }
 
 func NewAppWindow(app *gtk.Application,
 	profile *profile.Profile,
 	fullScreen bool,
 	developerMode bool,
+	runProfileChooserCallback func(),
 ) *AppWindow {
 	rtn := &AppWindow{Profile: profile}
-	rtn.GtkWindow = gtk.NewApplicationWindow(app)
-	rtn.GtkWindow.SetTitle("PiCave")
+	rtn.ApplicationWindow = gtk.NewApplicationWindow(app)
+	rtn.SetTitle("PiCave")
 
 	rtn.FeedCache = feed.NewFeedCache(profile)
 
 	rtn.Stack = gtk.NewStack()
-	rtn.GtkWindow.SetChild(rtn.Stack)
+	rtn.SetChild(rtn.Stack)
 	rtn.Stack.SetTransitionType(gtk.StackTransitionTypeSlideLeftRight)
 	rtn.Stack.SetTransitionDuration(1000)
 
 	rtn.KeyController = gtk.NewEventControllerKey()
 	rtn.KeyController.ConnectKeyPressed(rtn.OnKeyPress)
-	rtn.GtkWindow.AddController(rtn.KeyController)
+	rtn.AddController(rtn.KeyController)
 
 	if fullScreen {
-		rtn.GtkWindow.Fullscreen()
+		rtn.Fullscreen()
 	} else {
 		display := gdk.DisplayGetDefault()
 		monitors := display.Monitors()
@@ -56,7 +58,7 @@ func NewAppWindow(app *gtk.Application,
 		geometry := primary.Geometry()
 		// TODO: Is there a better option? GTK4 removed monitor.GetWorkArea,
 		// which would leave space for macOS menu bar.
-		rtn.GtkWindow.SetSizeRequest(geometry.Width(), geometry.Height())
+		rtn.SetSizeRequest(geometry.Width(), geometry.Height())
 	}
 
 	rtn.MainPanel = NewMainPanel(rtn)
@@ -74,17 +76,27 @@ func NewAppWindow(app *gtk.Application,
 	rtn.Osmc = osmc.NewOsmcRemoteControlReader("")
 	glib.TimeoutAdd(50, rtn.PollOsmc)
 
+	rtn.RunProfileChooser = runProfileChooserCallback
+
+	rtn.ConnectCloseRequest(func() bool {
+		if rtn.FeedCache != nil {
+			rtn.FeedCache.StopUpdating()
+		}
+		return false // Allow other handlers to be invoked
+	})
+
 	return rtn
 }
 
 func (window *AppWindow) DoQuitDialog() {
-	dialog := exitdialog.NewExitDialog(&window.GtkWindow.Window)
+	dialog := exitdialog.NewExitDialog(&window.Window)
 	dialog.ConnectResponse(func(responseId int) {
 		switch exitdialog.ExitChoice(responseId) {
 		case exitdialog.ExitChoiceCancel:
 			// Nothing needed
 		case exitdialog.ExitChoiceChangeProfile:
-			// Not yet supported
+			window.Close()
+			window.RunProfileChooser()
 		case exitdialog.ExitChoiceQuit:
 			window.OnQuit()
 		case exitdialog.ExitChoiceShutdown:
@@ -136,8 +148,9 @@ func (window *AppWindow) OnPlayPause() {
 }
 
 func (window *AppWindow) OnQuit() {
+	window.FeedCache.StopUpdating()
 	window.StopPlaying()
-	window.GtkWindow.Application().Quit()
+	window.Application().Quit()
 }
 
 func (window *AppWindow) OnShowHome() {
@@ -183,6 +196,7 @@ func (window *AppWindow) StopPlaying() {
 
 func (window *AppWindow) VideoCacheDirectoryUpdated() {
 	// A function to be called when the configuration is updated
+	window.FeedCache.StopUpdating()
 	window.FeedCache = feed.NewFeedCache(window.Profile)
 	window.VideoIndexPanel.RefreshDownloadStateIcons()
 }

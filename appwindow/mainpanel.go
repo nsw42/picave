@@ -36,7 +36,7 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	configButton.SetMarginBottom(100)
 	buttonBox.Append(configButton)
 	configButton.ConnectClicked(func() {
-		dialog := configdialog.NewConfigDialog(&parent.GtkWindow.Window,
+		dialog := configdialog.NewConfigDialog(&parent.Window,
 			parent.Profile,
 			func() {
 				rtn.SetWarmUpButtonSensitive()
