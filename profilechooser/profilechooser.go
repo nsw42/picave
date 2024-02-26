@@ -78,7 +78,6 @@ func NewProfileChooserWindow(app *gtk.Application, selectProfilePath string, com
 }
 
 func (window *ProfileChooserWindow) OnProfileChosen(row *gtk.ListBoxRow) {
-	// TODO: Ensure the OnClose handler doesn't trigger
 	window.CompletionCallback(window.Mru[row.Index()].ProfilePath)
 	window.Close()
 }
