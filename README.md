@@ -10,8 +10,17 @@ See [docs/setup.md](docs/setup.md) for the quick summary of how to set up a Rasp
 
 See [docs/development.md](docs/development.md) for info about getting set up to contribute to development.
 
+Currently, the only available pre-built binaries are for Raspberry Pi OS.
+However, it should run on any macOS or Linux machine. So, for now, follow the link to the development page to see how to run it on those platforms.
+(It shouldn't be hard to get it working on Windows, too. Pull requests welcome.)
+
 ## Version history
 
+* v1.5.0: Rewrite in go
+    * Minimal visible changes.
+    * The main benefit is that pre-built binaries are now available from <https://www.picave.org/download/> for Raspberry Pi OS.
+    * It should run faster, requiring far fewer CPU cycles drawing the session progress bar.
+    * It's much easier to install.
 * v1.2.0: Minor improvements:
     * It's now possible to set a custom power level for max efforts in a session (as well as the existing behaviour of a custom FTP for a session)
         * *NB* This is another backwards incompatible change: config files must be updated before running the new version
