@@ -1,13 +1,10 @@
 # Configuration
 
-A configuration file can be specified using the `-c` / `--command` command line argument.
+All configuration can be achieved through the profile editor window, accessed
+from the button on the main window.
+
+A configuration file can be specified using the `-p` / `--profile` command line argument.
 `~/.picaverc` is the default file if no argument is specified.
-
-## File format
-
-The config file is a JSON file, but the file is read using a [JSON5](https://json5.org/)
-parser, which has the benefit that it allows for comments (both single line `//` and
-multi-line `/* ... */`) and is more tolerant of trailing commas.
 
 ## Selecting players for filetypes
 
@@ -15,20 +12,18 @@ PiCave has support for different media players according to what works well on
 your platform.
 
 `omxplayer` is probably the best choice for a Raspberry Pi, but
-[mplayer](https://www.mplayerhq.hu), [mpg123](https://www.mpg123.de),
-[mpv](https://mpv.io) and [VLC](https://www.videolan.org) are supported to
-varying degrees.
+[mplayer](https://www.mplayerhq.hu), [mpg123](https://www.mpg123.de) and
+[mpv](https://mpv.io) are supported to varying degrees.
 
-VLC can be used either as a standalone sub-process, by setting the player to
-`vlc`; or to play video embedded in the PiCave window (which looks tidier, but
-loses some of the flexibility of VLC) by setting the player to `libvlc`.
+(The old, Python, version of the program also supported VLC/libvlc; it is
+hoped to reintroduce this support to the new version at some point)
 
 ## Video position
 
-Seting player for a filetype to `omxplayer` or `libvlc` will play the video
-properly embedded in the PiCave window. Other video players (`mplayer`, `mpv`,
-`vlc`) attempt to simulate this by starting the application over the top of the
-PiCave window, but the effect is not as smooth as with `omxplayer`/`libvlc`.
+Seting player for a filetype to `omxplayer` will play the video properly
+embedded in the PiCave window. Other video players attempt to simulate this by
+starting the application over the top of the PiCave window, but the effect is
+not as smooth as with `omxplayer`.
 
 ### omxplayer video position
 
@@ -38,8 +33,10 @@ appropriate `filetypes` section of the configuration file allows the video
 position to be adjusted. See the 'omxplayer parameters' section below, for
 an example.
 
-
 ## Configuration file syntax reference
+
+The rest of this file serves as a reference if you want/need to edit the
+profile file in a text editor.
 
 The file is a JSON object, and has the following top-level elements
 
@@ -109,7 +106,6 @@ The value for `parameters` is an object to tune the behaviour of PiCave when pla
 #### omxplayer parameters
 
 The size and position of the video within the window can be adjusted by specifying a margin in the parameters object. E.g.:
-
 
 ```json
 {
