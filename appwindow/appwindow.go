@@ -28,16 +28,16 @@ type AppWindow struct {
 }
 
 func NewAppWindow(app *gtk.Application,
-	profile *profile.Profile,
+	prf *profile.Profile,
 	fullScreen bool,
 	developerMode bool,
 	runProfileChooserCallback func(),
 ) *AppWindow {
-	rtn := &AppWindow{Profile: profile}
+	rtn := &AppWindow{Profile: prf}
 	rtn.ApplicationWindow = gtk.NewApplicationWindow(app)
 	rtn.SetTitle("PiCave")
 
-	rtn.FeedCache = feed.NewFeedCache(profile)
+	rtn.FeedCache = feed.NewFeedCache(prf)
 
 	rtn.Stack = gtk.NewStack()
 	rtn.SetChild(rtn.Stack)
@@ -75,6 +75,17 @@ func NewAppWindow(app *gtk.Application,
 
 	rtn.Osmc = osmc.NewOsmcRemoteControlReader("")
 	glib.TimeoutAdd(50, rtn.PollOsmc)
+
+	pollForMedia := false
+	if !prf.WarmUpMusic.Exists {
+		pollForMedia = true
+	}
+	if !rtn.FeedCache.BaseDirExists {
+		pollForMedia = true
+	}
+	if pollForMedia {
+		glib.TimeoutAdd(1000, rtn.PollForMedia)
+	}
 
 	rtn.RunProfileChooser = runProfileChooserCallback
 
@@ -167,6 +178,21 @@ func (window *AppWindow) OnShutdown() {
 	window.OnQuit()
 	cmd := exec.Command("sudo", "shutdown", "-h", "+1")
 	cmd.Run()
+}
+
+func (window *AppWindow) PollForMedia() bool {
+	if !window.Profile.WarmUpMusic.Exists {
+		window.Profile.WarmUpMusic.Refresh()
+	}
+	window.MainPanel.SetWarmUpButtonSensitive()
+	if !window.FeedCache.BaseDirExists {
+		window.FeedCache.Refresh()
+	}
+	window.VideoIndexPanel.RefreshDownloadStateIcons()
+	if window.Profile.WarmUpMusic.Exists && window.FeedCache.BaseDirExists {
+		return false // No need to call us again
+	}
+	return true
 }
 
 func (window *AppWindow) PollOsmc() bool {

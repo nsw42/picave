@@ -20,6 +20,8 @@ const (
 
 type FeedCache struct {
 	// all cache items are indexed by video id
+	Profile         *profile.Profile
+	BaseDirExists   bool
 	State           map[string]DownloadState
 	Path            map[string]string
 	DownloadCommand *exec.Cmd
@@ -27,12 +29,12 @@ type FeedCache struct {
 	CancelDownload  context.CancelFunc
 }
 
-func lookForVideo(profile *profile.Profile, itemId string) (string, DownloadState) {
+func (cache *FeedCache) lookForVideo(itemId string) (string, DownloadState) {
 	// Returns path and download state
-	if profile.VideoCacheDirectory == "" {
+	if !cache.BaseDirExists {
 		return "", DownloadBlocked
 	}
-	matches, err := filepath.Glob(filepath.Join(profile.VideoCacheDirectory, itemId+".*"))
+	matches, err := filepath.Glob(filepath.Join(cache.Profile.VideoCacheDirectory, itemId+".*"))
 	if err != nil {
 		return "", NotDownloaded
 	}
@@ -53,21 +55,34 @@ func lookForVideo(profile *profile.Profile, itemId string) (string, DownloadStat
 }
 
 func NewFeedCache(profile *profile.Profile) *FeedCache {
-	cache := &FeedCache{}
-	cache.State = map[string]DownloadState{}
-	cache.Path = map[string]string{}
+	cache := &FeedCache{Profile: profile}
+	cache.Refresh()
 	ctx := context.Background()
 	cache.DownloadContext, cache.CancelDownload = context.WithCancel(ctx)
-	for _, item := range Index {
-		cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
-	}
-	go cache.StartDownloads(profile)
 	return cache
 }
 
-func (cache *FeedCache) StartDownloads(profile *profile.Profile) {
+func (cache *FeedCache) Refresh() {
+	// Check whether the configured video cache directory now exists, and start downloading if it does.
+	cache.BaseDirExists = false
+	if stat, err := os.Stat(cache.Profile.VideoCacheDirectory); err == nil {
+		if stat.IsDir() {
+			cache.BaseDirExists = true
+		}
+	}
+	cache.State = map[string]DownloadState{}
+	cache.Path = map[string]string{}
+	for _, item := range Index {
+		cache.Path[item.Id], cache.State[item.Id] = cache.lookForVideo(item.Id) // Ensure we set DownloadBlocked for every video if the VideoCacheDirectory doesn't exist
+	}
+	if cache.BaseDirExists {
+		go cache.StartDownloads()
+	}
+}
+
+func (cache *FeedCache) StartDownloads() {
 	downloadItemChannel := make(chan int)
-	go cache.DoDownloads(profile, downloadItemChannel)
+	go cache.DoDownloads(downloadItemChannel)
 	for itemIndex, item := range Index {
 		if cache.State[item.Id] == NotDownloaded {
 			downloadItemChannel <- itemIndex
@@ -75,13 +90,13 @@ func (cache *FeedCache) StartDownloads(profile *profile.Profile) {
 	}
 }
 
-func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan int) {
-	ytdlp := profile.Executables["youtube-dl"].ExePath()
+func (cache *FeedCache) DoDownloads(itemIndexChan chan int) {
+	ytdlp := cache.Profile.Executables["youtube-dl"].ExePath()
 	if ytdlp == "" {
 		log.Println("No path configured for youtube-dl, and unable to find it on the PATH. Download not possible.")
 		return
 	}
-	cacheDir := profile.VideoCacheDirectory // Guaranteed not empty if we're actually going to use it: cache.State[itemId] = DownloadBlocked if there's no cache dir
+	cacheDir := cache.Profile.VideoCacheDirectory // *Should* exist by the time we're going to use it: Refresh() only calls StartDownloads once the directory is found (but TOCTOU)
 	for {
 		select {
 		case <-cache.DownloadContext.Done():
@@ -98,7 +113,7 @@ func (cache *FeedCache) DoDownloads(profile *profile.Profile, itemIndexChan chan
 			err := cache.DownloadCommand.Run()
 			if err == nil {
 				// Download (presumably) successful
-				cache.Path[item.Id], cache.State[item.Id] = lookForVideo(profile, item.Id)
+				cache.Path[item.Id], cache.State[item.Id] = cache.lookForVideo(item.Id)
 			}
 			cache.DownloadCommand = nil
 		}

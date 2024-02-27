@@ -82,6 +82,11 @@ func (panel *MainPanel) ShouldEnableWarmUpButton() bool {
 		return false
 	}
 
+	if !prf.WarmUpMusic.Exists {
+		log.Println("Warm up music directory configured, but it doesn't exist")
+		return false
+	}
+
 	mp3Player := prf.FiletypePlayers[".mp3"]
 	if mp3Player == nil {
 		log.Println("No player enabled for .mp3 files")
