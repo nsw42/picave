@@ -28,6 +28,7 @@ type Arguments struct {
 	OsmcPath           string
 	DeveloperMode      bool
 	ShowProfileChooser bool
+	HideMousePointer   bool
 }
 
 var appWindow *appwindow.AppWindow
@@ -55,6 +56,7 @@ func parseArgs() (Arguments, bool) {
 	chooserArg := parser.Flag("c", "show-profile-chooser", &argparse.Options{Help: "Show the profile chooser at launch"})
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
 	developerModeArg := parser.Flag("d", "developer", &argparse.Options{Help: "Enable developer mode. Include things like the video id in the index panel"})
+	hideMousePointerArg := parser.Flag("m", "hide-mouse-pointer", &argparse.Options{Help: "Hide the mouse pointer when it is over the main window"})
 
 	if err := parser.Parse(os.Args); err != nil {
 		fmt.Println(err)
@@ -68,6 +70,7 @@ func parseArgs() (Arguments, bool) {
 		OsmcPath:           *osmcPathArg,
 		DeveloperMode:      *developerModeArg,
 		ShowProfileChooser: *chooserArg,
+		HideMousePointer:   *hideMousePointerArg,
 	}
 
 	return args, true
@@ -125,6 +128,7 @@ func (app *Application) showMainWindow(profilePath string) {
 		prf,
 		app.Arguments.Fullscreen,
 		app.Arguments.DeveloperMode,
+		app.Arguments.HideMousePointer,
 		app.RunProfileChooser)
 	appWindow.Show()
 }

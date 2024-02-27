@@ -31,6 +31,7 @@ func NewAppWindow(app *gtk.Application,
 	prf *profile.Profile,
 	fullScreen bool,
 	developerMode bool,
+	hideMousePointer bool,
 	runProfileChooserCallback func(),
 ) *AppWindow {
 	rtn := &AppWindow{Profile: prf}
@@ -88,6 +89,12 @@ func NewAppWindow(app *gtk.Application,
 	}
 
 	rtn.RunProfileChooser = runProfileChooserCallback
+
+	if hideMousePointer {
+		rtn.ConnectRealize(func() {
+			rtn.Window.SetCursorFromName("none")
+		})
+	}
 
 	rtn.ConnectCloseRequest(func() bool {
 		if rtn.FeedCache != nil {
