@@ -28,7 +28,8 @@ func NewMainPanel(parent *AppWindow) *MainPanel {
 	buttonBox.SetMarginTop(border)
 	buttonBox.SetMarginBottom(border)
 
-	configButton := gtk.NewButtonFromIconName("preferences-other-symbolic")
+	configIcon := findIcon([]string{"preferences-color-symbolic", "preferences-other-symbolic"})
+	configButton := gtk.NewButtonFromIconName(configIcon)
 	configButton.SetHAlign(gtk.AlignEnd)
 	configButton.SetVAlign(gtk.AlignStart)
 	configButton.SetHExpand(false)
