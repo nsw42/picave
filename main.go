@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"nsw42/picave/appwindow"
@@ -10,11 +11,15 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/akamensky/argparse"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
+
+//go:embed "version.txt"
+var Version string
 
 type Application struct {
 	*gtk.Application
@@ -29,6 +34,7 @@ type Arguments struct {
 	DeveloperMode      bool
 	ShowProfileChooser bool
 	HideMousePointer   bool
+	ShowVersion        bool
 }
 
 var appWindow *appwindow.AppWindow
@@ -57,6 +63,7 @@ func parseArgs() (Arguments, bool) {
 	fullscreenArg := parser.Flag("", "fullscreen", &argparse.Options{Default: false, Help: "Run the application full-screen"})
 	developerModeArg := parser.Flag("d", "developer", &argparse.Options{Help: "Enable developer mode. Include things like the video id in the index panel"})
 	hideMousePointerArg := parser.Flag("m", "hide-mouse-pointer", &argparse.Options{Help: "Hide the mouse pointer when it is over the main window"})
+	showVersionArg := parser.Flag("V", "version", &argparse.Options{Help: "Show version string and exit"})
 
 	if err := parser.Parse(os.Args); err != nil {
 		fmt.Println(err)
@@ -71,6 +78,7 @@ func parseArgs() (Arguments, bool) {
 		DeveloperMode:      *developerModeArg,
 		ShowProfileChooser: *chooserArg,
 		HideMousePointer:   *hideMousePointerArg,
+		ShowVersion:        *showVersionArg,
 	}
 
 	return args, true
@@ -79,6 +87,12 @@ func parseArgs() (Arguments, bool) {
 func main() {
 	args, ok := parseArgs()
 	if !ok {
+		return
+	}
+
+	if args.ShowVersion {
+		ver, _ := strings.CutSuffix(Version, "\n")
+		fmt.Println("PiCave", ver)
 		return
 	}
 
