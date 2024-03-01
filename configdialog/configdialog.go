@@ -192,56 +192,72 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 	slices.Sort(filetypes)
 	dialog.FiletypeControls = make(map[string]*FiletypeControl, len(filetypes))
 	for _, filetypeSuffix := range filetypes {
-		// left: label
-		grid.Attach(gtk.NewLabel(filetypeSuffix), ThreeColGridLeft, y, 1, 1)
-		// middle: dropdown
-		var playerNames []string
-		if filetypeSuffix == ".mp3" {
-			playerNames = maps.Keys[map[string]players.MusicPlayerCreator](players.MusicPlayerLookup)
-		} else {
-			playerNames = maps.Keys[map[string]players.VideoPlayerCreator](players.VideoPlayerLookup)
-		}
-		filetypePlayer := dialog.Profile.FiletypePlayers[filetypeSuffix]
-		dropdown := gtk.NewDropDownFromStrings(playerNames)
-		if filetypePlayer == nil {
-			dropdown.SetSelected(InvalidListPosition)
-		} else {
-			dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
-		}
-		grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
-		// right: options and parameters
-		optsAndParamsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
-		optsEntry := gtk.NewEntry()
-		if filetypePlayer != nil {
-			optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
-		}
-		optsEntry.SetHExpand(true)
-		optsAndParamsBox.Append(optsEntry)
-		paramsButton := gtk.NewButtonWithLabel("Parameters")
-		paramsButton.ConnectClicked(func() {
-			dialog.OnFiletypePlayerParamsButtonClicked(filetypeSuffix)
-		})
-		if filetypePlayer == nil || filetypePlayer.Name != "omxplayer" {
-			paramsButton.Hide()
-		}
-		dropdown.Connect("notify::selected-item", func() {
-			if dropdown.SelectedItem().Cast().(*gtk.StringObject).String() == "omxplayer" {
-				paramsButton.Show()
-			} else {
-				paramsButton.Hide()
-			}
-		})
-		optsAndParamsBox.Append(paramsButton)
-		grid.Attach(optsAndParamsBox, ThreeColGridRight, y, 1, 1)
-
-		var margins profile.Margins
-		if filetypePlayer != nil {
-			margins = filetypePlayer.Margins
-		}
-		dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, margins}
+		dialog.initFiletypesGridOneRow(grid, y, filetypeSuffix)
 		y++
 	}
 	return grid
+}
+
+func findAvailablePlayers[V any](playerLookup map[string]V, executables map[string]*profile.Executable) []string {
+	playerNames := []string{}
+	for exeName := range playerLookup {
+		if executables[exeName].ExePath() != "" {
+			playerNames = append(playerNames, exeName)
+		}
+	}
+	return playerNames
+}
+
+func (dialog *ConfigDialog) initFiletypesGridOneRow(grid *gtk.Grid, y int, filetypeSuffix string) {
+	// left: label
+	grid.Attach(gtk.NewLabel(filetypeSuffix), ThreeColGridLeft, y, 1, 1)
+
+	// middle: dropdown
+	var playerNames []string
+	if filetypeSuffix == ".mp3" {
+		playerNames = findAvailablePlayers[players.MusicPlayerCreator](players.MusicPlayerLookup, dialog.Profile.Executables)
+	} else {
+		playerNames = findAvailablePlayers[players.VideoPlayerCreator](players.VideoPlayerLookup, dialog.Profile.Executables)
+	}
+	filetypePlayer := dialog.Profile.FiletypePlayers[filetypeSuffix]
+	dropdown := gtk.NewDropDownFromStrings(playerNames)
+	if filetypePlayer == nil {
+		dropdown.SetSelected(InvalidListPosition)
+	} else {
+		dropdown.SetSelected(uint(slices.Index(playerNames, filetypePlayer.Name)))
+	}
+	grid.Attach(dropdown, ThreeColGridMiddle, y, 1, 1)
+
+	// right: options and parameters
+	optsAndParamsBox := gtk.NewBox(gtk.OrientationHorizontal, 6)
+	optsEntry := gtk.NewEntry()
+	if filetypePlayer != nil {
+		optsEntry.SetText(strings.Join(filetypePlayer.Options, " "))
+	}
+	optsEntry.SetHExpand(true)
+	optsAndParamsBox.Append(optsEntry)
+	paramsButton := gtk.NewButtonWithLabel("Parameters")
+	paramsButton.ConnectClicked(func() {
+		dialog.OnFiletypePlayerParamsButtonClicked(filetypeSuffix)
+	})
+	if filetypePlayer == nil || filetypePlayer.Name != "omxplayer" {
+		paramsButton.Hide()
+	}
+	dropdown.Connect("notify::selected-item", func() {
+		if dropdown.SelectedItem().Cast().(*gtk.StringObject).String() == "omxplayer" {
+			paramsButton.Show()
+		} else {
+			paramsButton.Hide()
+		}
+	})
+	optsAndParamsBox.Append(paramsButton)
+	grid.Attach(optsAndParamsBox, ThreeColGridRight, y, 1, 1)
+
+	var margins profile.Margins
+	if filetypePlayer != nil {
+		margins = filetypePlayer.Margins
+	}
+	dialog.FiletypeControls[filetypeSuffix] = &FiletypeControl{dropdown, optsEntry, margins}
 }
 
 func (dialog *ConfigDialog) OnFiletypePlayerParamsButtonClicked(filetypeSuffix string) {
