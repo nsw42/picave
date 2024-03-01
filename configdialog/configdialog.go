@@ -205,6 +205,7 @@ func findAvailablePlayers[V any](playerLookup map[string]V, executables map[stri
 			playerNames = append(playerNames, exeName)
 		}
 	}
+	slices.Sort[[]string](playerNames)
 	return playerNames
 }
 
