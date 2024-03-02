@@ -1,7 +1,6 @@
 package appwindow
 
 import (
-	"fmt"
 	"nsw42/picave/exitdialog"
 	"nsw42/picave/feed"
 	"nsw42/picave/osmc"
@@ -140,7 +139,7 @@ func (window *AppWindow) OnBackKey() {
 func (window *AppWindow) OnKeyPress(keyval uint, keycode uint, state gdk.ModifierType) bool {
 	switch {
 	default:
-		fmt.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
+		// log.Println("Unhandled key press: keyval: ", keyval, "; keycode: ", keycode, "; modifier:", state)
 		return false
 	case (keyval == 'c') && (state == 0): // OSMC 'index' button
 		window.OnShowIndex()
