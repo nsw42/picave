@@ -1,0 +1,124 @@
+{
+    "title": "Config file schema",
+    "description": "Validation for config.json",
+    "type": "object",
+    "properties": {
+        "video_cache_directory": {
+            "description": "Where to store cached video files",
+            "type": "string"
+        },
+        "warm_up_music_directory": {
+            "description": "Where to find MP3s of music for warm-up",
+            "type": "string"
+        },
+        "executables": {
+            "description": "Where to find executables",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "$comment": { "$comment": "NB. This list must be a superset of the 'supported_players' enum, with any additional binaries that are needed. Currently, that's only youtube-dl." },
+                "mpg123": { "$ref": "#/$defs/executable" },
+                "mplayer": { "$ref": "#/$defs/executable" },
+                "mpv": { "$ref": "#/$defs/executable" },
+                "omxplayer": { "$ref": "#/$defs/executable" },
+                "youtube-dl": { "$ref": "#/$defs/executable" }
+            }
+        },
+        "filetypes": {
+            "description": "Which player to use for which file extension",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                ".mp3": { "$ref": "#/$defs/player" },
+                ".mp4": { "$ref": "#/$defs/player" },
+                ".mkv": { "$ref": "#/$defs/player" }
+            }
+        },
+        "favourites": {
+            "description": "List of ids of sessions to highlight",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "show_favourites_only": {
+            "description": "Whether to show only favourite (true) or all (false) videos",
+            "type": "boolean"
+        },
+        "power_levels": {
+            "description": "Configured power levels (one or both of FTP and MAX) for the current user, stored as a mapping from video id (or the literal 'default') to an object that maps 'FTP' or 'MAX' to an absolute value, or a string that is a percentage of FTP. (Obvs, default FTP cannot be a percentage of FTP)",
+            "type": "object",
+            "required": ["default"],
+            "properties": {
+                "default": {
+                    "type": "object",
+                    "required": ["FTP"]
+                }
+            },
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "FTP": { "type": "integer" },
+                        "MAX": {
+                            "oneOf": [
+                                { "type": "integer" },
+                                { "type": "string", "pattern": "^[0-9.]*%?$" }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "required": ["video_cache_directory"],
+    "$defs": {
+        "executable": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "path": {
+                    "description": "The path of the binary",
+                    "type": "string"
+                }
+            },
+            "required": ["path"]
+        },
+        "player": {
+            "type": "object",
+            "properties": {
+                "player": {
+                    "$ref": "#/$defs/supported_players"
+                },
+                "options": {
+                    "description": "Command-line arguments for the player",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parameters": {
+                    "description": "Parameters that control the behaviour of the player",
+                    "type": "object",
+                    "parameters": {
+                        "margin_left": { "type": "integer" },
+                        "margin_right": { "type": "integer" },
+                        "margin_top": { "type": "integer" },
+                        "margin_bottom": { "type": "integer" }
+                    }
+                }
+            },
+            "required": ["player"]
+        },
+        "supported_players": {
+            "description": "The player to use to play this type of file",
+            "type": "string",
+            "enum": [
+                "mpg123",
+                "mplayer",
+                "mpv",
+                "omxplayer"
+            ]
+        }
+    }
+}
