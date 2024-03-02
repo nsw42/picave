@@ -11,13 +11,19 @@ fi
 
 VER=$(git describe)
 DATE=$(date +%Y-%m-%d)
-echo "$VER ($DATE)" > version.txt
+echo "$VER ($DATE)" > src/version.txt
 
 cross_compile() {
   echo ======================== Building with $1 ========================
   builder=$1
   destdir=$2
-  docker run -it --rm -v ./src:/go/src $MAP_PKG_DIR_ARGS -v $destdir:/go/output -w /go/src "$builder" sh -c '[ -f /etc/profile.d/go_cross.sh ] && . /etc/profile.d/go_cross.sh; go mod tidy; go build -v -ldflags "-s -w" -o /go/output/picave .'
+  # The .git folder and the LICENSE file are needed for SBOM generation
+  docker run -it --rm -v ./.git:/go/.git -v ./src:/go/src -v ./LICENSE:/go/src/LICENSE -v $destdir:/go/output -w /go/src "$builder" sh -c '
+    [ -f /etc/profile.d/go_cross.sh ] && . /etc/profile.d/go_cross.sh;
+    go mod tidy;
+    go build -v -ldflags "-s -w" -o /go/output/picave .;
+    cyclonedx-gomod app -json -output /go/output/picave.sbom.json -licenses -packages -std;
+  '
 }
 
 cross_compile gotk-cross-builder-alpine3.19-armhf  ./dist/alpine3.19-armhf

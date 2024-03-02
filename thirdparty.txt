@@ -1,12 +1,19 @@
 Like pretty much every other piece of software, PiCave would not be possible
 without the use of third-party software. Most of it is not included in the
-PiCave distribution itself, but fetched as part of the installation process.
-The licenses of those few files that are included as part of PiCave are listed
-in this file, including information about where they're used in PiCave.
+PiCave source itself, but fetched as part of the build process.  The licenses
+of those few files that are included as part of PiCave source are listed in
+this file, including information about where they're used in PiCave.
+
+The licenses of the packages that are downloaded and included in the built
+application are listed in an SBOM available from https://www.picave.org/
+
+If you have built the application yourself, you can review the licenses of the
+packages used using a tool like https://github.com/google/go-licenses or
+https://github.com/CycloneDX/cyclonedx-gomod
 
 ==============================================================================
 
-src/rgb.txt is from
+src/feed/rgb.txt is from
 https://gitlab.freedesktop.org/xorg/app/rgb/-/blob/master/rgb.txt
 
 Copyright 1985, 1989, 1998  The Open Group

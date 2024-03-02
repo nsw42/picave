@@ -6,5 +6,4 @@ __pycache__
 run.log
 tags
 picave
-dist/linuxarm64/picave
-dist/linuxarmhf/picave
+src/LICENSE
