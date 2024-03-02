@@ -150,9 +150,13 @@ func (dialog *ConfigDialog) SaveValuesToProfile() {
 			dialog.Profile.FiletypePlayers[filetypeSuffix] = nil
 		} else {
 			player := selected.Cast().(*gtk.StringObject).String()
+			opts := []string{}
+			if controls.Entry.Text() != "" {
+				opts = strings.Fields(controls.Entry.Text())
+			}
 			dialog.Profile.FiletypePlayers[filetypeSuffix] = &profile.FiletypePlayerOptions{
 				Name:    player,
-				Options: strings.Split(controls.Entry.Text(), " "),
+				Options: opts,
 				Margins: controls.Margins,
 			}
 		}
