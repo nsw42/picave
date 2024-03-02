@@ -2,6 +2,14 @@
 
 set -e
 
+if [ "$1" = "--release" ]; then
+  echo Release build
+  go clean -r -cache -testcache -modcache -fuzzcache
+  VER=$(git describe)
+  DATE=$(date +%Y-%m-%d)
+  echo "$VER ($DATE)" > version.txt
+fi
+
 cross_compile() {
   echo ======================== Building with $1 ========================
   builder=$1
