@@ -1,7 +1,7 @@
 package musicdir
 
 import (
-	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -34,7 +34,7 @@ func (musicDir *MusicDirectory) traverse(absolutePath string, relativePath strin
 	// Returns true if the given directory exists; false otherwise
 	files, err := os.ReadDir(absolutePath)
 	if err != nil {
-		fmt.Println("Failed traversing ", absolutePath, " (", relativePath, ")")
+		log.Println("Failed traversing ", absolutePath, " (", relativePath, ")")
 		return false
 	}
 	for _, file := range files {

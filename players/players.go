@@ -1,7 +1,7 @@
 package players
 
 import (
-	"fmt"
+	"log"
 	"nsw42/picave/profile"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -46,12 +46,12 @@ func registerMusicPlayer(playerName string, creator MusicPlayerCreator) {
 func CreateMusicPlayerForExt(profile *profile.Profile, ext string) MusicPlayer {
 	player, ok := profile.FiletypePlayers[ext]
 	if !ok || player == nil {
-		fmt.Println("No known player for files of type " + ext)
+		log.Println("No known player for files of type " + ext)
 		return nil
 	}
 	playerCreator, ok := MusicPlayerLookup[player.Name]
 	if !ok || playerCreator == nil {
-		fmt.Println("Player lookup failed for " + player.Name)
+		log.Println("Player lookup failed for " + player.Name)
 		return nil
 	}
 	return playerCreator(profile)
@@ -68,12 +68,12 @@ func registerVideoPlayer(playerName string, creator VideoPlayerCreator) {
 func CreateVideoPlayerForExt(profile *profile.Profile, ext string) VideoPlayer {
 	player, ok := profile.FiletypePlayers[ext]
 	if !ok || player == nil {
-		fmt.Println("No known player for files of type " + ext)
+		log.Println("No known player for files of type " + ext)
 		return nil
 	}
 	playerCreator, ok := VideoPlayerLookup[player.Name]
 	if !ok || playerCreator == nil {
-		fmt.Println("Player lookup failed for " + player.Name)
+		log.Println("Player lookup failed for " + player.Name)
 		return nil
 	}
 	return playerCreator(profile, player)

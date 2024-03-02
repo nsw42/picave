@@ -1,7 +1,7 @@
 package appwindow
 
 import (
-	"fmt"
+	"log"
 	"nsw42/picave/feed"
 	"nsw42/picave/players"
 	"nsw42/picave/widgets"
@@ -86,7 +86,7 @@ func (panel *SessionPanel) Play(session *feed.SessionDefinition) {
 	panel.Session = session
 	panel.VideoFile = panel.Parent.FeedCache.Path[session.VideoId]
 	if panel.VideoFile == "" {
-		fmt.Println("No local video file found for video id: " + session.VideoId)
+		log.Println("No local video file found for video id: " + session.VideoId)
 		return
 	}
 	panel.Player = players.CreateVideoPlayerForExt(panel.Parent.Profile, filepath.Ext(panel.VideoFile))

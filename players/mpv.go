@@ -3,6 +3,7 @@ package players
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"nsw42/picave/profile"
 	"os/exec"
@@ -51,18 +52,18 @@ func (player *MpvPlayer) sendCommand(command []byte) {
 	if player.Socket == nil {
 		socket, err := net.Dial("unix", player.IpcAddress)
 		if err != nil {
-			fmt.Println("Unable to create socket to connect to " + player.IpcAddress)
+			log.Println("Unable to create socket to connect to " + player.IpcAddress)
 			return
 		}
 		player.Socket = socket
 	}
 	n, err := player.Socket.Write(command)
 	if err != nil {
-		fmt.Println("Failed to write to socket: " + err.Error())
+		log.Println("Failed to write to socket: " + err.Error())
 		return
 	}
 	if n < len(command) {
-		fmt.Println("Truncated write to socket:", n, "of", len(command))
+		log.Println("Truncated write to socket:", n, "of", len(command))
 		return
 	}
 }

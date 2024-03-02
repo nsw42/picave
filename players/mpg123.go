@@ -1,7 +1,7 @@
 package players
 
 import (
-	"fmt"
+	"log"
 	"nsw42/picave/profile"
 	"os"
 	"os/exec"
@@ -36,12 +36,12 @@ func (player *Mpg123Player) Play(file string) {
 func (player *Mpg123Player) PlayPause() {
 	// Based on https://stackoverflow.com/questions/17416158/python-2-7-subprocess-control-interaction-with-mpg123
 	if player.ChildPty == nil {
-		fmt.Println("No pipe for child")
+		log.Println("No pipe for child")
 		return
 	}
 	n, err := player.ChildPty.Write([]byte{'s'})
 	if err != nil || n == 0 {
-		fmt.Println("Failed writting to child pipe: ", err.Error())
+		log.Println("Failed writting to child pipe: ", err.Error())
 		return
 	}
 	if player.State == PlayerPlaying {
