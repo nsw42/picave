@@ -205,7 +205,8 @@ func (dialog *ConfigDialog) initFiletypesGrid() *gtk.Grid {
 func findAvailablePlayers[V any](playerLookup map[string]V, executables map[string]*profile.Executable) []string {
 	playerNames := []string{}
 	for exeName := range playerLookup {
-		if executables[exeName].ExePath() != "" {
+		// nil executable means that it's a built-in player, like libvlc
+		if executables[exeName] == nil || executables[exeName].ExePath() != "" {
 			playerNames = append(playerNames, exeName)
 		}
 	}
