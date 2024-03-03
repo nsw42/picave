@@ -68,8 +68,8 @@ func (player *Mpg123Player) launch(file string) {
 	allOpts := []string{file}
 	allOpts = append(allOpts, opts...)
 	allOpts = append(allOpts, "--control")
-	player.State = PlayerPlaying
 	player.Command = exec.Command(exe, allOpts...)
+	player.State = PlayerPlaying
 	pty, err := pty.Start(player.Command)
 	if err == nil {
 		player.ChildPty = pty
