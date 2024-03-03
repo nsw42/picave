@@ -17,6 +17,7 @@
             "additionalProperties": false,
             "properties": {
                 "$comment": { "$comment": "NB. This list must be a superset of the 'supported_players' enum, with any additional binaries that are needed. Currently, that's only youtube-dl." },
+                "ffplay": { "$ref": "#/$defs/executable" },
                 "mpg123": { "$ref": "#/$defs/executable" },
                 "mplayer": { "$ref": "#/$defs/executable" },
                 "mpv": { "$ref": "#/$defs/executable" },
@@ -114,6 +115,7 @@
             "description": "The player to use to play this type of file",
             "type": "string",
             "enum": [
+                "ffplay",
                 "mpg123",
                 "mplayer",
                 "mpv",
