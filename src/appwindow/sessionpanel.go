@@ -19,14 +19,13 @@ type SessionPanel struct {
 	IntervalWidget *widgets.IntervalWidget
 	Session        *feed.SessionDefinition
 	VideoFile      string
-	Realized       bool
 	SizeKnown      bool
 	Player         players.VideoPlayer
 	TimerHandle    glib.SourceHandle
 }
 
 func NewSessionPanel(parent *AppWindow) *SessionPanel {
-	rtn := &SessionPanel{Parent: parent, VideoFile: "", Realized: false, SizeKnown: false}
+	rtn := &SessionPanel{Parent: parent, VideoFile: "", SizeKnown: false}
 
 	rtn.BlankVideoArea = gtk.NewDrawingArea()
 	rtn.BlankVideoArea.SetDrawFunc(rtn.OnDraw)
@@ -42,8 +41,6 @@ func NewSessionPanel(parent *AppWindow) *SessionPanel {
 	rtn.Contents.Append(rtn.BlankVideoArea)
 	rtn.Contents.Append(rtn.IntervalWidget)
 
-	rtn.Contents.ConnectRealize(rtn.OnRealized)
-
 	return rtn
 }
 
@@ -57,16 +54,11 @@ func (panel *SessionPanel) OnPlayPause() {
 	panel.IntervalWidget.PlayPause()
 }
 
-func (panel *SessionPanel) OnRealized() {
-	panel.Realized = true
-	panel.StartPlayingIfAllPrerequisitesAvailable()
-}
-
 func (panel *SessionPanel) OnResized(width int, height int) {
 	panel.SizeKnown = true
 	// This might be the final event allowing us to actually start playback,
 	// or it might be a size change when we're already playing
-	if panel.Player != nil {
+	if panel.Player.PlayerState() == players.PlayerPlaying {
 		// TODO: inform the player of the window size change
 	} else {
 		panel.StartPlayingIfAllPrerequisitesAvailable()
@@ -97,7 +89,7 @@ func (panel *SessionPanel) Play(session *feed.SessionDefinition) {
 }
 
 func (panel *SessionPanel) StartPlayingIfAllPrerequisitesAvailable() {
-	if panel.VideoFile != "" && panel.Realized {
+	if panel.VideoFile != "" && panel.SizeKnown {
 		// Skipping starting video in the event of a missing player means that we add the timer,
 		// which causes us to stop and jump back to the index. If we skip this entire block,
 		// people are just faced with a blank window.
