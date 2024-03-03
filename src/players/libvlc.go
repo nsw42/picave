@@ -34,26 +34,26 @@ func init() {
 	// vlc.Release?
 }
 
-type VlcPlayer struct {
+type LibVlcPlayer struct {
 	State   PlayerState
 	Profile *profile.Profile
 	Command *exec.Cmd
 	Vlc     *vlc.Player
 }
 
-func NewVlcPlayer(profile *profile.Profile, options *profile.FiletypePlayerOptions) VideoPlayer {
-	return &VlcPlayer{PlayerNotStarted, profile, nil, nil}
+func NewLibVlcPlayer(profile *profile.Profile, options *profile.FiletypePlayerOptions) VideoPlayer {
+	return &LibVlcPlayer{PlayerNotStarted, profile, nil, nil}
 }
 
 func init() {
-	registerVideoPlayer("vlc", NewVlcPlayer)
+	registerVideoPlayer("libvlc", NewLibVlcPlayer)
 }
 
-func (player *VlcPlayer) PlayerState() PlayerState {
+func (player *LibVlcPlayer) PlayerState() PlayerState {
 	return player.State
 }
 
-func (player *VlcPlayer) Play(file string, parent *gtk.Widget) *gtk.Widget {
+func (player *LibVlcPlayer) Play(file string, parent *gtk.Widget) *gtk.Widget {
 	drawingArea := gtk.NewDrawingArea()
 	drawingArea.SetParent(parent)
 	drawingArea.ConnectRealize(func() {
@@ -76,27 +76,27 @@ func (player *VlcPlayer) Play(file string, parent *gtk.Widget) *gtk.Widget {
 	return &drawingArea.Widget
 }
 
-func (player *VlcPlayer) PlayPause() {
+func (player *LibVlcPlayer) PlayPause() {
 	if player.Vlc != nil {
 		player.Vlc.TogglePause()
 	}
 }
 
-func (player *VlcPlayer) Stop() {
+func (player *LibVlcPlayer) Stop() {
 	if player.Vlc != nil {
 		player.Vlc.Stop()
 	}
 }
 
-func (player *VlcPlayer) launch(file string) {
-	vlcPlayer, err := vlc.NewPlayer()
+func (player *LibVlcPlayer) launch(file string) {
+	LibvlcPlayer, err := vlc.NewPlayer()
 	if err != nil {
 		log.Println("Unable to launch VLC")
 		player.State = PlayerFinished
 		return
 	}
-	player.Vlc = vlcPlayer
-	media, err := vlcPlayer.LoadMediaFromPath(file)
+	player.Vlc = LibvlcPlayer
+	media, err := LibvlcPlayer.LoadMediaFromPath(file)
 	if err != nil {
 		log.Println("Unable to open media " + file)
 		player.State = PlayerFinished
@@ -105,6 +105,6 @@ func (player *VlcPlayer) launch(file string) {
 	defer media.Release()
 
 	player.State = PlayerPlaying
-	vlcPlayer.Play()
+	LibvlcPlayer.Play()
 	player.State = PlayerFinished
 }
