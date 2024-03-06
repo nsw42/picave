@@ -1,11 +1,9 @@
 package players
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"nsw42/picave/profile"
-	"os/exec"
 
 	"github.com/basilfx/go-omxplayer"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -20,24 +18,6 @@ type OmxPlayer struct {
 
 func init() {
 	registerVideoPlayer("omxplayer", NewOmxPlayer)
-}
-
-func getVideoSize(filepath string) (int, int) {
-	cmd := exec.Command("ffprobe", "-v", "error", "-print_format", "json", "-select_streams", "v:0", "-show_entries", "stream=width,height", filepath)
-	output, err := cmd.Output()
-	if err != nil {
-		return 0, 0
-	}
-	var outputMap map[string]any
-	if json.Unmarshal(output, &outputMap) != nil {
-		return 0, 0
-	}
-	streams := outputMap["streams"].([]any)
-	stream := streams[0]
-	streamMap := stream.(map[string]any)
-	width := int(streamMap["width"].(float64))
-	height := int(streamMap["height"].(float64))
-	return width, height
 }
 
 func NewOmxPlayer(profile *profile.Profile, options *profile.FiletypePlayerOptions) VideoPlayer {
@@ -58,14 +38,8 @@ func (player *OmxPlayer) Play(filepath string, parent *gtk.Widget) *gtk.Widget {
 	windowH := window.Height() - player.Options.Margins.Top - player.Options.Margins.Bottom
 	log.Println("Target playback size: ", windowW, "x", windowH, " at ", windowX, ",", windowY)
 
-	videoW, videoH := getVideoSize(filepath)
-	log.Println("Video size: ", videoW, "x", videoH)
-
-	widthRatio := float64(windowW) / float64(videoW)
-	heightRatio := float64(windowH) / float64(videoH)
-
-	drawRatio := min(widthRatio, heightRatio)
-
+	drawRatio := getVideoScale(filepath, windowW, windowH)
+	videoW, videoH := getVideoSize(filepath) // This duplicates a call to ffprobe, which could be optimised if the delay is noticeable
 	drawW := int(float64(videoW) * drawRatio)
 	drawH := int(float64(videoH) * drawRatio)
 
