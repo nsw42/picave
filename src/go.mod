@@ -12,7 +12,7 @@ require (
 	github.com/tcolgate/mp3 v0.0.0-20170426193717-e79c5a46d300
 	github.com/titanous/json5 v1.0.0
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
-	golang.org/x/sys v0.0.0-20190422165155-953cdadca894
+	golang.org/x/sys v0.18.0
 )
 
 require (
